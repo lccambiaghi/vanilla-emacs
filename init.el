@@ -132,36 +132,41 @@
   :demand t
   :config
   (general-evil-setup)
+
   (general-create-definer my/leader-keys
     :keymaps '(normal insert visual emacs)
     :prefix "SPC"
     :global-prefix "C-SPC")
+
+  (general-create-definer my/local-leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix ","
+    :global-prefix "SPC m")
 
   (my/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
     "`" '(switch-to-other-buffer :which-key "prev buffer")
 
     "b" '(:ignore t :which-key "buffer")
-    ;; "bb"  'persp-switch-to-buffer
     "br"  'revert-buffer
+    "bd"  'kill-current-buffer
 
     "f" '(:ignore t :which-key "file")
     "ff"  'find-file
     "fs" 'save-buffer
     "fr" 'recentf-open-files
 
+    "g" '(:ignore t :which-key "git")
+
     "h" '(:ignore t :which-key "describe")
     "hv" 'describe-variable
     "he" 'view-echo-area-messages
     "hp" 'describe-package
     "hf" 'describe-function
+    "hF" 'describe-face
     "hk" 'describe-key
 
-
     "p" '(:ignore t :which-key "project")
-    ;; "p" 'projectile-command-map
-    ;; "pp" 'projectile-persp-switch-project
-    ;; "pf" 'counsel-projectile
 
     "s" '(:ignore t :which-key "search")
 
@@ -208,7 +213,9 @@
 
 (use-package evil-nerd-commenter
   :demand t
-  :general (general-nvmap "gcc" 'evilnc-comment-or-uncomment-lines)
+  :general
+  (general-nmap "gcc" 'evilnc-comment-or-uncomment-lines)
+  (general-vmap "gc" 'evilnc-comment-or-uncomment-lines)
   )
 
 (use-package evil-surround
@@ -224,7 +231,10 @@
   :config
   (which-key-mode))
 
-(use-package all-the-icons)
+;; (use-package font-lock+)
+
+(use-package all-the-icons
+  :demand)
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
@@ -236,27 +246,121 @@
 (setq frame-title-format nil)
 
 (use-package modus-themes
-  :demand t
-  :commands (modus-themes-load-vivendi modus-themes-load-operandi)
-  :custom
-  (modus-themes-links 'neutral-underline)
-  (modus-themes-syntax nil)
-  (modus-themes-intense-hl-line t)
-  :config
-  (modus-themes-load-vivendi)
-  ;; (modus-themes-load-operandi)
+  ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+  :demand
+  :init
+  (setq modus-operandi-theme-override-colors-alist
+        '(("bg-main" . "#fefcf4")
+          ("bg-dim" . "#faf6ef")
+          ("bg-alt" . "#f7efe5")
+          ("bg-hl-line" . "#f4f0e3")
+          ("bg-active" . "#e8dfd1")
+          ("bg-inactive" . "#f6ece5")
+          ("bg-region" . "#c6bab1")
+          ("bg-header" . "#ede3e0")
+          ("bg-tab-bar" . "#dcd3d3")
+          ("bg-tab-active" . "#fdf6eb")
+          ("bg-tab-inactive" . "#c8bab8")
+          ("fg-unfocused" . "#55556f"))
+        modus-operandi-theme-slanted-constructs t
+        modus-operandi-theme-bold-constructs t
+        modus-operandi-theme-fringes 'subtle ; {nil,'subtle,'intense}
+        modus-operandi-theme-mode-line '3d ; {nil,'3d,'moody}
+        modus-operandi-theme-faint-syntax nil
+        modus-operandi-theme-intense-hl-line nil
+        modus-operandi-theme-intense-paren-match nil
+        modus-operandi-theme-no-link-underline t
+        modus-operandi-theme-no-mixed-fonts nil
+        modus-operandi-theme-prompts nil ; {nil,'subtle,'intense}
+        modus-operandi-theme-completions 'moderate ; {nil,'moderate,'opinionated}
+        modus-operandi-theme-diffs nil ; {nil,'desaturated,'fg-only}
+        modus-operandi-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+        modus-operandi-theme-headings  ; Read further below in the manual for this one
+        '((1 . line)
+          (t . rainbow-line-no-bold))
+        modus-operandi-theme-variable-pitch-headings t
+        modus-operandi-theme-scale-headings t
+        modus-operandi-theme-scale-1 1.1
+        modus-operandi-theme-scale-2 1.15
+        modus-operandi-theme-scale-3 1.21
+        modus-operandi-theme-scale-4 1.27
+        modus-operandi-theme-scale-5 1.33)
+
+  (setq modus-vivendi-theme-override-colors-alist
+        '(("bg-main" . "#100b17")
+          ("bg-dim" . "#161129")
+          ("bg-alt" . "#181732")
+          ("bg-hl-line" . "#191628")
+          ("bg-active" . "#282e46")
+          ("bg-inactive" . "#1a1e39")
+          ("bg-region" . "#393a53")
+          ("bg-header" . "#202037")
+          ("bg-tab-bar" . "#262b41")
+          ("bg-tab-active" . "#120f18")
+          ("bg-tab-inactive" . "#3a3a5a")
+          ("fg-unfocused" . "#9a9aab"))
+        modus-vivendi-theme-intense-paren-match t
+        modus-vivendi-theme-distinct-org-blocks t
+        modus-vivendi-theme-slanted-constructs t
+        modus-vivendi-theme-bold-constructs t
+        modus-vivendi-theme-fringes 'subtle ; {nil,'subtle,'intense}
+        modus-vivendi-theme-mode-line '3d ; {nil,'3d,'moody}
+        modus-vivendi-theme-faint-syntax nil
+        modus-vivendi-theme-intense-hl-line nil
+        modus-vivendi-theme-intense-paren-match nil
+        modus-vivendi-theme-no-link-underline t
+        modus-vivendi-theme-no-mixed-fonts nil
+        modus-vivendi-theme-prompts nil ; {nil,'subtle,'intense}
+        modus-vivendi-theme-completions 'moderate ; {nil,'moderate,'opinionated}
+        modus-vivendi-theme-diffs nil ; {nil,'desaturated,'fg-only}
+        modus-vivendi-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+        modus-vivendi-theme-headings  ; Read further below in the manual for this one
+        '((1 . line)
+          (t . rainbow-line-no-bold))
+        modus-vivendi-theme-variable-pitch-headings t
+        modus-vivendi-theme-scale-headings t
+        modus-vivendi-theme-scale-1 1.1
+        modus-vivendi-theme-scale-2 1.15
+        modus-vivendi-theme-scale-3 1.21
+        modus-vivendi-theme-scale-4 1.27
+        modus-vivendi-theme-scale-5 1.33)
   )
-;; (use-package doom-themes
-;;   :config
-;;   (load-theme 'doom-molokai t))
+
+(use-package solar
+  :straight nil
+  :ensure nil
+  :demand
+  :config
+  (setq calendar-latitude 55.67
+        calendar-longitude 12.56))
+
+(use-package circadian
+  :after solar
+  :demand
+  :config
+  (setq circadian-themes '((:sunrise . modus-operandi)
+                           (:sunset  . modus-vivendi)))
+  (circadian-setup))
 
 (use-package dashboard
+  :demand
   :init
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
   (setq dashboard-center-content t)
   ;; (setq dashboard-startup-banner [VALUE])
   :config
   (dashboard-setup-startup-hook))
+
+(use-package centaur-tabs
+  :demand
+  :general
+  (general-nvmap "gt" 'centaur-tabs-forward)
+  (general-nvmap "gT" 'centaur-tabs-backward)
+  :init
+  (setq centaur-tabs-set-icons t)
+  :config
+  (centaur-tabs-mode t)
+  )
 
 (use-package selectrum
   :demand t
@@ -312,13 +416,11 @@
 
 (use-package consult
   :demand t
-  ;; :init
-  ;; Replace functions (consult-multi-occur is a drop-in replacement)
-  ;; (fset 'multi-occur #'consult-multi-occur)
   :general
   (general-nmap "SPC ss" 'consult-line)
-  (general-nmap "SPC o" 'consult-outline)
+  (general-nmap "SPC o" '(consult-outline :which-key "outline"))
   (general-nmap "SPC bb" 'consult-buffer)
+  (general-nmap "SPC y" '(consult-yank-pop :which-key "yank"))
 
   :config
   ;; Enable richer annotations during completion
@@ -333,11 +435,18 @@
   )
 
 (use-package projectile
+  :demand
+  ;; :general (general-nvmap "SPC pp" 'projectile-switch-project)
+  :general
+  (general-nvmap
+    "SPC p" '(:keymap projectile-command-map
+                      :which-key "projectile"))
+
   :custom ((projectile-completion-system 'default))
   :init
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
-  (setq projectile-switch-project-action #'projectile-dired)
+  (setq projectile-switch-project-action #'projectile-find-file)
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
     (unless (file-remote-p default-directory) ad-do-it))
@@ -345,18 +454,37 @@
   )
 
 (use-package perspective
+  :general
+  (general-nvmap "SPC <tab> <tab>" 'persp-switch)
+  (general-nvmap "SPC <tab> `" 'persp-switch-last)
+  (general-nvmap "SPC <tab> d" 'persp-kill)
   :config
   (persp-mode))
 
-(use-package persp-projectile)
+(use-package persp-projectile
+  :general
+  (general-nvmap "SPC p p" 'projectile-persp-switch-project)
+  )
 
 (use-package magit
-    :general (general-nvmap "SPC gg" 'magit-status)
-    :custom
-    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  :general (general-nvmap "SPC gg" 'magit-status)
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package evil-magit
-  :after magit)
+  :after magit
+  :demand)
+
+(use-package git-timemachine
+  :hook (git-time-machine-mode-hook . evil-normalize-keymaps)
+  :init (setq git-timemachine-show-minibuffer-details t)
+  :general (general-nmap "SPC g t" 'git-timemachine-toggle)
+  )
+
+(use-package smerge-mode
+  :straight nil
+  :ensure nil
+  :general (general-nmap "SPC g m" 'smerge-mode))
 
 (use-package emacs
   :straight nil
@@ -397,16 +525,16 @@
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
-  :hook (lsp-mode . my/lsp-mode-setup)
+  ;; :hook (lsp-mode . my/lsp-mode-setup)
   :init
-  (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
+  (setq lsp-keymap-prefix "SPC c")
   :config
   (lsp-enable-which-key-integration t))
 
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :custom
-  (lsp-ui-doc-position 'bottom))
+;; (use-package lsp-ui
+;;   :hook (lsp-mode . lsp-ui-mode)
+;;   :custom
+;;   (lsp-ui-doc-position 'bottom))
 
 (use-package dap-mode
   :custom
@@ -426,20 +554,21 @@
 (use-package company
   :after lsp-mode
   :hook (lsp-mode . company-mode)
-  :bind (:map company-active-map
-         ("<tab>" . company-complete-selection))
-        (:map lsp-mode-map
-         ("<tab>" . company-indent-or-complete-common))
+  :bind
+  (:map company-active-map
+        ("<tab>" . company-complete-selection))
+  (:map lsp-mode-map
+        ("<tab>" . company-indent-or-complete-common))
   :custom
   (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0))
+  (company-idle-delay 0.0)
+  )
 
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
 (use-package envrc
-  :config
-  (envrc-global-mode))
+  :hook (python-mode . envrc-mode))
 
 (use-package python-mode
   ;; :hook (python-mode . lsp-deferred)
@@ -456,26 +585,34 @@
                           (require 'lsp-pyright)
                           (lsp-deferred))))  ; or lsp-deferred
 
+(use-package python-pytest
+  :general
+  (python-mode-map ", t" 'python-pytest-dispatch)
+  )
+
 (use-package vterm
   :commands vterm
   :general
   (general-nmap "SPC '" 'vterm)
   :config
-  (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
-  ;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
-  (setq vterm-max-scrollback 10000))
+  (setq vterm-shell (executable-find "fish")
+        vterm-max-scrollback 10000))
 
 (use-package dired
   :straight nil
   :ensure nil
   :commands (dired dired-jump)
+  :general
+  (general-nvmap "SPC fd" 'dired)
   ;; :bind (("C-x C-j" . dired-jump))
-  :custom ((dired-listing-switches "-agho --group-directories-first"))
+  :custom
+  (dired-listing-switches "-al --group-directories-first")
+  (insert-directory-program "gls" dired-use-ls-dired t)
   :config
   (with-eval-after-load 'evil-collection
     (evil-collection-define-key 'normal 'dired-mode-map
-    "h" 'dired-single-up-directory
-    "l" 'dired-single-buffer)))
+                                "h" 'dired-single-up-directory
+                                "l" 'dired-single-buffer)))
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
