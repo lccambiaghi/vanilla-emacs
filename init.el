@@ -82,9 +82,12 @@
 
   ;; write over selected text on input... like all modern editors do
   (delete-selection-mode t)
-  
-;; enable recent files mode.
-(recentf-mode t)
+
+  ;; enable recent files mode.
+  (recentf-mode t)
+
+  ;; don't want ESC as a modifier
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
   ;; Don't persist a custom file, this bites me more than it helps
   (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
@@ -105,7 +108,7 @@
     (toggle-scroll-bar -1))
 
   ;; use a font I like, but fail gracefully if it isn't available
-  (ignore-errors (set-frame-font "Fira Code Retina 16"))
+  (ignore-errors (set-frame-font "Fira Code Retina 18"))
 
   ;; enable winner mode globally for undo/redo window layout changes
   (winner-mode t)
@@ -128,6 +131,22 @@
   ([remap describe-key] . helpful-key)
   )
 
+(use-package eldoc
+  :config
+  (global-eldoc-mode 1))
+
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns))
+  :config
+  (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
+  (exec-path-from-shell-initialize)
+  ;; (exec-path-from-shell-copy-envs
+  ;;  '("GOPATH" "GO111MODULE" "GOPROXY"
+  ;;    "NPMBIN" "LC_ALL" "LANG" "LC_TYPE"
+  ;;    "SSH_AGENT_PID" "SSH_AUTH_SOCK" "SHELL"
+  ;;    "JAVA_HOME"))
+  )
+
 (use-package general
   :demand t
   :config
@@ -146,6 +165,7 @@
   (my/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
     "`" '(switch-to-other-buffer :which-key "prev buffer")
+    ";" '(eval-expression :which-key "eval sexp")
 
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
@@ -171,34 +191,41 @@
     "s" '(:ignore t :which-key "search")
 
     "t"  '(:ignore t :which-key "toggle")
-    ;; "tt" '(counsel-load-theme :which-key "choose theme")
 
     "w" '(:ignore t :which-key "window")
     "wl"  'windmove-right
     "wh"  'windmove-left
     "wk"  'windmove-up
     "wj"  'windmove-down
-    "wv"  'split-window-right
-    "w-"  'split-window-below
     "wd"  'delete-window
-    ))
+    "wu" 'winner-undo
+    "wr" 'winner-redo
+    )
 
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  ;; (my/leader-keys
+  ;;   "" '(nil :which-key "local leader")
+  ;;   )
+  )
 
 (use-package evil
   :demand t
+  :general
+  (general-nmap "SPC w v" 'evil-window-vsplit)
+  (general-nmap "SPC w s" 'evil-window-split)
+  (evil-motion-state-map "," nil)
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   (setq evil-want-Y-yank-to-eol t)
-
+  ;; move to window when splitting
+  (setq evil-split-window-below t)
+  (setq evil-vsplit-window-right t)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
-
   ;; Use visual line motions even outside of visual-line-mode buffers
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
@@ -231,10 +258,7 @@
   :config
   (which-key-mode))
 
-;; (use-package font-lock+)
-
-(use-package all-the-icons
-  :demand)
+(use-package all-the-icons)
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
@@ -246,7 +270,7 @@
 (setq frame-title-format nil)
 
 (use-package modus-themes
-  ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+  ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "master")
   :demand
   :init
   (setq modus-operandi-theme-override-colors-alist
@@ -335,7 +359,7 @@
         calendar-longitude 12.56))
 
 (use-package circadian
-  :after solar
+  :after (solar modus-themes)
   :demand
   :config
   (setq circadian-themes '((:sunrise . modus-operandi)
@@ -362,6 +386,10 @@
   (centaur-tabs-mode t)
   )
 
+(use-package centered-cursor-mode
+  :general (general-nmap "SPC t -" (lambda () (interactive) (centered-cursor-mode 'toggle)))
+  )
+
 (use-package selectrum
   :demand t
   :general
@@ -373,7 +401,7 @@
 
 (use-package selectrum-prescient
   :after selectrum
-  :demand t
+  :demand
   :config
   (prescient-persist-mode t)
   (selectrum-prescient-mode t)
@@ -381,17 +409,20 @@
 
 (use-package company-prescient
   :after company
-  :demand t
+  :demand
   :config
   (company-prescient-mode t))
 
 (use-package marginalia
-  :demand t
+  :after selectrum
+  :demand
+  :init
+  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :config (marginalia-mode t))
 
 (use-package embark
   :after selectrum
-  :demand t
+  :demand
   :general (selectrum-minibuffer-map "C-o" #'embark-act)
   :config
   ;; For Selectrum users:
@@ -415,32 +446,38 @@
   (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate))
 
 (use-package consult
-  :demand t
-  :general
-  (general-nmap "SPC ss" 'consult-line)
-  (general-nmap "SPC o" '(consult-outline :which-key "outline"))
-  (general-nmap "SPC bb" 'consult-buffer)
-  (general-nmap "SPC y" '(consult-yank-pop :which-key "yank"))
+    :demand t
+    :general
+    (general-nmap "SPC o" '(consult-outline :which-key "outline"))
+    (general-nmap "SPC y" '(consult-yank-pop :which-key "yank"))
+    (general-nmap "SPC b b" 'consult-buffer)
+    (general-nmap "SPC f r" 'consult-recent-file)
+    (general-nmap "SPC s s" 'consult-line)
+    (general-nmap "SPC s !" '(consult-flymake :wk "flymake"))
+    (general-nmap "SPC s p" '(consult-ripgrep :wk "ripgrep"))
+    (general-nmap "SPC t t" '(consult-theme :wk "theme"))
+    :config
+    ; (consult-annotate-mode) ;; Enable richer annotations during completion
+    (consult-preview-mode) ;; Optionally enable previews
 
-  :config
-  ;; Enable richer annotations during completion
-  ;; Works only with selectrum as of now.
-  ;; (consult-annotate-mode)
-  (consult-preview-mode) ;; Optionally enable previews
+    ;; Enable richer annotations for M-x.
+    ;; (add-to-list 'consult-annotate-commands
+    ;;              '(execute-extended-command . consult-annotate-symbol))
+    )
 
-  ;; Enable richer annotations for M-x.
-  ;; TODO
-  ;; (add-to-list 'consult-annotate-commands
-  ;;              '(execute-extended-command . consult-annotate-symbol))
-  )
+(use-package consult-selectrum
+  :after selectrum
+  :demand)
 
 (use-package projectile
   :demand
   ;; :general (general-nvmap "SPC pp" 'projectile-switch-project)
   :general
-  (general-nvmap
+  (general-nmap
     "SPC p" '(:keymap projectile-command-map
                       :which-key "projectile"))
+  (general-nmap
+    "SPC p a" 'projectile-add-known-project)
 
   :custom ((projectile-completion-system 'default))
   :init
@@ -476,7 +513,7 @@
   :demand)
 
 (use-package git-timemachine
-  :hook (git-time-machine-mode-hook . evil-normalize-keymaps)
+  :hook (git-time-machine-mode . evil-normalize-keymaps)
   :init (setq git-timemachine-show-minibuffer-details t)
   :general (general-nmap "SPC g t" 'git-timemachine-toggle)
   )
@@ -498,7 +535,10 @@
   (setq-default fill-column 120)
 
   ;; let emacs handle indentation
-  (electric-indent-mode +1))
+  (electric-indent-mode +1)
+  ;; and auto-close parentheses
+  (electric-pair-mode +1)              
+  )
 
 ;; add a visual intent guide
 (use-package highlight-indent-guides
@@ -519,15 +559,19 @@
 (use-package tree-sitter-langs
   :after tree-sitter)
 
-(defun my/lsp-mode-setup ()
-  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-  (lsp-headerline-breadcrumb-mode))
+;; (defun my/lsp-mode-setup ()
+;;   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+;;   (lsp-headerline-breadcrumb-mode))
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
   ;; :hook (lsp-mode . my/lsp-mode-setup)
+  :general
+  (general-nmap
+    "SPC l" '(:keymap lsp-command-map
+                      :which-key "lsp"))
   :init
-  (setq lsp-keymap-prefix "SPC c")
+  (setq lsp-restart 'ignore)
   :config
   (lsp-enable-which-key-integration t))
 
@@ -564,11 +608,34 @@
   (company-idle-delay 0.0)
   )
 
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+;; (use-package company-box
+;;   :hook (company-mode . company-box-mode))
 
 (use-package envrc
   :hook (python-mode . envrc-mode))
+
+(use-package yasnippet
+  :hook
+  ((text-mode . yas-minor-mode)
+   (prog-mode . yas-minor-mode)))
+
+(use-package evil-cleverparens
+  :hook
+  (
+   (emacs-lisp-mode . evil-cleverparens-mode)
+   ;; (clojure-mode . evil-cleverparens-mode)
+   )
+  ;; (add-hook 'smartparens-enabled-hook #'evil-smartparens-mode)
+  :general
+  (evil-cleverparens-mode-map ", (" 'sp-wrap-round)
+  :init
+  (setq evil-move-beyond-eol t
+        evil-cleverparens-use-additional-bindings nil
+        evil-cleverparens-use-s-and-S nil
+        ;; evil-cleverparens-swap-move-by-word-and-symbol t
+        ;; evil-cleverparens-use-regular-insert t
+        )
+  )
 
 (use-package python-mode
   ;; :hook (python-mode . lsp-deferred)
@@ -588,6 +655,14 @@
 (use-package python-pytest
   :general
   (python-mode-map ", t" 'python-pytest-dispatch)
+  )
+
+(use-package flymake
+  :straight nil
+  :ensure nil
+  :general
+  (general-nmap "] !" 'flymake-goto-next-error)
+  (general-nmap "[ !" 'flymake-goto-prev-error)
   )
 
 (use-package vterm
@@ -624,7 +699,9 @@
 
 (use-package org
   :hook (org-mode . my/org-mode-setup)
-  :config
+  :general
+  (general-nmap "SPC C" '(org-capture :wk "capture"))
+  :init
   (setq org-directory "~/Dropbox/org"
         org-image-actual-width nil
         +org-export-directory "~/Dropbox/org/export"
@@ -633,89 +710,67 @@
         org-agenda-files '("~/dropbox/org/personal/tasks/birthdays.org" "~/dropbox/org/personal/tasks/todo.org" "~/dropbox/Notes/Test.inbox.org")
         ;; org-export-in-background t
         org-catch-invisible-edits 'smart)
-
-  (require 'org-habit)
-  (add-to-list 'org-modules 'org-habit)
-
   (setq org-todo-keywords
         '((sequence "TODO(t)" "PROJ(p)" "|" "DONE(d)")))
-
-  ;; (setq org-refile-targets
-  ;;       '(("Archive.org" :maxlevel . 1)
-  ;;         ("Tasks.org" :maxlevel . 1)))
-
-  ;; Configure custom agenda views
-  (setq org-agenda-custom-commands
-        '(("d" "Dashboard"
-           ((agenda "" ((org-deadline-warning-days 7)))
-            (todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))
-            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-
-          ("n" "Next Tasks"
-           ((todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))))
-
-          ("W" "Work Tasks" tags-todo "+work-email")
-
-          ;; Low-effort next actions
-          ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-           ((org-agenda-overriding-header "Low Effort Tasks")
-            (org-agenda-max-todos 20)
-            (org-agenda-files org-agenda-files)))
-
-          ("w" "Workflow Status"
-           ((todo "WAIT"
-                  ((org-agenda-overriding-header "Waiting on External")
-                   (org-agenda-files org-agenda-files)))
-            (todo "REVIEW"
-                  ((org-agenda-overriding-header "In Review")
-                   (org-agenda-files org-agenda-files)))
-            (todo "PLAN"
-                  ((org-agenda-overriding-header "In Planning")
-                   (org-agenda-todo-list-sublevels nil)
-                   (org-agenda-files org-agenda-files)))
-            (todo "BACKLOG"
-                  ((org-agenda-overriding-header "Project Backlog")
-                   (org-agenda-todo-list-sublevels nil)
-                   (org-agenda-files org-agenda-files)))
-            (todo "READY"
-                  ((org-agenda-overriding-header "Ready for Work")
-                   (org-agenda-files org-agenda-files)))
-            (todo "ACTIVE"
-                  ((org-agenda-overriding-header "Active Projects")
-                   (org-agenda-files org-agenda-files)))
-            (todo "COMPLETED"
-                  ((org-agenda-overriding-header "Completed Projects")
-                   (org-agenda-files org-agenda-files)))
-            (todo "CANC"
-                  ((org-agenda-overriding-header "Cancelled Projects")
-                   (org-agenda-files org-agenda-files)))))))
-
   (setq org-capture-templates
-        `(("t" "Tasks / Projects")
-          ("tt" "Task" entry (file+olp "~/Projects/Code/emacs-from-scratch/OrgFiles/Tasks.org" "Inbox")
-           "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
+        `(("b" "Blog" entry
+           (file+headline "personal/tasks/todo.org" "Blog")
+           ,(concat "* WRITE %^{Title} %^g\n"
+                    "SCHEDULED: %^t\n"
+                    ":PROPERTIES:\n"
+                    ":CAPTURED: %U\n:END:\n\n"
+                    "%i%?"))
+          ("d" "New Diary Entry" entry(file+olp+datetree"~/Dropbox/org/personal/diary.org" "Daily Logs")
+           "* %^{thought for the day}
+    :PROPERTIES:
+    :CATEGORY: %^{category}
+    :SUBJECT:  %^{subject}
+    :MOOD:     %^{mood}
+    :END:
+    :RESOURCES:
+    :END:
 
-          ("j" "Journal Entries")
-          ("jj" "Journal" entry
-           (file+olp+datetree "~/Projects/Code/emacs-from-scratch/OrgFiles/Journal.org")
-           "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
-           :clock-in :clock-resume
-           :empty-lines 1)
-          ("jm" "Meeting" entry
-           (file+olp+datetree "~/Projects/Code/emacs-from-scratch/OrgFiles/Journal.org")
-           "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
-           :clock-in :clock-resume
-           :empty-lines 1)
+    \*What was one good thing you learned today?*:
+    - %^{whatilearnedtoday}
 
-          ("w" "Workflows")
-          ("we" "Checking Email" entry (file+olp+datetree "~/Projects/Code/emacs-from-scratch/OrgFiles/Journal.org")
-           "* Checking Email :email:\n\n%?" :clock-in :clock-resume :empty-lines 1)
+    \*List one thing you could have done better*:
+    - %^{onethingdobetter}
 
-          ("m" "Metrics Capture")
-          ("mw" "Weight" table-line (file+headline "~/Projects/Code/emacs-from-scratch/OrgFiles/Metrics.org" "Weight")
-           "| %U | %^{Weight} | %^{Notes} |" :kill-buffer t)))
+    \*Describe in your own words how your day was*:
+    - %?")
+          ("i" "Inbox" entry
+           (file+headline "personal/tasks/todo.org" "Inbox")
+           ,(concat "* %^{Title}\n"
+                    ":PROPERTIES:\n"
+                    ":CAPTURED: %U\n"
+                    ":END:\n\n"
+                    "%i%l"))
+          ("u" "New URL Entry" entry
+           (file+function "~/Dropbox/org/personal/dailies.org" org-reverse-datetree-goto-date-in-file)
+           "* [[%^{URL}][%^{Description}]] %^g %?")
+          ("w" "Work" entry
+           (file+headline "personal/tasks/todo.org" "Work")
+           ,(concat "* TODO [#A] %^{Title} :@work:\n"
+                    "SCHEDULED: %^t\n"
+                    ":PROPERTIES:\n:CAPTURED: %U\n:END:\n\n"
+                    "%i%?"))
+
+          ))
+
+  ;; (setq org-agenda-custom-commands
+  ;;         '(("d" "Dashboard"
+  ;;            ((agenda "" ((org-deadline-warning-days 7)))
+  ;;             (todo "NEXT"
+  ;;                   ((org-agenda-overriding-header "Next Tasks")))
+  ;;             (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+  ;;           ("n" "Next Tasks"
+  ;;            ((todo "NEXT"
+  ;;                   ((org-agenda-overriding-header "Next Tasks")))))
+  ;;           ("W" "Work Tasks" tags-todo "+work-email")
+  ;;           ))
+  :config
+  (require 'org-habit)
+  (add-to-list 'org-modules 'org-habit)
 
   (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -738,7 +793,21 @@
 
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode)
-  :custom (org-superstar-special-todo-items t))
+  :init
+  (setq org-superstar-headline-bullets-list '("✖" "✚" "◆" "▶" "○")
+        org-superstar-special-todo-items t
+        org-ellipsis "▼")
+  )
+
+(use-package hl-todo
+  :hook (prog-mode . hl-todo-mode)
+  :init
+  (setq hl-todo-keyword-faces
+        '(("TODO"   . "#FF4500")
+          ("FIXME"  . "#FF0000")
+          ("DEBUG"  . "#A020F0")
+          ("PROJ"   . "#1E90FF")))
+  )
 
 ;; (use-package org
 ;;   :config
