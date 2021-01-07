@@ -132,8 +132,8 @@
   )
 
 (use-package eldoc
-  :config
-  (global-eldoc-mode 1))
+  :hook (emacs-lisp-mode . eldoc-mode)
+  )
 
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns))
@@ -156,11 +156,6 @@
     :keymaps '(normal insert visual emacs)
     :prefix "SPC"
     :global-prefix "C-SPC")
-
-  (general-create-definer my/local-leader-keys
-    :keymaps '(normal insert visual emacs)
-    :prefix ","
-    :global-prefix "SPC m")
 
   (my/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
@@ -201,10 +196,6 @@
     "wu" 'winner-undo
     "wr" 'winner-redo
     )
-
-  ;; (my/leader-keys
-  ;;   "" '(nil :which-key "local leader")
-  ;;   )
   )
 
 (use-package evil
@@ -212,7 +203,7 @@
   :general
   (general-nmap "SPC w v" 'evil-window-vsplit)
   (general-nmap "SPC w s" 'evil-window-split)
-  (evil-motion-state-map "," nil)
+  (evil-motion-state-map "," nil) ;; we use , as local-leader so we unbind it
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -237,17 +228,6 @@
   :after evil
   :config
   (evil-collection-init))
-
-(use-package evil-nerd-commenter
-  :demand t
-  :general
-  (general-nmap "gcc" 'evilnc-comment-or-uncomment-lines)
-  (general-vmap "gc" 'evilnc-comment-or-uncomment-lines)
-  )
-
-(use-package evil-surround
-  :config
-  (global-evil-surround-mode 1))
 
 (use-package which-key
   :demand t
@@ -377,6 +357,7 @@
 
 (use-package centaur-tabs
   :demand
+  :commands (centaur-tabs-mode centaur-tabs-forward centaur-tabs-backward)
   :general
   (general-nvmap "gt" 'centaur-tabs-forward)
   (general-nvmap "gT" 'centaur-tabs-backward)
@@ -389,6 +370,9 @@
 (use-package centered-cursor-mode
   :general (general-nmap "SPC t -" (lambda () (interactive) (centered-cursor-mode 'toggle)))
   )
+
+(use-package hide-mode-line
+  :commands (hide-mode-line-mode))
 
 (use-package selectrum
   :demand t
@@ -484,6 +468,7 @@
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
   (setq projectile-switch-project-action #'projectile-find-file)
+  ;; (add-to-list 'projectile-globally-ignored-directories "straight") ;; TODO
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
     (unless (file-remote-p default-directory) ad-do-it))
@@ -505,8 +490,9 @@
 
 (use-package magit
   :general (general-nvmap "SPC gg" 'magit-status)
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  :init
+  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  )
 
 (use-package evil-magit
   :after magit
@@ -515,13 +501,33 @@
 (use-package git-timemachine
   :hook (git-time-machine-mode . evil-normalize-keymaps)
   :init (setq git-timemachine-show-minibuffer-details t)
-  :general (general-nmap "SPC g t" 'git-timemachine-toggle)
+  :general
+  (general-nmap "SPC g t" 'git-timemachine-toggle)
+  (git-timemachine-mode-map "C-k" 'git-timemachine-show-previous-revision)
+  (git-timemachine-mode-map "C-j" 'git-timemachine-show-next-revision)
+  (git-timemachine-mode-map "q" 'git-timemachine-quit)
   )
 
 (use-package smerge-mode
   :straight nil
   :ensure nil
   :general (general-nmap "SPC g m" 'smerge-mode))
+
+(use-package git-gutter-fringe
+  :hook
+  ((text-mode . git-gutter-mode)
+   (org-mode . git-gutter-mode)
+   (prog-mode . git-gutter-mode))
+  :config
+  (setq-default fringes-outside-margins t)
+  ;; thin fringe bitmaps
+  (define-fringe-bitmap 'git-gutter-fr:added [224]
+    nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224]
+    nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
+    nil nil 'bottom)
+  )
 
 (use-package emacs
   :straight nil
@@ -617,7 +623,8 @@
 (use-package yasnippet
   :hook
   ((text-mode . yas-minor-mode)
-   (prog-mode . yas-minor-mode)))
+   (prog-mode . yas-minor-mode)
+   (org-mode . yas-minor-mode)))
 
 (use-package evil-cleverparens
   :hook
@@ -635,17 +642,56 @@
         ;; evil-cleverparens-swap-move-by-word-and-symbol t
         ;; evil-cleverparens-use-regular-insert t
         )
+  :config
+  ;; Disable auto pair ' in elisp mode
+  (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
   )
 
-(use-package python-mode
-  ;; :hook (python-mode . lsp-deferred)
-  :custom
-  ;; NOTE: Set these if Python 3 is called "python3" on your system!
-  ;; (python-shell-interpreter "python3")
-  ;; (dap-python-executable "python3")
-  (dap-python-debugger 'debugpy)
+(use-package evil-mc
+  :commands (evil-mc-undo-all-cursors)
   :config
-  (require 'dap-python))
+  (global-evil-mc-mode +1)
+  )
+
+(use-package evil-nerd-commenter
+  :general
+  (general-nmap "gcc" 'evilnc-comment-or-uncomment-lines)
+  (general-vmap "gc" 'evilnc-comment-or-uncomment-lines)
+  )
+
+(use-package evil-surround
+  :general
+  (:states 'visual
+           "S" 'evil-surround-region
+           "gS" 'evil-Surround-region)
+  ;; equivalent to:
+  ;; :commands (evil-surround-region)
+  ;; :init
+  ;; (evil-define-key 'visual global-map "S" 'evil-surround-region)
+  )
+
+(use-package undo-fu
+  :general
+  (:states 'normal
+           "u" 'undo-fu-only-undo
+           "\C-r" 'undo-fu-only-redo))
+
+(use-package python-mode
+  :init
+  (setq dap-python-debugger 'debugpy)
+  :config
+  (when (executable-find "ipython")
+    (setq python-shell-interpreter "ipython"
+          python-shell-interpreter-args "-i --simple-prompt --no-color-info"
+          python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+          python-shell-prompt-block-regexp "\\.\\.\\.\\.: "
+          python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+          python-shell-completion-setup-code
+          "from IPython.core.completerlib import module_completion"
+          python-shell-completion-string-code
+          "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+    (require 'dap-python)
+    )
 
 (use-package lsp-pyright
   :hook (python-mode . (lambda ()
@@ -664,6 +710,16 @@
   (general-nmap "] !" 'flymake-goto-next-error)
   (general-nmap "[ !" 'flymake-goto-prev-error)
   )
+
+(use-package clojure-mode
+  :mode "\\.clj$")
+
+(use-package cider
+    :commands (cider-jack-in cider-mode)
+  :general
+;; (clojure-mode-map "")
+    :init
+    (setq nrepl-hide-special-buffers t))
 
 (use-package vterm
   :commands vterm
@@ -701,6 +757,8 @@
   :hook (org-mode . my/org-mode-setup)
   :general
   (general-nmap "SPC C" '(org-capture :wk "capture"))
+  (org-mode-map :states 'normal ", -" '(org-babel-demarcate-block :wk "split block"))
+  (org-mode-map :states 'normal ", e e" '(eval-last-sexp :wk "eval last sexp"))
   :init
   (setq org-directory "~/Dropbox/org"
         org-image-actual-width nil
@@ -772,13 +830,12 @@
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
 
+  ;; (efs/org-font-setup)
   (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
   (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
-
-  ;; (efs/org-font-setup)
   )
 
 ;; Automatically tangle our readme.org config file when we save it
@@ -826,7 +883,46 @@
 ;; (use-package ox-ipynb
 ;;   :config (eval-after-load "org" '(require 'ox-ipynb)))
 
+(use-package org-tree-slide
+  :hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
+         (org-tree-slide-stop . (lambda () (+remap-faces-at-stop-present))))
+  :general
+  (org-tree-slide-mode-map "C-j" 'org-tree-slide-move-next-tree)
+  (org-tree-slide-mode-map "C-j" 'org-tree-slide-move-previous-tree)
+  :init
+  (defun +remap-faces-at-start-present ()
+    (setq-local face-remapping-alist '((default (:height 2.0) variable-pitch)
+                                       (org-verbatim (:height 1.75) org-verbatim)
+                                       (org-block (:height 1.25) org-block)))
+    (hide-mode-line-mode 1)
+    (centaur-tabs-mode 0))
+  (defun +remap-faces-at-start-present-term ()
+    (interactive)
+    (setq-local face-remapping-alist '((default (:height 2.0) variable-pitch)
+                                       (org-verbatim (:height 1.75) org-verbatim)
+                                       (org-block (:height 1.25) org-block))))
+  (defun +remap-faces-at-stop-present ()
+    (setq-local face-remapping-alist '((default variable-pitch default)))
+    (hide-mode-line-mode 0)
+    (centaur-tabs-mode 1))
+  (setq org-tree-slide-skip-outline-level 0
+        org-tree-slide-modeline-display nil
+        org-tree-slide-slide-in-effect nil)
+  :config
+  (org-tree-slide-presentation-profile)
+  )
+
 ;; Let's lower our GC thresholds back down to a sane level
 (setq gc-cons-threshold 16777216
   gc-cons-percentage 0.1
   file-name-handler-alist doom--initial-file-name-handler-alist)
+
+(cl-defun my/make-popup (buffer-rx &optional (height 0.4))
+  (add-to-list 'bmacs-popups buffer-rx)
+  (add-to-list 'display-buffer-alist
+               `(,buffer-rx
+                 (display-buffer-reuse-window
+                  display-buffer-in-side-window)
+                 (reusable-frames . visible)
+                 (side            . bottom)
+                 (window-height   . ,height))))
