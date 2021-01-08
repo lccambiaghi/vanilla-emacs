@@ -1,9 +1,10 @@
 ;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
 
-; repeating here in case early-init.el is not loaded with chemacs
+                                        ; repeating here in case early-init.el is not loaded with chemacs
 (setq gc-cons-threshold most-positive-fixnum)
 (setq package-enable-at-startup nil)
 (setq comp-deferred-compilation nil)
+
 
 ;; `file-name-handler-alist' is consulted on every `require', `load' and various
 ;; path/io functions. You get a minor speed up by nooping this. However, this
@@ -21,8 +22,11 @@
       (add-to-list 'doom--initial-file-name-handler-alist handler))
     (setq file-name-handler-alist doom--initial-file-name-handler-alist))
   (add-hook 'emacs-startup-hook #'doom-reset-file-handler-alist-h)
-)
-
+  (add-hook 'after-init-hook #'(lambda ()
+                                 ;; restore after startup
+                                 (setq gc-cons-threshold 16777216
+                                       gc-cons-percentage 0.1)))
+  )
 ;; Ensure Doom is running out of this file's directory
 (setq user-emacs-directory (file-name-directory load-file-name))
 
@@ -53,8 +57,6 @@
   )
 
 (use-package emacs
-  :straight nil
-  :ensure nil
   :config
   (setq inhibit-startup-screen t
         default-fill-column 80
@@ -132,8 +134,7 @@
   )
 
 (use-package eldoc
-  :hook (emacs-lisp-mode . eldoc-mode)
-  )
+  :hook (emacs-lisp-mode cider-mode))
 
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns))
@@ -157,9 +158,13 @@
     :prefix "SPC"
     :global-prefix "C-SPC")
 
+  (general-create-definer my/local-leader-keys
+    :keymaps '(normal emacs)
+    :prefix ",")
+
   (my/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
-    "`" '(switch-to-other-buffer :which-key "prev buffer")
+    "`" '(switch-to-prev-buffer :which-key "prev buffer")
     ";" '(eval-expression :which-key "eval sexp")
 
     "b" '(:ignore t :which-key "buffer")
@@ -186,6 +191,7 @@
     "s" '(:ignore t :which-key "search")
 
     "t"  '(:ignore t :which-key "toggle")
+    "t v" '((lambda () (interactive) (visual-line-mode)) :wk "visual line")
 
     "w" '(:ignore t :which-key "window")
     "wl"  'windmove-right
@@ -201,8 +207,10 @@
 (use-package evil
   :demand t
   :general
-  (general-nmap "SPC w v" 'evil-window-vsplit)
-  (general-nmap "SPC w s" 'evil-window-split)
+  (my/leader-keys
+    "wv" 'evil-window-vsplit
+    "ws" 'evil-window-split
+    )
   (evil-motion-state-map "," nil) ;; we use , as local-leader so we unbind it
   :init
   (setq evil-want-integration t)
@@ -368,17 +376,39 @@
   )
 
 (use-package centered-cursor-mode
-  :general (general-nmap "SPC t -" (lambda () (interactive) (centered-cursor-mode 'toggle)))
-  )
+  :general (my/leader-keys "t -" (lambda () (interactive) (centered-cursor-mode 'toggle))))
 
 (use-package hide-mode-line
   :commands (hide-mode-line-mode))
 
+(use-package emacs
+  :config
+  (defvar my-popups '()
+    "A list of popup matchers that determine if a popup can be escaped")
+
+  (cl-defun my/make-popup (buffer-rx &optional (height 0.4))
+    (add-to-list 'my-popups buffer-rx)
+    (add-to-list 'display-buffer-alist
+                 `(,buffer-rx
+                   (display-buffer-reuse-window
+                    display-buffer-in-side-window)
+                   (reusable-frames . visible)
+                   (side            . bottom)
+                   (window-height   . ,height))))
+
+  (my/make-popup (rx bos "*Messages*" eos))
+  (my/make-popup (rx bos "*Backtrace*" eos))
+  (my/make-popup (rx bos "*Warnings*" eos))
+  (my/make-popup (rx bos "*compilation*" eos))
+  (my/make-popup (rx bos "*Help*" eos))
+  (my/make-popup (rx bos "*scratch*" eos) 0.4)
+  )
+
 (use-package selectrum
-  :demand t
+  :demand
   :general
-  (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate)
-  (selectrum-minibuffer-map "C-k" 'selectrum-previous-candidate)
+  (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
+                            "C-k" 'selectrum-previous-candidate)
   :config
   (selectrum-mode t)
   )
@@ -430,24 +460,21 @@
   (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate))
 
 (use-package consult
-    :demand t
-    :general
-    (general-nmap "SPC o" '(consult-outline :which-key "outline"))
-    (general-nmap "SPC y" '(consult-yank-pop :which-key "yank"))
-    (general-nmap "SPC b b" 'consult-buffer)
-    (general-nmap "SPC f r" 'consult-recent-file)
-    (general-nmap "SPC s s" 'consult-line)
-    (general-nmap "SPC s !" '(consult-flymake :wk "flymake"))
-    (general-nmap "SPC s p" '(consult-ripgrep :wk "ripgrep"))
-    (general-nmap "SPC t t" '(consult-theme :wk "theme"))
-    :config
-    ; (consult-annotate-mode) ;; Enable richer annotations during completion
-    (consult-preview-mode) ;; Optionally enable previews
-
-    ;; Enable richer annotations for M-x.
-    ;; (add-to-list 'consult-annotate-commands
-    ;;              '(execute-extended-command . consult-annotate-symbol))
+  :demand
+  :general
+  (my/leader-keys
+    "s o" '(consult-outline :which-key "outline")
+    "s s" 'consult-line
+    "y" '(consult-yank-pop :which-key "yank")
+    "b b" 'consult-buffer
+    ;; TODO consult mark
+    "f r" 'consult-recent-file
+    "s !" '(consult-flymake :wk "flymake")
+    "s p" '(consult-ripgrep :wk "ripgrep")
+    "t t" '(consult-theme :wk "theme")
     )
+  :config
+  (consult-preview-mode))
 
 (use-package consult-selectrum
   :after selectrum
@@ -489,10 +516,12 @@
   )
 
 (use-package magit
-  :general (general-nvmap "SPC gg" 'magit-status)
+  :general
+  (my/leader-keys
+    "g g" 'magit-status
+    "g G" 'magit-status-here)
   :init
-  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  )
+  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package evil-magit
   :after magit
@@ -508,11 +537,6 @@
   (git-timemachine-mode-map "q" 'git-timemachine-quit)
   )
 
-(use-package smerge-mode
-  :straight nil
-  :ensure nil
-  :general (general-nmap "SPC g m" 'smerge-mode))
-
 (use-package git-gutter-fringe
   :hook
   ((text-mode . git-gutter-mode)
@@ -520,18 +544,57 @@
    (prog-mode . git-gutter-mode))
   :config
   (setq-default fringes-outside-margins t)
-  ;; thin fringe bitmaps
-  (define-fringe-bitmap 'git-gutter-fr:added [224]
-    nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [224]
-    nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
-    nil nil 'bottom)
   )
 
-(use-package emacs
+(use-package smerge-mode
   :straight nil
   :ensure nil
+  :general
+  (my/leader-keys "g m" 'smerge-mode)
+  :config
+  (defhydra hydra-smerge (:hint nil
+                                :pre (smerge-mode 1)
+                                ;; Disable `smerge-mode' when quitting hydra if
+                                ;; no merge conflicts remain.
+                                :post (smerge-auto-leave))
+    "
+                                                  ╭────────┐
+Movement   Keep           Diff              Other │ smerge │
+╭─────────────────────────────────────────────────┴────────╯
+   ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
+   ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
+   ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
+   ^_j_ ↓^     [_a_] all        [_H_] hightlight
+   ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
+   ^_G_^                                            │ [_q_] quit"
+    ("g" (progn (goto-char (point-min)) (smerge-next)))
+    ("G" (progn (goto-char (point-max)) (smerge-prev)))
+    ("C-j" smerge-next)
+    ("C-k" smerge-prev)
+    ("j" next-line)
+    ("k" previous-line)
+    ("b" smerge-keep-base)
+    ("u" smerge-keep-upper)
+    ("l" smerge-keep-lower)
+    ("a" smerge-keep-all)
+    ("RET" smerge-keep-current)
+    ("\C-m" smerge-keep-current)
+    ("<" smerge-diff-base-upper)
+    ("=" smerge-diff-upper-lower)
+    (">" smerge-diff-base-lower)
+    ("H" smerge-refine)
+    ("E" smerge-ediff)
+    ("C" smerge-combine-with-next)
+    ("r" smerge-resolve)
+    ("R" smerge-kill-current)
+    ("q" nil :color blue)))
+
+(use-package hydra
+  :demand
+  :config
+  (setq lv-use-seperator t))
+
+(use-package emacs
   :config
   ;; use common convention for indentation by default
   (setq-default indent-tabs-mode t)
@@ -676,6 +739,13 @@
            "u" 'undo-fu-only-undo
            "\C-r" 'undo-fu-only-redo))
 
+(use-package vterm
+  :general
+  (general-nmap "SPC '" 'vterm)
+  :config
+  (setq vterm-shell (executable-find "fish")
+        vterm-max-scrollback 10000))
+
 (use-package python-mode
   :init
   (setq dap-python-debugger 'debugpy)
@@ -691,7 +761,7 @@
           python-shell-completion-string-code
           "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
     (require 'dap-python)
-    )
+    ))
 
 (use-package lsp-pyright
   :hook (python-mode . (lambda ()
@@ -715,19 +785,13 @@
   :mode "\\.clj$")
 
 (use-package cider
-    :commands (cider-jack-in cider-mode)
+  :commands (cider-jack-in cider-mode)
   :general
-;; (clojure-mode-map "")
-    :init
-    (setq nrepl-hide-special-buffers t))
-
-(use-package vterm
-  :commands vterm
-  :general
-  (general-nmap "SPC '" 'vterm)
+  ;; (clojure-mode-map "")
+  :init
+  (setq nrepl-hide-special-buffers t)
   :config
-  (setq vterm-shell (executable-find "fish")
-        vterm-max-scrollback 10000))
+  (add-hook 'cider-mode-hook #'eldoc-mode))
 
 (use-package dired
   :straight nil
@@ -748,17 +812,20 @@
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
-(defun my/org-mode-setup ()
-  (org-indent-mode)
-  (variable-pitch-mode 1)
-  (visual-line-mode 1))
-
 (use-package org
-  :hook (org-mode . my/org-mode-setup)
+  :hook ((org-mode . my/org-mode-setup)
+         (org-mode . (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config))))
   :general
-  (general-nmap "SPC C" '(org-capture :wk "capture"))
-  (org-mode-map :states 'normal ", -" '(org-babel-demarcate-block :wk "split block"))
-  (org-mode-map :states 'normal ", e e" '(eval-last-sexp :wk "eval last sexp"))
+  (my/leader-keys
+    "C" '(org-capture :wk "capture"))
+  (my/local-leader-keys
+    :keymaps 'org-mode-map
+    "e e" '(eval-last-sexp :wk "eval last sexp")
+    "-" '(org-babel-demarcate-block :wk "split block"))
+  (my/local-leader-keys
+    :keymaps 'org-mode-map
+    :states 'visual
+    "e" '(eval-last-sexp :wk "eval last sexp"))
   :init
   (setq org-directory "~/Dropbox/org"
         org-image-actual-width nil
@@ -780,22 +847,22 @@
                     "%i%?"))
           ("d" "New Diary Entry" entry(file+olp+datetree"~/Dropbox/org/personal/diary.org" "Daily Logs")
            "* %^{thought for the day}
-    :PROPERTIES:
-    :CATEGORY: %^{category}
-    :SUBJECT:  %^{subject}
-    :MOOD:     %^{mood}
-    :END:
-    :RESOURCES:
-    :END:
+        :PROPERTIES:
+        :CATEGORY: %^{category}
+        :SUBJECT:  %^{subject}
+        :MOOD:     %^{mood}
+        :END:
+        :RESOURCES:
+        :END:
 
-    \*What was one good thing you learned today?*:
-    - %^{whatilearnedtoday}
+        \*What was one good thing you learned today?*:
+        - %^{whatilearnedtoday}
 
-    \*List one thing you could have done better*:
-    - %^{onethingdobetter}
+        \*List one thing you could have done better*:
+        - %^{onethingdobetter}
 
-    \*Describe in your own words how your day was*:
-    - %?")
+        \*Describe in your own words how your day was*:
+        - %?")
           ("i" "Inbox" entry
            (file+headline "personal/tasks/todo.org" "Inbox")
            ,(concat "* %^{Title}\n"
@@ -826,6 +893,18 @@
   ;;                   ((org-agenda-overriding-header "Next Tasks")))))
   ;;           ("W" "Work Tasks" tags-todo "+work-email")
   ;;           ))
+  (defun my/org-mode-setup ()
+    (org-indent-mode)
+    (variable-pitch-mode 1)
+    (visual-line-mode 1))
+
+  (defun my/org-babel-tangle-config ()
+    (when (string-equal (file-name-directory (buffer-file-name))
+                        (expand-file-name user-emacs-directory))
+      ;; Dynamic scoping to the rescue
+      (let ((org-confirm-babel-evaluate nil))
+        (org-babel-tangle))))
+
   :config
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
@@ -838,15 +917,7 @@
   (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
   )
 
-;; Automatically tangle our readme.org config file when we save it
-(defun my/org-babel-tangle-config ()
-  (when (string-equal (file-name-directory (buffer-file-name))
-                      (expand-file-name user-emacs-directory))
-    ;; Dynamic scoping to the rescue
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config)))
 
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode)
@@ -912,17 +983,4 @@
   (org-tree-slide-presentation-profile)
   )
 
-;; Let's lower our GC thresholds back down to a sane level
-(setq gc-cons-threshold 16777216
-  gc-cons-percentage 0.1
-  file-name-handler-alist doom--initial-file-name-handler-alist)
-
-(cl-defun my/make-popup (buffer-rx &optional (height 0.4))
-  (add-to-list 'bmacs-popups buffer-rx)
-  (add-to-list 'display-buffer-alist
-               `(,buffer-rx
-                 (display-buffer-reuse-window
-                  display-buffer-in-side-window)
-                 (reusable-frames . visible)
-                 (side            . bottom)
-                 (window-height   . ,height))))
+(use-package nav-flash)
