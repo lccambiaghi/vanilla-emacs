@@ -206,9 +206,11 @@
     "wh"  'windmove-left
     "wk"  'windmove-up
     "wj"  'windmove-down
+    "wr" 'winner-redo
     "wd"  'delete-window
     "wu" 'winner-undo
     "wr" 'winner-redo
+    "wm"  '(delete-other-windows :wk "maximize")
     )
 
   (my/local-leader-keys
@@ -271,8 +273,13 @@
 (use-package all-the-icons)
 
 (use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15)))
+  :demand
+  :init
+  (setq doom-modeline-buffer-encoding nil)
+  (setq doom-modeline-env-enable-python nil)
+  (setq doom-modeline-height 15)
+  :config
+  (doom-modeline-mode 1))
 
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
@@ -744,25 +751,33 @@ Movement   Keep           Diff              Other │ smerge │
     "d h" '(dap-hydra :wk "hydra"))
   :init
   (setq dap-auto-configure nil)
+  (setq dap-python-debugger 'debugpy)
   :config
   (dap-ui-mode 1))
 
 (use-package python-mode
-  :init
-  (setq dap-python-debugger 'debugpy)
+  ;; :init
+  ;; (defun my/ipython-use-venv (orig-fun &rest args)
+  ;;   (when (getenv "VIRTUAL_ENV")
+  ;;     (when-let ((python-shell-interpreter (executable-find "ipython")))
+  ;;       (apply orig-fun args)))
+  ;;   (apply orig-fun args))
+  ;; (advice-add 'run-python :around #'my/ipython-use-venv)
+  :hook (envrc-mode . (lambda ()
+                        (when (executable-find "ipython")
+                          (setq python-shell-interpreter (executable-find "ipython")))))
   :config
-  (when (executable-find "ipython")
-    (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
-          python-shell-interpreter-args "-i --simple-prompt --no-color-info"
-          python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-          python-shell-prompt-block-regexp "\\.\\.\\.\\.: "
-          python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-          python-shell-completion-setup-code
-          "from IPython.core.completerlib import module_completion"
-          python-shell-completion-string-code
-          "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-    (require 'dap-python)
-    ))
+  (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
+        python-shell-interpreter-args "-i --simple-prompt --no-color-info"
+        python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+        python-shell-prompt-block-regexp "\\.\\.\\.\\.: "
+        python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+        python-shell-completion-setup-code
+        "from IPython.core.completerlib import module_completion"
+        python-shell-completion-string-code
+        "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+  ;; (require 'dap-python)
+  )
 
 (use-package lsp-pyright
   :init
@@ -772,10 +787,14 @@ Movement   Keep           Diff              Other │ smerge │
                          (lsp-deferred))))
 
 (use-package python-pytest
-:general
-(my/local-leader-keys
+  :hook (envrc-mode . (lambda ()
+                        (when (executable-find "pytest")
+                          (setq python-pytest-executable (executable-find "pytest")))))
+  :general
+  (my/local-leader-keys
     :keymaps 'python-mode-map
-    "t h" '(python-pytest-dispatch :wk "dispatch")))
+    "t h" '(python-pytest-dispatch :wk "dispatch"))
+  )
 
 (use-package flymake
   :straight nil
@@ -870,7 +889,9 @@ Movement   Keep           Diff              Other │ smerge │
   :general
   (my/leader-keys
     "C" '(org-capture :wk "capture"))
-  (org-mode-map "z i" '(org-toggle-inline-images :wk "inline images"))
+  (org-mode-map
+   :states '(normal)
+   "z i" '(org-toggle-inline-images :wk "inline images"))
   :init
   (setq org-directory "~/Dropbox/org"
         org-image-actual-width nil
@@ -881,19 +902,19 @@ Movement   Keep           Diff              Other │ smerge │
         ;; org-export-in-background t
         org-catch-invisible-edits 'smart)
 
-;; disable modules for faster startup
-(setq org-modules
-  '(;; ol-w3m
-    ;; ol-bbdb
-    ;; ol-bibtex
-    ol-docview
-    ;; ol-gnus
-    ;; ol-info
-    ;; ol-irc
-    ;; ol-mhe
-    ;; ol-rmail
-    ;; ol-eww
-    ))
+  ;; disable modules for faster startup
+  (setq org-modules
+        '(;; ol-w3m
+          ;; ol-bbdb
+          ;; ol-bibtex
+          ol-docview
+          ;; ol-gnus
+          ;; ol-info
+          ;; ol-irc
+          ;; ol-mhe
+          ;; ol-rmail
+          ;; ol-eww
+          ))
   (setq org-todo-keywords
         '((sequence "TODO(t)" "PROJ(p)" "|" "DONE(d)")))
   (setq org-capture-templates
@@ -906,22 +927,22 @@ Movement   Keep           Diff              Other │ smerge │
                     "%i%?"))
           ("d" "New Diary Entry" entry(file+olp+datetree"~/Dropbox/org/personal/diary.org" "Daily Logs")
            "* %^{thought for the day}
-        :PROPERTIES:
-        :CATEGORY: %^{category}
-        :SUBJECT:  %^{subject}
-        :MOOD:     %^{mood}
-        :END:
-        :RESOURCES:
-        :END:
+             :PROPERTIES:
+             :CATEGORY: %^{category}
+             :SUBJECT:  %^{subject}
+             :MOOD:     %^{mood}
+             :END:
+             :RESOURCES:
+             :END:
 
-        \*What was one good thing you learned today?*:
-        - %^{whatilearnedtoday}
+             \*What was one good thing you learned today?*:
+             - %^{whatilearnedtoday}
 
-        \*List one thing you could have done better*:
-        - %^{onethingdobetter}
+             \*List one thing you could have done better*:
+             - %^{onethingdobetter}
 
-        \*Describe in your own words how your day was*:
-        - %?")
+             \*Describe in your own words how your day was*:
+             - %?")
           ("i" "Inbox" entry
            (file+headline "personal/tasks/todo.org" "Inbox")
            ,(concat "* %^{Title}\n"
@@ -974,7 +995,7 @@ Movement   Keep           Diff              Other │ smerge │
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
   (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
-	(add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
+  (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
   )
 
 
