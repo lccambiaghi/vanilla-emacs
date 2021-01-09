@@ -106,15 +106,15 @@ If you'd like to see how many packages you've loaded, what stage of initializati
 #+BEGIN_SRC emacs-lisp
 ;; (setq use-package-compute-statistics t)
 #+END_SRC
-* Emacs
 ** Garbage collector magic hack
 Used by DOOM to manage garbage collection
 #+BEGIN_SRC emacs-lisp
-(use-package gcmh
-  :config
-  (gcmh-mode 1)
-  )
+  (use-package gcmh
+    :demand
+    :config
+    (gcmh-mode 1))
 #+END_SRC
+* Emacs
 ** Sane defaults
 Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathancox.org
 When the package is not to be found on ~melpa~, we need to set ~:straight nil~ and ~:ensure nil~ to instruct ~straight~ not to download it.
@@ -195,12 +195,14 @@ We do the same for ~dired~.
 ** helpful
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
+    :after evil
+    :init
+    (setq evil-lookup-func #'helpful-at-point)
     :bind
     ([remap describe-function] . helpful-callable)
     ([remap describe-command] . helpful-command)
     ([remap describe-variable] . helpful-variable)
-    ([remap describe-key] . helpful-key)
-    )
+    ([remap describe-key] . helpful-key))
 #+END_SRC
 ** eldoc
 #+begin_src emacs-lisp
@@ -241,7 +243,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
         :global-prefix "C-SPC")
 
       (general-create-definer my/local-leader-keys
-        :states '(normal visual emacs)
+        :states '(normal visual)
         :keymaps 'override
         :prefix ","
         :global-prefix "SPC m")
@@ -448,10 +450,19 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 ** dashboard
 #+BEGIN_SRC emacs-lisp
   (use-package dashboard
+    :after projectile
     :demand
     :init
     (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
     (setq dashboard-center-content t)
+    (setq dashboard-projects-backend 'projectile)
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-file-icons t)
+    (setq dashboard-items '((recents  . 5)
+                            (bookmarks . 5)
+                            (projects . 5)
+                            ;; (agenda . 5)
+                            ))
     ;; (setq dashboard-startup-banner [VALUE])
     :config
     (dashboard-setup-startup-hook))
@@ -504,6 +515,7 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
     (my/make-popup (rx bos "*Warnings*" eos))
     (my/make-popup (rx bos "*compilation*" eos))
     (my/make-popup (rx bos "*Help*" eos))
+    (my/make-popup (rx bos "*helpful*" eos))
     (my/make-popup (rx bos "*scratch*" eos) 0.4)
     )
 
@@ -682,14 +694,15 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
     (setq-default fringes-outside-margins t)
     )
 #+end_src
-*** smerge-mode and hydra-smerge
+*** hydra-smerge
 #+begin_src emacs-lisp
   (use-package smerge-mode
     :straight nil
     :ensure nil
+    :after hydra
     :general
-    (my/leader-keys "g m" 'smerge-mode)
-    :config
+    (my/leader-keys "g m" 'hydra-smerge)
+    :init
     (defhydra hydra-smerge (:hint nil
                                   :pre (smerge-mode 1)
                                   ;; Disable `smerge-mode' when quitting hydra if
@@ -729,12 +742,7 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 #+end_src
 ** hydra
 #+begin_src emacs-lisp
-  (use-package hydra
-    :demand
-    :config
-    (setq lv-use-seperator t))
-
-
+  (use-package hydra)
 #+end_src
 ** Indentation
 #+BEGIN_SRC emacs-lisp
@@ -791,7 +799,7 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
       :init
       (setq company-minimum-prefix-length 1)
       (setq company-idle-delay 0.0)
-      (setq company-backends '(company-dabbrev-code company-capf company-keywords company-files company-dabbrev)))
+      (setq company-backends '(company-capf company-dabbrev-code company-keywords company-files company-dabbrev)))
 
     ;; (use-package company-box
     ;;   :hook (company-mode . company-box-mode))
@@ -799,8 +807,9 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 
 ** envrc
 #+begin_src emacs-lisp
-  (use-package envrc
-    :hook (python-mode . envrc-mode))
+    (use-package envrc
+      :hook ((python-mode . envrc-mode)
+             (org-mode . envrc-mode)))
 #+end_src
 ** yasnippet
 #+begin_src emacs-lisp
@@ -974,33 +983,35 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 (general-nmap "[ !" 'flymake-goto-prev-error)
 )
 #+end_src
-*** TODO jupyter
+*** jupyter
 #+begin_src emacs-lisp
-  (use-package jupyter
-    :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
-    :general
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-      "'" '(my/jupyter-repl :wk "jupyter REPL"))
-    :init
-    (defun jupyter-command-venv (&rest args)
-      "This overrides jupyter-command to use the virtualenv's jupyter"
-      (let ((jupyter-executable (executable-find "jupyter")))
-        (with-temp-buffer
-          (when (zerop (apply #'process-file jupyter-executable nil t nil args))
-            (string-trim-right (buffer-string))))))
-    (defun my/jupyter-eval-buffer ()
-      "Send the contents of BUFFER using `jupyter-current-client'."
-      (interactive)
-      (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
-    (defun my/jupyter-repl ()
-      "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
-      (interactive)
-      (if (bound-and-true-p jupyter-current-client)
-          (jupyter-repl-pop-to-buffer)
-        (call-interactively 'jupyter-repl-associate-buffer)))
-    :config
-    (advice-add 'jupyter-command :override #'jupyter-command-venv))
+    (use-package jupyter
+      :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+      :general
+      (my/local-leader-keys
+        :keymaps 'python-mode-map
+        "'" '(my/jupyter-repl :wk "jupyter REPL")
+        "e e" '(jupyter-eval-line-or-region :wk "line")
+        "e d" '(jupyter-eval-defun :wk "defun")
+        "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
+      :init
+      (defun jupyter-command-venv (&rest args)
+        "This overrides jupyter-command to use the virtualenv's jupyter"
+        (let ((jupyter-executable (executable-find "jupyter")))
+          (with-temp-buffer
+            (when (zerop (apply #'process-file jupyter-executable nil t nil args))
+              (string-trim-right (buffer-string))))))
+      (defun my/jupyter-eval-buffer ()
+        "Send the contents of BUFFER using `jupyter-current-client'."
+        (interactive)
+        (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
+      (defun my/jupyter-repl ()
+        "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
+        (interactive)
+        (if (bound-and-true-p jupyter-current-client)
+            (jupyter-repl-pop-to-buffer)
+          (call-interactively 'jupyter-repl-associate-buffer)))
+      (advice-add 'jupyter-command :override #'jupyter-command-venv))
 #+end_src
 ** Emacs-lisp
 #+begin_src emacs-lisp
@@ -1192,6 +1203,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
     (add-to-list 'org-structure-template-alist '("py" . "src python"))
     (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
+		(add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
     )
 #+END_SRC
 
@@ -1237,7 +1249,12 @@ Taken from https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#a
       :keymaps 'org-src-mode-map
       "," '(org-edit-src-exit :wk "exit")) ;;FIXME
     :init
-    (setq org-confirm-babel-evaluate nil))
+    (setq org-confirm-babel-evaluate nil)
+    :config
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (shell . t))))
 
   ;; enable mermaid diagram blocks
   ;; (use-package ob-mermaid
@@ -1251,10 +1268,15 @@ Taken from https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#a
     (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
 #+end_src
 ** TODO ob-jupyter
-#+begin_src emacs-lisp :tangle no
+Note:
+- We can only load ~ob-jupyter~ when we have ~jupyter~ on our ~PATH~.
+  + We assume ~jupyter~ is always installed in a virtual env associated with an ~.envrc~ file
+  + We load jupyter when we activate ~envrc-mode~ if ~jupyter~ is available
+
+#+begin_src emacs-lisp
   (use-package jupyter
-    :hook (org-load . my/load-ob-jupyter)
-    :straight (:no-native-compile t :no-byte-compile t)
+    :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+    :hook (envrc-mode . my/load-ob-jupyter)
     :init
     (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
                                                          (:pandoc t)
@@ -1263,21 +1285,20 @@ Taken from https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#a
                                                     (:async . "yes")
                                                     (:kernel . "ir")))
     (defun my/load-ob-jupyter ()
-      ;; (require 'jupyter)
-      ;; (require 'ob-jupyter)
-      (org-babel-do-load-languages
-       'org-babel-load-languages
-       '((emacs-lisp . t)
-         (python . t)
-         (jupyter . t)))
-      ;; get fontification in org block
+      ;; skip if already loaded
+      (unless (member '(jupyter . t) org-babel-load-languages)
+        ;; only load if jupyter is available
+        (when (executable-find "jupyter")
+          (org-babel-do-load-languages 'org-babel-load-languages
+                                       (append org-babel-load-languages
+                                               '((jupyter . t)))))))
+    :config
+    (with-eval-after-load 'org-src
       (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
-      (add-to-list 'org-src-lang-modes '("jupyter-R" . R))
-      (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
-      ;; Remove text/html since it's not human readable
-      (delete :text/html jupyter-org-mime-types)
-      ;; (require 'tramp)
-      )
+      (add-to-list 'org-src-lang-modes '("jupyter-R" . R)))
+    ;;Remove text/html since it's not human readable
+    ;; (delete :text/html jupyter-org-mime-types)
+    ;; (require 'tramp)
     )
 #+end_src
 ** exporters

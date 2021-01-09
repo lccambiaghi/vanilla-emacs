@@ -54,9 +54,9 @@
 ;; (setq use-package-compute-statistics t)
 
 (use-package gcmh
+  :demand
   :config
-  (gcmh-mode 1)
-  )
+  (gcmh-mode 1))
 
 (use-package emacs
   :config
@@ -128,12 +128,14 @@
   (setq mac-control-modifier 'control)) ; control as... control
 
 (use-package helpful
+  :after evil
+  :init
+  (setq evil-lookup-func #'helpful-at-point)
   :bind
   ([remap describe-function] . helpful-callable)
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . helpful-variable)
-  ([remap describe-key] . helpful-key)
-  )
+  ([remap describe-key] . helpful-key))
 
 (use-package eldoc
   :hook (emacs-lisp-mode cider-mode))
@@ -163,7 +165,7 @@
     :global-prefix "C-SPC")
 
   (general-create-definer my/local-leader-keys
-    :states '(normal visual emacs)
+    :states '(normal visual)
     :keymaps 'override
     :prefix ","
     :global-prefix "SPC m")
@@ -353,10 +355,19 @@
   )
 
 (use-package dashboard
+  :after projectile
   :demand
   :init
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
   (setq dashboard-center-content t)
+  (setq dashboard-projects-backend 'projectile)
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (setq dashboard-items '((recents  . 5)
+                          (bookmarks . 5)
+                          (projects . 5)
+                          ;; (agenda . 5)
+                          ))
   ;; (setq dashboard-startup-banner [VALUE])
   :config
   (dashboard-setup-startup-hook))
@@ -399,6 +410,7 @@
   (my/make-popup (rx bos "*Warnings*" eos))
   (my/make-popup (rx bos "*compilation*" eos))
   (my/make-popup (rx bos "*Help*" eos))
+  (my/make-popup (rx bos "*helpful*" eos))
   (my/make-popup (rx bos "*scratch*" eos) 0.4)
   )
 
@@ -544,9 +556,10 @@
 (use-package smerge-mode
   :straight nil
   :ensure nil
+  :after hydra
   :general
-  (my/leader-keys "g m" 'smerge-mode)
-  :config
+  (my/leader-keys "g m" 'hydra-smerge)
+  :init
   (defhydra hydra-smerge (:hint nil
                                 :pre (smerge-mode 1)
                                 ;; Disable `smerge-mode' when quitting hydra if
@@ -584,10 +597,7 @@ Movement   Keep           Diff              Other │ smerge │
     ("R" smerge-kill-current)
     ("q" nil :color blue)))
 
-(use-package hydra
-  :demand
-  :config
-  (setq lv-use-seperator t))
+(use-package hydra)
 
 (use-package emacs
   :config
@@ -636,13 +646,14 @@ Movement   Keep           Diff              Other │ smerge │
   :init
   (setq company-minimum-prefix-length 1)
   (setq company-idle-delay 0.0)
-  (setq company-backends '(company-dabbrev-code company-capf company-keywords company-files company-dabbrev)))
+  (setq company-backends '(company-capf company-dabbrev-code company-keywords company-files company-dabbrev)))
 
 ;; (use-package company-box
 ;;   :hook (company-mode . company-box-mode))
 
 (use-package envrc
-  :hook (python-mode . envrc-mode))
+  :hook ((python-mode . envrc-mode)
+         (org-mode . envrc-mode)))
 
 (use-package yasnippet
   :hook
@@ -790,7 +801,10 @@ Movement   Keep           Diff              Other │ smerge │
   :general
   (my/local-leader-keys
     :keymaps 'python-mode-map
-    "'" '(my/jupyter-repl :wk "jupyter REPL"))
+    "'" '(my/jupyter-repl :wk "jupyter REPL")
+    "e e" '(jupyter-eval-line-or-region :wk "line")
+    "e d" '(jupyter-eval-defun :wk "defun")
+    "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
   :init
   (defun jupyter-command-venv (&rest args)
     "This overrides jupyter-command to use the virtualenv's jupyter"
@@ -808,7 +822,6 @@ Movement   Keep           Diff              Other │ smerge │
     (if (bound-and-true-p jupyter-current-client)
         (jupyter-repl-pop-to-buffer)
       (call-interactively 'jupyter-repl-associate-buffer)))
-  :config
   (advice-add 'jupyter-command :override #'jupyter-command-venv))
 
 (use-package elisp-mode
@@ -965,6 +978,7 @@ Movement   Keep           Diff              Other │ smerge │
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
   (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
+	(add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
   )
 
 
@@ -997,7 +1011,12 @@ Movement   Keep           Diff              Other │ smerge │
     :keymaps 'org-src-mode-map
     "," '(org-edit-src-exit :wk "exit")) ;;FIXME
   :init
-  (setq org-confirm-babel-evaluate nil))
+  (setq org-confirm-babel-evaluate nil)
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (shell . t))))
 
 ;; enable mermaid diagram blocks
 ;; (use-package ob-mermaid
@@ -1007,6 +1026,33 @@ Movement   Keep           Diff              Other │ smerge │
   :hook (org-load . (lambda () (require 'ob-async)))
   :init
   (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
+
+(use-package jupyter
+  :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+  :hook (envrc-mode . my/load-ob-jupyter)
+  :init
+  (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
+                                                       (:pandoc t)
+                                                       (:kernel . "python3")))
+  (setq org-babel-default-header-args:jupyter-R '((:pandoc t)
+                                                  (:async . "yes")
+                                                  (:kernel . "ir")))
+  (defun my/load-ob-jupyter ()
+    ;; skip if already loaded
+    (unless (member '(jupyter . t) org-babel-load-languages)
+      ;; only load if jupyter is available
+      (when (executable-find "jupyter")
+        (org-babel-do-load-languages 'org-babel-load-languages
+                                     (append org-babel-load-languages
+                                             '((jupyter . t)))))))
+  :config
+  (with-eval-after-load 'org-src
+    (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+    (add-to-list 'org-src-lang-modes '("jupyter-R" . R)))
+  ;;Remove text/html since it's not human readable
+  ;; (delete :text/html jupyter-org-mime-types)
+  ;; (require 'tramp)
+  )
 
 (use-package ox-gfm
   :config (eval-after-load "org" '(require 'ox-gfm nil t)))
