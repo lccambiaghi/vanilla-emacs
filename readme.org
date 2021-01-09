@@ -211,9 +211,10 @@ We do the same for ~dired~.
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
     :if (memq window-system '(mac ns))
-    :config
-    (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
-    (exec-path-from-shell-initialize)
+    :hook (emacs-startup . (lambda ()
+                             (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
+                             (exec-path-from-shell-initialize)))
+    ;; :config
     ;; (exec-path-from-shell-copy-envs
     ;;  '("GOPATH" "GO111MODULE" "GOPROXY"
     ;;    "NPMBIN" "LC_ALL" "LANG" "LC_TYPE"
@@ -274,6 +275,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
         "s" '(:ignore t :which-key "search")
 
         "t"  '(:ignore t :which-key "toggle")
+        "t d"  '(toggle-debug-on-error :which-key "debug on error")
         "t v" '((lambda () (interactive) (visual-line-mode)) :wk "visual line")
 
         "w" '(:ignore t :which-key "window")
@@ -295,44 +297,46 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 #+END_SRC
 ** evil mode
 #+BEGIN_SRC emacs-lisp
-    (use-package evil
-      :demand t
-      :general
-      (my/leader-keys
-        "wv" 'evil-window-vsplit
-        "ws" 'evil-window-split)
-      :init
-      (setq evil-want-integration t)
-      (setq evil-want-keybinding nil)
-      (setq evil-want-C-u-scroll t)
-      (setq evil-want-C-i-jump nil)
-      (setq evil-want-Y-yank-to-eol t)
-      ;; move to window when splitting
-      (setq evil-split-window-below t)
-      (setq evil-vsplit-window-right t)
-      :config
-      (evil-mode 1)
-      (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-      (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
-      ;; Use visual line motions even outside of visual-line-mode buffers
-      (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-      (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  (use-package evil
+    :demand t
+    :general
+    (my/leader-keys
+      "wv" 'evil-window-vsplit
+      "ws" 'evil-window-split)
+    :init
+    (setq evil-want-integration t)
+    (setq evil-want-keybinding nil)
+    (setq evil-want-C-u-scroll t)
+    (setq evil-want-C-i-jump nil)
+    (setq evil-want-Y-yank-to-eol t)
+    ;; move to window when splitting
+    (setq evil-split-window-below t)
+    (setq evil-vsplit-window-right t)
+    :config
+    (evil-mode 1)
+    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+    (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+    ;; Use visual line motions even outside of visual-line-mode buffers
+    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+    (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
-      (evil-set-initial-state 'messages-buffer-mode 'normal)
-      (evil-set-initial-state 'dashboard-mode 'normal))
+    (evil-set-initial-state 'messages-buffer-mode 'normal)
+    (evil-set-initial-state 'dashboard-mode 'normal))
 
-    (use-package evil-collection
-      :after evil
-      :demand
-      :config
-      (evil-collection-init))
+  (use-package evil-collection
+    :after evil
+    :demand
+    :config
+    (evil-collection-init))
 
-    (use-package evil-goggles
-      :after evil
-      :demand
-      :config
-      (evil-goggles-mode)
-      (evil-goggles-use-diff-faces))
+  (use-package evil-goggles
+    :after evil
+    :demand
+    :init
+    (setq evil-goggles-duration 0.05)
+    :config
+    (evil-goggles-mode)
+    (evil-goggles-use-diff-faces))
 #+END_SRC
 ** which-key
 #+BEGIN_SRC emacs-lisp
@@ -765,14 +769,16 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 #+END_SRC
 ** syntax highlighting
 #+BEGIN_SRC emacs-lisp
-(use-package tree-sitter
-  :hook (python-mode . tree-sitter-hl-mode)
-  :config (global-tree-sitter-mode))
+  (use-package tree-sitter
+    :hook (python-mode . (lambda ()
+                           (require 'tree-sitter)
+                           (require 'tree-sitter-langs)
+                           (require 'tree-sitter-hl)
+                           (tree-sitter-hl-mode))))
 
-(use-package tree-sitter-langs
-  :after tree-sitter)
+  (use-package tree-sitter-langs
+    :after tree-sitter)
 #+END_SRC
-
 ** company-mode
 #+BEGIN_SRC emacs-lisp
     (use-package company
@@ -943,7 +949,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-pyright
     :init
-    (setq lsp-pyright-typechecking-mode "off")
+    (setq lsp-pyright-typechecking-mode "off") ;; too much noise in "real" projects
     :hook (python-mode . (lambda ()
                            (require 'lsp-pyright)
                            (lsp-deferred))))
@@ -969,15 +975,31 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 )
 #+end_src
 *** TODO jupyter
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
   (use-package jupyter
-    :straight (:no-native-compile t)
+    :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+    :general
+    (my/local-leader-keys
+      :keymaps 'python-mode-map
+      "'" '(my/jupyter-repl :wk "jupyter REPL"))
     :init
     (defun jupyter-command-venv (&rest args)
+      "This overrides jupyter-command to use the virtualenv's jupyter"
       (let ((jupyter-executable (executable-find "jupyter")))
         (with-temp-buffer
           (when (zerop (apply #'process-file jupyter-executable nil t nil args))
             (string-trim-right (buffer-string))))))
+    (defun my/jupyter-eval-buffer ()
+      "Send the contents of BUFFER using `jupyter-current-client'."
+      (interactive)
+      (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
+    (defun my/jupyter-repl ()
+      "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
+      (interactive)
+      (if (bound-and-true-p jupyter-current-client)
+          (jupyter-repl-pop-to-buffer)
+        (call-interactively 'jupyter-repl-associate-buffer)))
+    :config
     (advice-add 'jupyter-command :override #'jupyter-command-venv))
 #+end_src
 ** Emacs-lisp
@@ -1232,7 +1254,7 @@ Taken from https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#a
 #+begin_src emacs-lisp :tangle no
   (use-package jupyter
     :hook (org-load . my/load-ob-jupyter)
-    :straight (:no-native-compile t)
+    :straight (:no-native-compile t :no-byte-compile t)
     :init
     (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
                                                          (:pandoc t)
@@ -1241,13 +1263,16 @@ Taken from https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#a
                                                     (:async . "yes")
                                                     (:kernel . "ir")))
     (defun my/load-ob-jupyter ()
-      (require 'jupyter)
-      (require 'ob-jupyter)
+      ;; (require 'jupyter)
+      ;; (require 'ob-jupyter)
       (org-babel-do-load-languages
        'org-babel-load-languages
        '((emacs-lisp . t)
          (python . t)
          (jupyter . t)))
+      ;; get fontification in org block
+      (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+      (add-to-list 'org-src-lang-modes '("jupyter-R" . R))
       (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
       ;; Remove text/html since it's not human readable
       (delete :text/html jupyter-org-mime-types)

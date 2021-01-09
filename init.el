@@ -140,9 +140,10 @@
 
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns))
-  :config
-  (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
-  (exec-path-from-shell-initialize)
+  :hook (emacs-startup . (lambda ()
+                           (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
+                           (exec-path-from-shell-initialize)))
+  ;; :config
   ;; (exec-path-from-shell-copy-envs
   ;;  '("GOPATH" "GO111MODULE" "GOPROXY"
   ;;    "NPMBIN" "LC_ALL" "LANG" "LC_TYPE"
@@ -196,6 +197,7 @@
     "s" '(:ignore t :which-key "search")
 
     "t"  '(:ignore t :which-key "toggle")
+    "t d"  '(toggle-debug-on-error :which-key "debug on error")
     "t v" '((lambda () (interactive) (visual-line-mode)) :wk "visual line")
 
     "w" '(:ignore t :which-key "window")
@@ -250,6 +252,8 @@
 (use-package evil-goggles
   :after evil
   :demand
+  :init
+  (setq evil-goggles-duration 0.05)
   :config
   (evil-goggles-mode)
   (evil-goggles-use-diff-faces))
@@ -613,8 +617,11 @@ Movement   Keep           Diff              Other │ smerge │
   :hook (lisp-mode . rainbow-delimiters-mode))
 
 (use-package tree-sitter
-  :hook (python-mode . tree-sitter-hl-mode)
-  :config (global-tree-sitter-mode))
+  :hook (python-mode . (lambda ()
+                         (require 'tree-sitter)
+                         (require 'tree-sitter-langs)
+                         (require 'tree-sitter-hl)
+                         (tree-sitter-hl-mode))))
 
 (use-package tree-sitter-langs
   :after tree-sitter)
@@ -757,7 +764,7 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package lsp-pyright
   :init
-  (setq lsp-pyright-typechecking-mode "off")
+  (setq lsp-pyright-typechecking-mode "off") ;; too much noise in "real" projects
   :hook (python-mode . (lambda ()
                          (require 'lsp-pyright)
                          (lsp-deferred))))
@@ -777,6 +784,32 @@ Movement   Keep           Diff              Other │ smerge │
 (general-nmap "] !" 'flymake-goto-next-error)
 (general-nmap "[ !" 'flymake-goto-prev-error)
 )
+
+(use-package jupyter
+  :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "'" '(my/jupyter-repl :wk "jupyter REPL"))
+  :init
+  (defun jupyter-command-venv (&rest args)
+    "This overrides jupyter-command to use the virtualenv's jupyter"
+    (let ((jupyter-executable (executable-find "jupyter")))
+      (with-temp-buffer
+        (when (zerop (apply #'process-file jupyter-executable nil t nil args))
+          (string-trim-right (buffer-string))))))
+  (defun my/jupyter-eval-buffer ()
+    "Send the contents of BUFFER using `jupyter-current-client'."
+    (interactive)
+    (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
+  (defun my/jupyter-repl ()
+    "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
+    (interactive)
+    (if (bound-and-true-p jupyter-current-client)
+        (jupyter-repl-pop-to-buffer)
+      (call-interactively 'jupyter-repl-associate-buffer)))
+  :config
+  (advice-add 'jupyter-command :override #'jupyter-command-venv))
 
 (use-package elisp-mode
   :straight nil
