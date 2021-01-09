@@ -120,69 +120,67 @@ Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathan
 When the package is not to be found on ~melpa~, we need to set ~:straight nil~ and ~:ensure nil~ to instruct ~straight~ not to download it.
 We do the same for ~dired~.
 #+BEGIN_SRC emacs-lisp
-  (use-package emacs
-    :config
-    (setq inhibit-startup-screen t
-          default-fill-column 80
-          initial-scratch-message nil
-          sentence-end-double-space nil
-          ring-bell-function 'ignore
-          frame-resize-pixelwise t)
+  (setq inhibit-startup-screen t
+        default-fill-column 80
+        initial-scratch-message nil
+        sentence-end-double-space nil
+        ring-bell-function 'ignore
+        frame-resize-pixelwise t)
 
-    (setq user-full-name "Luca Cambiaghi"
-          user-mail-address "luca.cambiaghi@me.com")
+  (setq user-full-name "Luca Cambiaghi"
+        user-mail-address "luca.cambiaghi@me.com")
 
-    ;; always allow 'y' instead of 'yes'.
-    (defalias 'yes-or-no-p 'y-or-n-p)
+  ;; always allow 'y' instead of 'yes'.
+  (defalias 'yes-or-no-p 'y-or-n-p)
 
-    ;; default to utf-8 for all the things
-    (set-charset-priority 'unicode)
-    (setq locale-coding-system 'utf-8
-          coding-system-for-read 'utf-8
-          coding-system-for-write 'utf-8)
-    (set-terminal-coding-system 'utf-8)
-    (set-keyboard-coding-system 'utf-8)
-    (set-selection-coding-system 'utf-8)
-    (prefer-coding-system 'utf-8)
-    (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+  ;; default to utf-8 for all the things
+  (set-charset-priority 'unicode)
+  (setq locale-coding-system 'utf-8
+        coding-system-for-read 'utf-8
+        coding-system-for-write 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
-    ;; write over selected text on input... like all modern editors do
-    (delete-selection-mode t)
+  ;; write over selected text on input... like all modern editors do
+  (delete-selection-mode t)
 
-    ;; enable recent files mode.
-    (recentf-mode t)
+  ;; enable recent files mode.
+  (recentf-mode t)
 
-    ;; don't want ESC as a modifier
-    (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  ;; don't want ESC as a modifier
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-    ;; Don't persist a custom file, this bites me more than it helps
-    (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
-    (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
-    (setq enable-local-variables :all)     ; fix =defvar= warnings
+  ;; Don't persist a custom file, this bites me more than it helps
+  (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
+  (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
+  (setq enable-local-variables :all)     ; fix =defvar= warnings
 
-    ;; stop emacs from littering the file system with backup files
-    (setq make-backup-files nil
-          auto-save-default nil
-          create-lockfiles nil)
+  ;; stop emacs from littering the file system with backup files
+  (setq make-backup-files nil
+        auto-save-default nil
+        create-lockfiles nil)
 
-    ;; don't show any extra window chrome
-    (when (window-system)
-      (tool-bar-mode -1)
-      (scroll-bar-mode -1)
-      (tooltip-mode -1)
-      (menu-bar-mode   -1)
-      (toggle-scroll-bar -1))
+  ;; don't show any extra window chrome
+  (when (window-system)
+    (tool-bar-mode -1)
+    (scroll-bar-mode -1)
+    (tooltip-mode -1)
+    (menu-bar-mode   -1)
+    (toggle-scroll-bar -1))
 
-    ;; use a font I like, but fail gracefully if it isn't available
-    (ignore-errors (set-frame-font "Fira Code Retina 18"))
+  ;; use a font I like, but fail gracefully if it isn't available
+  (ignore-errors (set-frame-font "Fira Code Retina 18"))
 
-    ;; enable winner mode globally for undo/redo window layout changes
-    (winner-mode t)
+  ;; enable winner mode globally for undo/redo window layout changes
+  (winner-mode t)
 
-    ;; clean up the mode line
-    (display-time-mode -1)
-    ;; (setq-default mode-line-format nil) ;TODO
-    (setq column-number-mode t))
+  ;; clean up the mode line
+  (display-time-mode -1)
+  ;; (setq-default mode-line-format nil) ;TODO
+  (setq column-number-mode t)
 #+END_SRC
 ** macOS
 #+BEGIN_SRC emacs-lisp
@@ -231,71 +229,72 @@ The commands provided by packages should be binded in the ~use-package~ block, t
 NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword in the ~use-package~ blocks won't work.
 
 #+BEGIN_SRC emacs-lisp
-    (use-package general
-      :demand t
-      :config
-      (general-evil-setup)
+  (use-package general
+    :demand t
+    :config
+    (general-evil-setup)
 
-      (general-create-definer my/leader-keys
-        :states '(normal visual emacs)
-        :keymaps 'override
-        :prefix "SPC"
-        :global-prefix "C-SPC")
+    (general-create-definer my/leader-keys
+      :states '(normal visual emacs)
+      :keymaps 'override
+      :prefix "SPC"
+      :global-prefix "C-SPC")
 
-      (general-create-definer my/local-leader-keys
-        :states '(normal visual)
-        :keymaps 'override
-        :prefix ","
-        :global-prefix "SPC m")
+    (general-create-definer my/local-leader-keys
+      :states '(normal visual)
+      :keymaps 'override
+      :prefix ","
+      :global-prefix "SPC m")
 
-      (my/leader-keys
-        "SPC" '(execute-extended-command :which-key "execute command")
-        "`" '(switch-to-prev-buffer :which-key "prev buffer")
-        ";" '(eval-expression :which-key "eval sexp")
+    (my/leader-keys
+      "SPC" '(execute-extended-command :which-key "execute command")
+      "`" '(switch-to-prev-buffer :which-key "prev buffer")
+      ";" '(eval-expression :which-key "eval sexp")
 
-        "b" '(:ignore t :which-key "buffer")
-        "br"  'revert-buffer
-        "bd"  'kill-current-buffer
+      "b" '(:ignore t :which-key "buffer")
+      "br"  'revert-buffer
+      "bd"  'kill-current-buffer
+      "bs" '((lambda () (interactive) (pop-to-buffer "*scratch*")) :wk "scratch")
 
-        "f" '(:ignore t :which-key "file")
-        "ff"  'find-file
-        "fs" 'save-buffer
-        "fr" 'recentf-open-files
+      "f" '(:ignore t :which-key "file")
+      "ff"  'find-file
+      "fs" 'save-buffer
+      "fr" 'recentf-open-files
 
-        "g" '(:ignore t :which-key "git")
+      "g" '(:ignore t :which-key "git")
 
-        "h" '(:ignore t :which-key "describe")
-        "hv" 'describe-variable
-        "he" 'view-echo-area-messages
-        "hp" 'describe-package
-        "hf" 'describe-function
-        "hF" 'describe-face
-        "hk" 'describe-key
+      "h" '(:ignore t :which-key "describe")
+      "hv" 'describe-variable
+      "he" 'view-echo-area-messages
+      "hp" 'describe-package
+      "hf" 'describe-function
+      "hF" 'describe-face
+      "hk" 'describe-key
 
-        "p" '(:ignore t :which-key "project")
+      "p" '(:ignore t :which-key "project")
 
-        "s" '(:ignore t :which-key "search")
+      "s" '(:ignore t :which-key "search")
 
-        "t"  '(:ignore t :which-key "toggle")
-        "t d"  '(toggle-debug-on-error :which-key "debug on error")
-        "t v" '((lambda () (interactive) (visual-line-mode)) :wk "visual line")
+      "t"  '(:ignore t :which-key "toggle")
+      "t d"  '(toggle-debug-on-error :which-key "debug on error")
+      "t v" '((lambda () (interactive) (visual-line-mode)) :wk "visual line")
 
-        "w" '(:ignore t :which-key "window")
-        "wl"  'windmove-right
-        "wh"  'windmove-left
-        "wk"  'windmove-up
-        "wj"  'windmove-down
-        "wd"  'delete-window
-        "wu" 'winner-undo
-        "wr" 'winner-redo
-        )
-
-      (my/local-leader-keys
-        "d" '(:ignore t :which-key "debug")
-        "e" '(:ignore t :which-key "eval")
-        "t" '(:ignore t :which-key "test")
-        )
+      "w" '(:ignore t :which-key "window")
+      "wl"  'windmove-right
+      "wh"  'windmove-left
+      "wk"  'windmove-up
+      "wj"  'windmove-down
+      "wd"  'delete-window
+      "wu" 'winner-undo
+      "wr" 'winner-redo
       )
+
+    (my/local-leader-keys
+      "d" '(:ignore t :which-key "debug")
+      "e" '(:ignore t :which-key "eval")
+      "t" '(:ignore t :which-key "test")
+      )
+    )
 #+END_SRC
 ** evil mode
 #+BEGIN_SRC emacs-lisp
@@ -373,79 +372,77 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 
 ** Modus themes
 #+BEGIN_SRC emacs-lisp
-  (use-package modus-themes
-    ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "master")
-    :demand
-    :init
-      (setq modus-operandi-theme-override-colors-alist
-          '(("bg-main" . "#fefcf4")
-            ("bg-dim" . "#faf6ef")
-            ("bg-alt" . "#f7efe5")
-            ("bg-hl-line" . "#f4f0e3")
-            ("bg-active" . "#e8dfd1")
-            ("bg-inactive" . "#f6ece5")
-            ("bg-region" . "#c6bab1")
-            ("bg-header" . "#ede3e0")
-            ("bg-tab-bar" . "#dcd3d3")
-            ("bg-tab-active" . "#fdf6eb")
-            ("bg-tab-inactive" . "#c8bab8")
-            ("fg-unfocused" . "#55556f")))
+     (use-package modus-themes
+       ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "master")
+       :demand
+       :init
+       (setq modus-operandi-theme-override-colors-alist
+             '(("bg-main" . "#fefcf4")
+               ("bg-dim" . "#faf6ef")
+               ("bg-alt" . "#f7efe5")
+               ("bg-hl-line" . "#f4f0e3")
+               ("bg-active" . "#e8dfd1")
+               ("bg-inactive" . "#f6ece5")
+               ("bg-region" . "#c6bab1")
+               ("bg-header" . "#ede3e0")
+               ("bg-tab-bar" . "#dcd3d3")
+               ("bg-tab-active" . "#fdf6eb")
+               ("bg-tab-inactive" . "#c8bab8")
+               ("fg-unfocused" . "#55556f")))
 
-    (setq modus-vivendi-theme-override-colors-alist
-          '(("bg-main" . "#100b17")
-            ("bg-dim" . "#161129")
-            ("bg-alt" . "#181732")
-            ("bg-hl-line" . "#191628")
-            ("bg-active" . "#282e46")
-            ("bg-inactive" . "#1a1e39")
-            ("bg-region" . "#393a53")
-            ("bg-header" . "#202037")
-            ("bg-tab-bar" . "#262b41")
-            ("bg-tab-active" . "#120f18")
-            ("bg-tab-inactive" . "#3a3a5a")
-            ("fg-unfocused" . "#9a9aab")))
+       (setq modus-vivendi-theme-override-colors-alist
+             '(("bg-main" . "#100b17")
+               ("bg-dim" . "#161129")
+               ("bg-alt" . "#181732")
+               ("bg-hl-line" . "#191628")
+               ("bg-active" . "#282e46")
+               ("bg-inactive" . "#1a1e39")
+               ("bg-region" . "#393a53")
+               ("bg-header" . "#202037")
+               ("bg-tab-bar" . "#262b41")
+               ("bg-tab-active" . "#120f18")
+               ("bg-tab-inactive" . "#3a3a5a")
+               ("fg-unfocused" . "#9a9aab")))
 
-    (defmacro modus-themes-format-sexp (sexp &rest objects)
-      `(eval (read (format ,(format "%S" sexp) ,@objects))))
+       (defmacro modus-themes-format-sexp (sexp &rest objects)
+         `(eval (read (format ,(format "%S" sexp) ,@objects))))
 
-    (dolist (theme '("operandi" "vivendi"))
-      (modus-themes-format-sexp
-       (setq modus-%1$s-theme-slanted-constructs t
-               modus-%1$s-theme-bold-constructs t
-               modus-%1$s-theme-fringes 'subtle ; {nil,'subtle,'intense}
-               modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
-               modus-%1$s-theme-faint-syntax nil
-               modus-%1$s-theme-intense-hl-line nil
-               modus-%1$s-theme-intense-paren-match nil
-               modus-%1$s-theme-no-link-underline t
-               modus-%1$s-theme-no-mixed-fonts nil
-               modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
-               modus-%1$s-theme-completions 'moderate ; {nil,'moderate,'opinionated}
-               modus-%1$s-theme-diffs nil ; {nil,'desaturated,'fg-only}
-               modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-               modus-%1$s-theme-headings  ; Read further below in the manual for this one
-               '((1 . line)
-                 (t . rainbow-line-no-bold))
-               modus-%1$s-theme-variable-pitch-headings t
-               modus-%1$s-theme-scale-headings t
-               modus-%1$s-theme-scale-1 1.1
-               modus-%1$s-theme-scale-2 1.15
-               modus-%1$s-theme-scale-3 1.21
-               modus-%1$s-theme-scale-4 1.27
-               modus-%1$s-theme-scale-5 1.33)
-       theme))
-    :config
-    ;;Light for the day
-    (run-at-time "07:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-operandi)))
-
-    ;; Dark for the night
-		(run-at-time "00:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))
-    (run-at-time "15:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))
-
-    )
+       (dolist (theme '("operandi" "vivendi"))
+         (modus-themes-format-sexp
+          (setq modus-%1$s-theme-slanted-constructs t
+                modus-%1$s-theme-bold-constructs t
+                modus-%1$s-theme-fringes 'subtle ; {nil,'subtle,'intense}
+                modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
+                modus-%1$s-theme-faint-syntax nil
+                modus-%1$s-theme-intense-hl-line nil
+                modus-%1$s-theme-intense-paren-match nil
+                modus-%1$s-theme-no-link-underline t
+                modus-%1$s-theme-no-mixed-fonts nil
+                modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
+                modus-%1$s-theme-completions 'moderate ; {nil,'moderate,'opinionated}
+                modus-%1$s-theme-diffs nil ; {nil,'desaturated,'fg-only}
+                modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+                modus-%1$s-theme-headings  ; Read further below in the manual for this one
+                '((1 . line)
+                  (t . rainbow-line-no-bold))
+                modus-%1$s-theme-variable-pitch-headings t
+                modus-%1$s-theme-scale-headings t
+                modus-%1$s-theme-scale-1 1.1
+                modus-%1$s-theme-scale-2 1.15
+                modus-%1$s-theme-scale-3 1.21
+                modus-%1$s-theme-scale-4 1.27
+                modus-%1$s-theme-scale-5 1.33)
+          theme))
+       :config
+       ;;Light for the day
+       (run-at-time "07:00" (* 60 60 24)
+                    (lambda () (modus-themes-load-operandi)))
+       ;; Dark for the night
+       (run-at-time "00:00" (* 60 60 24)
+                    (lambda () (modus-themes-load-vivendi)))
+       (run-at-time "15:00" (* 60 60 24)
+                    (lambda () (modus-themes-load-vivendi)))
+       )
 #+END_SRC
 ** dashboard
 #+BEGIN_SRC emacs-lisp
@@ -471,8 +468,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 ** centaur tabs
 #+begin_src emacs-lisp
   (use-package centaur-tabs
-    :demand
-    :commands (centaur-tabs-mode centaur-tabs-forward centaur-tabs-backward)
+    :hook (emacs-startup . centaur-tabs-mode)
     :general
     (general-nvmap "gt" 'centaur-tabs-forward)
     (general-nvmap "gT" 'centaur-tabs-backward)
@@ -480,6 +476,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     (setq centaur-tabs-set-icons t)
     :config
     (centaur-tabs-mode t)
+    (centaur-tabs-group-by-projectile-project)
     )
 #+end_src
 ** centered cursor mode
@@ -495,30 +492,26 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 ** popup management
 Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 #+begin_src emacs-lisp
-  (use-package emacs
-    :config
-    (defvar my-popups '()
-      "A list of popup matchers that determine if a popup can be escaped")
+  (defvar my-popups '()
+    "A list of popup matchers that determine if a popup can be escaped")
 
-    (cl-defun my/make-popup (buffer-rx &optional (height 0.4))
-      (add-to-list 'my-popups buffer-rx)
-      (add-to-list 'display-buffer-alist
-                   `(,buffer-rx
-                     (display-buffer-reuse-window
-                      display-buffer-in-side-window)
-                     (reusable-frames . visible)
-                     (side            . bottom)
-                     (window-height   . ,height))))
+  (cl-defun my/make-popup (buffer-rx &optional (height 0.4))
+    (add-to-list 'my-popups buffer-rx)
+    (add-to-list 'display-buffer-alist
+                 `(,buffer-rx
+                   (display-buffer-reuse-window
+                    display-buffer-in-side-window)
+                   (reusable-frames . visible)
+                   (side            . bottom)
+                   (window-height   . ,height))))
 
-    (my/make-popup (rx bos "*Messages*" eos))
-    (my/make-popup (rx bos "*Backtrace*" eos))
-    (my/make-popup (rx bos "*Warnings*" eos))
-    (my/make-popup (rx bos "*compilation*" eos))
-    (my/make-popup (rx bos "*Help*" eos))
-    (my/make-popup (rx bos "*helpful*" eos))
-    (my/make-popup (rx bos "*scratch*" eos) 0.4)
-    )
-
+  (my/make-popup (rx bos "*Messages*" eos))
+  (my/make-popup (rx bos "*Backtrace*" eos))
+  (my/make-popup (rx bos "*Warnings*" eos))
+  (my/make-popup (rx bos "*compilation*" eos))
+  (my/make-popup (rx bos "*Help*" eos))
+  (my/make-popup (rx bos "*helpful*" eos))
+  (my/make-popup (rx bos "*scratch*" eos) 0.4)
 #+end_src
 * Completion framework
 ** selectrum
@@ -789,20 +782,17 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 #+END_SRC
 ** company-mode
 #+BEGIN_SRC emacs-lisp
-    (use-package company
-      :demand
-      :hook ((lsp-mode . company-mode)
-             (emacs-lisp-mode . company-mode))
-      :bind
-      (:map company-active-map
-            ("<tab>" . company-complete-selection))
-      :init
-      (setq company-minimum-prefix-length 1)
-      (setq company-idle-delay 0.0)
-      (setq company-backends '(company-capf company-dabbrev-code company-keywords company-files company-dabbrev)))
+  (use-package company
+    :hook ((lsp-mode . company-mode)
+           (emacs-lisp-mode . company-mode)
+           (jupyter-org-interaction-mode . company-mode))
+    :init
+    (setq company-minimum-prefix-length 1)
+    (setq company-idle-delay 0.0)
+    (setq company-backends '(company-capf company-dabbrev-code company-keywords company-files company-dabbrev)))
 
-    ;; (use-package company-box
-    ;;   :hook (company-mode . company-box-mode))
+  ;; (use-package company-box
+  ;;   :hook (company-mode . company-box-mode))
 #+END_SRC
 
 ** envrc
@@ -973,45 +963,50 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 *** flymake 
 #+begin_src emacs-lisp
-(use-package flymake
-:straight nil
-:ensure nil
-:init
-(setq python-flymake-command (executable-find "flake8"))
-:general
-(general-nmap "] !" 'flymake-goto-next-error)
-(general-nmap "[ !" 'flymake-goto-prev-error)
-)
+  (use-package flymake
+    :straight nil
+    :ensure nil
+    :hook (emacs-lisp-mode . flymake-mode)
+    :init
+    (setq python-flymake-command (executable-find "flake8"))
+    :general
+    (general-nmap "] !" 'flymake-goto-next-error)
+    (general-nmap "[ !" 'flymake-goto-prev-error)
+    )
 #+end_src
 *** jupyter
 #+begin_src emacs-lisp
-    (use-package jupyter
-      :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
-      :general
-      (my/local-leader-keys
-        :keymaps 'python-mode-map
-        "'" '(my/jupyter-repl :wk "jupyter REPL")
-        "e e" '(jupyter-eval-line-or-region :wk "line")
-        "e d" '(jupyter-eval-defun :wk "defun")
-        "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
-      :init
-      (defun jupyter-command-venv (&rest args)
-        "This overrides jupyter-command to use the virtualenv's jupyter"
-        (let ((jupyter-executable (executable-find "jupyter")))
-          (with-temp-buffer
-            (when (zerop (apply #'process-file jupyter-executable nil t nil args))
-              (string-trim-right (buffer-string))))))
-      (defun my/jupyter-eval-buffer ()
-        "Send the contents of BUFFER using `jupyter-current-client'."
-        (interactive)
-        (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
-      (defun my/jupyter-repl ()
-        "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
-        (interactive)
-        (if (bound-and-true-p jupyter-current-client)
-            (jupyter-repl-pop-to-buffer)
-          (call-interactively 'jupyter-repl-associate-buffer)))
-      (advice-add 'jupyter-command :override #'jupyter-command-venv))
+  (use-package jupyter
+    :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+    :general
+    (my/local-leader-keys
+      :keymaps 'python-mode-map
+      "'" '(my/jupyter-repl :wk "jupyter REPL")
+      "e e" '(jupyter-eval-line-or-region :wk "line")
+      "e d" '(jupyter-eval-defun :wk "defun")
+      "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
+    (my/local-leader-keys
+      :keymaps 'jupyter-repl-interaction-mode-map
+      "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
+    :init
+    (setq jupyter-repl-prompt-margin-width 4)
+    (defun jupyter-command-venv (&rest args)
+      "This overrides jupyter-command to use the virtualenv's jupyter"
+      (let ((jupyter-executable (executable-find "jupyter")))
+        (with-temp-buffer
+          (when (zerop (apply #'process-file jupyter-executable nil t nil args))
+            (string-trim-right (buffer-string))))))
+    (defun my/jupyter-eval-buffer ()
+      "Send the contents of BUFFER using `jupyter-current-client'."
+      (interactive)
+      (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
+    (defun my/jupyter-repl ()
+      "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
+      (interactive)
+      (if (bound-and-true-p jupyter-current-client)
+          (jupyter-repl-pop-to-buffer)
+        (call-interactively 'jupyter-repl-associate-buffer)))
+    (advice-add 'jupyter-command :override #'jupyter-command-venv))
 #+end_src
 ** Emacs-lisp
 #+begin_src emacs-lisp
@@ -1267,7 +1262,7 @@ Taken from https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#a
     :init
     (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
 #+end_src
-** TODO ob-jupyter
+** ob-jupyter
 Note:
 - We can only load ~ob-jupyter~ when we have ~jupyter~ on our ~PATH~.
   + We assume ~jupyter~ is always installed in a virtual env associated with an ~.envrc~ file
@@ -1276,7 +1271,10 @@ Note:
 #+begin_src emacs-lisp
   (use-package jupyter
     :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
-    :hook (envrc-mode . my/load-ob-jupyter)
+    :hook ((envrc-mode . my/load-ob-jupyter)
+           (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
+                                             (when (derived-mode-p 'org-mode)
+                                               (jupyter-org-interaction-mode)))))
     :init
     (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
                                                          (:pandoc t)
@@ -1285,13 +1283,15 @@ Note:
                                                     (:async . "yes")
                                                     (:kernel . "ir")))
     (defun my/load-ob-jupyter ()
-      ;; skip if already loaded
-      (unless (member '(jupyter . t) org-babel-load-languages)
-        ;; only load if jupyter is available
-        (when (executable-find "jupyter")
-          (org-babel-do-load-languages 'org-babel-load-languages
-                                       (append org-babel-load-languages
-                                               '((jupyter . t)))))))
+      ;; only try to load in org-mode
+      (when (derived-mode-p 'org-mode)
+        ;; skip if already loaded
+        (unless (member '(jupyter . t) org-babel-load-languages)
+          ;; only load if jupyter is available
+          (when (executable-find "jupyter")
+            (org-babel-do-load-languages 'org-babel-load-languages
+                                         (append org-babel-load-languages
+                                                 '((jupyter . t))))))))
     :config
     (with-eval-after-load 'org-src
       (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
@@ -1342,20 +1342,12 @@ Note:
     )
 #+end_src
 * TODO missing
-** org present
 ** restart emacs
 ** hide BEGIN and END in org blocks
 ** completion in org blocks
 ** toggle inline images in org
 ** maximize window
-** scratch buffer
-	 #+begin_src emacs-lisp
-(defun my/scratch-buffer ()
-  (interactive)
-  (pop-to-buffer "*scratch*"))
-#+end_src>
 ** keybindings
 - =, t t= to set headline to TODO
 - org-insert-item
-  - org-do-demote and org-do-promote
 

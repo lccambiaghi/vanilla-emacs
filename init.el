@@ -58,69 +58,67 @@
   :config
   (gcmh-mode 1))
 
-(use-package emacs
-  :config
-  (setq inhibit-startup-screen t
-        default-fill-column 80
-        initial-scratch-message nil
-        sentence-end-double-space nil
-        ring-bell-function 'ignore
-        frame-resize-pixelwise t)
+(setq inhibit-startup-screen t
+      default-fill-column 80
+      initial-scratch-message nil
+      sentence-end-double-space nil
+      ring-bell-function 'ignore
+      frame-resize-pixelwise t)
 
-  (setq user-full-name "Luca Cambiaghi"
-        user-mail-address "luca.cambiaghi@me.com")
+(setq user-full-name "Luca Cambiaghi"
+      user-mail-address "luca.cambiaghi@me.com")
 
-  ;; always allow 'y' instead of 'yes'.
-  (defalias 'yes-or-no-p 'y-or-n-p)
+;; always allow 'y' instead of 'yes'.
+(defalias 'yes-or-no-p 'y-or-n-p)
 
-  ;; default to utf-8 for all the things
-  (set-charset-priority 'unicode)
-  (setq locale-coding-system 'utf-8
-        coding-system-for-read 'utf-8
-        coding-system-for-write 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (prefer-coding-system 'utf-8)
-  (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+;; default to utf-8 for all the things
+(set-charset-priority 'unicode)
+(setq locale-coding-system 'utf-8
+      coding-system-for-read 'utf-8
+      coding-system-for-write 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+(setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
-  ;; write over selected text on input... like all modern editors do
-  (delete-selection-mode t)
+;; write over selected text on input... like all modern editors do
+(delete-selection-mode t)
 
-  ;; enable recent files mode.
-  (recentf-mode t)
+;; enable recent files mode.
+(recentf-mode t)
 
-  ;; don't want ESC as a modifier
-  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+;; don't want ESC as a modifier
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-  ;; Don't persist a custom file, this bites me more than it helps
-  (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
-  (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
-  (setq enable-local-variables :all)     ; fix =defvar= warnings
+;; Don't persist a custom file, this bites me more than it helps
+(setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
+(setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
+(setq enable-local-variables :all)     ; fix =defvar= warnings
 
-  ;; stop emacs from littering the file system with backup files
-  (setq make-backup-files nil
-        auto-save-default nil
-        create-lockfiles nil)
+;; stop emacs from littering the file system with backup files
+(setq make-backup-files nil
+      auto-save-default nil
+      create-lockfiles nil)
 
-  ;; don't show any extra window chrome
-  (when (window-system)
-    (tool-bar-mode -1)
-    (scroll-bar-mode -1)
-    (tooltip-mode -1)
-    (menu-bar-mode   -1)
-    (toggle-scroll-bar -1))
+;; don't show any extra window chrome
+(when (window-system)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+  (tooltip-mode -1)
+  (menu-bar-mode   -1)
+  (toggle-scroll-bar -1))
 
-  ;; use a font I like, but fail gracefully if it isn't available
-  (ignore-errors (set-frame-font "Fira Code Retina 18"))
+;; use a font I like, but fail gracefully if it isn't available
+(ignore-errors (set-frame-font "Fira Code Retina 18"))
 
-  ;; enable winner mode globally for undo/redo window layout changes
-  (winner-mode t)
+;; enable winner mode globally for undo/redo window layout changes
+(winner-mode t)
 
-  ;; clean up the mode line
-  (display-time-mode -1)
-  ;; (setq-default mode-line-format nil) ;TODO
-  (setq column-number-mode t))
+;; clean up the mode line
+(display-time-mode -1)
+;; (setq-default mode-line-format nil) ;TODO
+(setq column-number-mode t)
 
 (when (eq system-type 'darwin)
   (setq mac-command-modifier 'super)     ; command as super
@@ -178,6 +176,7 @@
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
     "bd"  'kill-current-buffer
+    "bs" '((lambda () (interactive) (pop-to-buffer "*scratch*")) :wk "scratch")
 
     "f" '(:ignore t :which-key "file")
     "ff"  'find-file
@@ -284,7 +283,7 @@
   ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "master")
   :demand
   :init
-    (setq modus-operandi-theme-override-colors-alist
+  (setq modus-operandi-theme-override-colors-alist
         '(("bg-main" . "#fefcf4")
           ("bg-dim" . "#faf6ef")
           ("bg-alt" . "#f7efe5")
@@ -318,40 +317,38 @@
   (dolist (theme '("operandi" "vivendi"))
     (modus-themes-format-sexp
      (setq modus-%1$s-theme-slanted-constructs t
-             modus-%1$s-theme-bold-constructs t
-             modus-%1$s-theme-fringes 'subtle ; {nil,'subtle,'intense}
-             modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
-             modus-%1$s-theme-faint-syntax nil
-             modus-%1$s-theme-intense-hl-line nil
-             modus-%1$s-theme-intense-paren-match nil
-             modus-%1$s-theme-no-link-underline t
-             modus-%1$s-theme-no-mixed-fonts nil
-             modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
-             modus-%1$s-theme-completions 'moderate ; {nil,'moderate,'opinionated}
-             modus-%1$s-theme-diffs nil ; {nil,'desaturated,'fg-only}
-             modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-             modus-%1$s-theme-headings  ; Read further below in the manual for this one
-             '((1 . line)
-               (t . rainbow-line-no-bold))
-             modus-%1$s-theme-variable-pitch-headings t
-             modus-%1$s-theme-scale-headings t
-             modus-%1$s-theme-scale-1 1.1
-             modus-%1$s-theme-scale-2 1.15
-             modus-%1$s-theme-scale-3 1.21
-             modus-%1$s-theme-scale-4 1.27
-             modus-%1$s-theme-scale-5 1.33)
+           modus-%1$s-theme-bold-constructs t
+           modus-%1$s-theme-fringes 'subtle ; {nil,'subtle,'intense}
+           modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
+           modus-%1$s-theme-faint-syntax nil
+           modus-%1$s-theme-intense-hl-line nil
+           modus-%1$s-theme-intense-paren-match nil
+           modus-%1$s-theme-no-link-underline t
+           modus-%1$s-theme-no-mixed-fonts nil
+           modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
+           modus-%1$s-theme-completions 'moderate ; {nil,'moderate,'opinionated}
+           modus-%1$s-theme-diffs nil ; {nil,'desaturated,'fg-only}
+           modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+           modus-%1$s-theme-headings  ; Read further below in the manual for this one
+           '((1 . line)
+             (t . rainbow-line-no-bold))
+           modus-%1$s-theme-variable-pitch-headings t
+           modus-%1$s-theme-scale-headings t
+           modus-%1$s-theme-scale-1 1.1
+           modus-%1$s-theme-scale-2 1.15
+           modus-%1$s-theme-scale-3 1.21
+           modus-%1$s-theme-scale-4 1.27
+           modus-%1$s-theme-scale-5 1.33)
      theme))
   :config
   ;;Light for the day
   (run-at-time "07:00" (* 60 60 24)
                (lambda () (modus-themes-load-operandi)))
-
   ;; Dark for the night
-	(run-at-time "00:00" (* 60 60 24)
+  (run-at-time "00:00" (* 60 60 24)
                (lambda () (modus-themes-load-vivendi)))
   (run-at-time "15:00" (* 60 60 24)
                (lambda () (modus-themes-load-vivendi)))
-
   )
 
 (use-package dashboard
@@ -373,8 +370,7 @@
   (dashboard-setup-startup-hook))
 
 (use-package centaur-tabs
-  :demand
-  :commands (centaur-tabs-mode centaur-tabs-forward centaur-tabs-backward)
+  :hook (emacs-startup . centaur-tabs-mode)
   :general
   (general-nvmap "gt" 'centaur-tabs-forward)
   (general-nvmap "gT" 'centaur-tabs-backward)
@@ -382,6 +378,7 @@
   (setq centaur-tabs-set-icons t)
   :config
   (centaur-tabs-mode t)
+  (centaur-tabs-group-by-projectile-project)
   )
 
 (use-package centered-cursor-mode
@@ -390,29 +387,26 @@
 (use-package hide-mode-line
   :commands (hide-mode-line-mode))
 
-(use-package emacs
-  :config
-  (defvar my-popups '()
-    "A list of popup matchers that determine if a popup can be escaped")
+(defvar my-popups '()
+  "A list of popup matchers that determine if a popup can be escaped")
 
-  (cl-defun my/make-popup (buffer-rx &optional (height 0.4))
-    (add-to-list 'my-popups buffer-rx)
-    (add-to-list 'display-buffer-alist
-                 `(,buffer-rx
-                   (display-buffer-reuse-window
-                    display-buffer-in-side-window)
-                   (reusable-frames . visible)
-                   (side            . bottom)
-                   (window-height   . ,height))))
+(cl-defun my/make-popup (buffer-rx &optional (height 0.4))
+  (add-to-list 'my-popups buffer-rx)
+  (add-to-list 'display-buffer-alist
+               `(,buffer-rx
+                 (display-buffer-reuse-window
+                  display-buffer-in-side-window)
+                 (reusable-frames . visible)
+                 (side            . bottom)
+                 (window-height   . ,height))))
 
-  (my/make-popup (rx bos "*Messages*" eos))
-  (my/make-popup (rx bos "*Backtrace*" eos))
-  (my/make-popup (rx bos "*Warnings*" eos))
-  (my/make-popup (rx bos "*compilation*" eos))
-  (my/make-popup (rx bos "*Help*" eos))
-  (my/make-popup (rx bos "*helpful*" eos))
-  (my/make-popup (rx bos "*scratch*" eos) 0.4)
-  )
+(my/make-popup (rx bos "*Messages*" eos))
+(my/make-popup (rx bos "*Backtrace*" eos))
+(my/make-popup (rx bos "*Warnings*" eos))
+(my/make-popup (rx bos "*compilation*" eos))
+(my/make-popup (rx bos "*Help*" eos))
+(my/make-popup (rx bos "*helpful*" eos))
+(my/make-popup (rx bos "*scratch*" eos) 0.4)
 
 (use-package selectrum
   :demand
@@ -637,12 +631,9 @@ Movement   Keep           Diff              Other │ smerge │
   :after tree-sitter)
 
 (use-package company
-  :demand
   :hook ((lsp-mode . company-mode)
-         (emacs-lisp-mode . company-mode))
-  :bind
-  (:map company-active-map
-        ("<tab>" . company-complete-selection))
+         (emacs-lisp-mode . company-mode)
+         (jupyter-org-interaction-mode . company-mode))
   :init
   (setq company-minimum-prefix-length 1)
   (setq company-idle-delay 0.0)
@@ -787,14 +778,15 @@ Movement   Keep           Diff              Other │ smerge │
     "t h" '(python-pytest-dispatch :wk "dispatch")))
 
 (use-package flymake
-:straight nil
-:ensure nil
-:init
-(setq python-flymake-command (executable-find "flake8"))
-:general
-(general-nmap "] !" 'flymake-goto-next-error)
-(general-nmap "[ !" 'flymake-goto-prev-error)
-)
+  :straight nil
+  :ensure nil
+  :hook (emacs-lisp-mode . flymake-mode)
+  :init
+  (setq python-flymake-command (executable-find "flake8"))
+  :general
+  (general-nmap "] !" 'flymake-goto-next-error)
+  (general-nmap "[ !" 'flymake-goto-prev-error)
+  )
 
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
@@ -805,7 +797,11 @@ Movement   Keep           Diff              Other │ smerge │
     "e e" '(jupyter-eval-line-or-region :wk "line")
     "e d" '(jupyter-eval-defun :wk "defun")
     "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
+  (my/local-leader-keys
+    :keymaps 'jupyter-repl-interaction-mode-map
+    "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
   :init
+  (setq jupyter-repl-prompt-margin-width 4)
   (defun jupyter-command-venv (&rest args)
     "This overrides jupyter-command to use the virtualenv's jupyter"
     (let ((jupyter-executable (executable-find "jupyter")))
@@ -1029,7 +1025,10 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
-  :hook (envrc-mode . my/load-ob-jupyter)
+  :hook ((envrc-mode . my/load-ob-jupyter)
+         (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
+                                           (when (derived-mode-p 'org-mode)
+                                             (jupyter-org-interaction-mode)))))
   :init
   (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
                                                        (:pandoc t)
@@ -1038,13 +1037,15 @@ Movement   Keep           Diff              Other │ smerge │
                                                   (:async . "yes")
                                                   (:kernel . "ir")))
   (defun my/load-ob-jupyter ()
-    ;; skip if already loaded
-    (unless (member '(jupyter . t) org-babel-load-languages)
-      ;; only load if jupyter is available
-      (when (executable-find "jupyter")
-        (org-babel-do-load-languages 'org-babel-load-languages
-                                     (append org-babel-load-languages
-                                             '((jupyter . t)))))))
+    ;; only try to load in org-mode
+    (when (derived-mode-p 'org-mode)
+      ;; skip if already loaded
+      (unless (member '(jupyter . t) org-babel-load-languages)
+        ;; only load if jupyter is available
+        (when (executable-find "jupyter")
+          (org-babel-do-load-languages 'org-babel-load-languages
+                                       (append org-babel-load-languages
+                                               '((jupyter . t))))))))
   :config
   (with-eval-after-load 'org-src
     (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
