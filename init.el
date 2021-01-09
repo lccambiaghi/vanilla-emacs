@@ -1,6 +1,5 @@
 ;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
-
-                                        ; repeating here in case early-init.el is not loaded with chemacs
+;; repeating here in case early-init.el is not loaded with chemacs
 (setq gc-cons-threshold most-positive-fixnum)
 (setq package-enable-at-startup nil)
 (setq comp-deferred-compilation nil)
@@ -48,6 +47,9 @@
       "git -C " straight-repo-dir " checkout 2d407bc")))
   (load bootstrap-file nil 'nomessage))
 (straight-use-package 'use-package)
+;; This is a variable that has been renamed but straight still refers when
+;; doing :sraight (:no-native-compile t)
+(setq comp-deferred-compilation-black-list nil)
 
 ;; (setq use-package-compute-statistics t)
 
@@ -154,13 +156,16 @@
   (general-evil-setup)
 
   (general-create-definer my/leader-keys
-    :keymaps '(normal insert visual emacs)
+    :states '(normal visual emacs)
+    :keymaps 'override
     :prefix "SPC"
     :global-prefix "C-SPC")
 
   (general-create-definer my/local-leader-keys
-    :keymaps '(normal emacs)
-    :prefix ",")
+    :states '(normal visual emacs)
+    :keymaps 'override
+    :prefix ","
+    :global-prefix "SPC m")
 
   (my/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
@@ -202,6 +207,12 @@
     "wu" 'winner-undo
     "wr" 'winner-redo
     )
+
+  (my/local-leader-keys
+    "d" '(:ignore t :which-key "debug")
+    "e" '(:ignore t :which-key "eval")
+    "t" '(:ignore t :which-key "test")
+    )
   )
 
 (use-package evil
@@ -209,9 +220,7 @@
   :general
   (my/leader-keys
     "wv" 'evil-window-vsplit
-    "ws" 'evil-window-split
-    )
-  (evil-motion-state-map "," nil) ;; we use , as local-leader so we unbind it
+    "ws" 'evil-window-split)
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -234,8 +243,16 @@
 
 (use-package evil-collection
   :after evil
+  :demand
   :config
   (evil-collection-init))
+
+(use-package evil-goggles
+  :after evil
+  :demand
+  :config
+  (evil-goggles-mode)
+  (evil-goggles-use-diff-faces))
 
 (use-package which-key
   :demand t
@@ -261,7 +278,7 @@
   ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "master")
   :demand
   :init
-  (setq modus-operandi-theme-override-colors-alist
+    (setq modus-operandi-theme-override-colors-alist
         '(("bg-main" . "#fefcf4")
           ("bg-dim" . "#faf6ef")
           ("bg-alt" . "#f7efe5")
@@ -273,30 +290,7 @@
           ("bg-tab-bar" . "#dcd3d3")
           ("bg-tab-active" . "#fdf6eb")
           ("bg-tab-inactive" . "#c8bab8")
-          ("fg-unfocused" . "#55556f"))
-        modus-operandi-theme-slanted-constructs t
-        modus-operandi-theme-bold-constructs t
-        modus-operandi-theme-fringes 'subtle ; {nil,'subtle,'intense}
-        modus-operandi-theme-mode-line '3d ; {nil,'3d,'moody}
-        modus-operandi-theme-faint-syntax nil
-        modus-operandi-theme-intense-hl-line nil
-        modus-operandi-theme-intense-paren-match nil
-        modus-operandi-theme-no-link-underline t
-        modus-operandi-theme-no-mixed-fonts nil
-        modus-operandi-theme-prompts nil ; {nil,'subtle,'intense}
-        modus-operandi-theme-completions 'moderate ; {nil,'moderate,'opinionated}
-        modus-operandi-theme-diffs nil ; {nil,'desaturated,'fg-only}
-        modus-operandi-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-        modus-operandi-theme-headings  ; Read further below in the manual for this one
-        '((1 . line)
-          (t . rainbow-line-no-bold))
-        modus-operandi-theme-variable-pitch-headings t
-        modus-operandi-theme-scale-headings t
-        modus-operandi-theme-scale-1 1.1
-        modus-operandi-theme-scale-2 1.15
-        modus-operandi-theme-scale-3 1.21
-        modus-operandi-theme-scale-4 1.27
-        modus-operandi-theme-scale-5 1.33)
+          ("fg-unfocused" . "#55556f")))
 
   (setq modus-vivendi-theme-override-colors-alist
         '(("bg-main" . "#100b17")
@@ -310,49 +304,49 @@
           ("bg-tab-bar" . "#262b41")
           ("bg-tab-active" . "#120f18")
           ("bg-tab-inactive" . "#3a3a5a")
-          ("fg-unfocused" . "#9a9aab"))
-        modus-vivendi-theme-intense-paren-match t
-        modus-vivendi-theme-distinct-org-blocks t
-        modus-vivendi-theme-slanted-constructs t
-        modus-vivendi-theme-bold-constructs t
-        modus-vivendi-theme-fringes 'subtle ; {nil,'subtle,'intense}
-        modus-vivendi-theme-mode-line '3d ; {nil,'3d,'moody}
-        modus-vivendi-theme-faint-syntax nil
-        modus-vivendi-theme-intense-hl-line nil
-        modus-vivendi-theme-intense-paren-match nil
-        modus-vivendi-theme-no-link-underline t
-        modus-vivendi-theme-no-mixed-fonts nil
-        modus-vivendi-theme-prompts nil ; {nil,'subtle,'intense}
-        modus-vivendi-theme-completions 'moderate ; {nil,'moderate,'opinionated}
-        modus-vivendi-theme-diffs nil ; {nil,'desaturated,'fg-only}
-        modus-vivendi-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-        modus-vivendi-theme-headings  ; Read further below in the manual for this one
-        '((1 . line)
-          (t . rainbow-line-no-bold))
-        modus-vivendi-theme-variable-pitch-headings t
-        modus-vivendi-theme-scale-headings t
-        modus-vivendi-theme-scale-1 1.1
-        modus-vivendi-theme-scale-2 1.15
-        modus-vivendi-theme-scale-3 1.21
-        modus-vivendi-theme-scale-4 1.27
-        modus-vivendi-theme-scale-5 1.33)
+          ("fg-unfocused" . "#9a9aab")))
+
+  (defmacro modus-themes-format-sexp (sexp &rest objects)
+    `(eval (read (format ,(format "%S" sexp) ,@objects))))
+
+  (dolist (theme '("operandi" "vivendi"))
+    (modus-themes-format-sexp
+     (setq modus-%1$s-theme-slanted-constructs t
+             modus-%1$s-theme-bold-constructs t
+             modus-%1$s-theme-fringes 'subtle ; {nil,'subtle,'intense}
+             modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
+             modus-%1$s-theme-faint-syntax nil
+             modus-%1$s-theme-intense-hl-line nil
+             modus-%1$s-theme-intense-paren-match nil
+             modus-%1$s-theme-no-link-underline t
+             modus-%1$s-theme-no-mixed-fonts nil
+             modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
+             modus-%1$s-theme-completions 'moderate ; {nil,'moderate,'opinionated}
+             modus-%1$s-theme-diffs nil ; {nil,'desaturated,'fg-only}
+             modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+             modus-%1$s-theme-headings  ; Read further below in the manual for this one
+             '((1 . line)
+               (t . rainbow-line-no-bold))
+             modus-%1$s-theme-variable-pitch-headings t
+             modus-%1$s-theme-scale-headings t
+             modus-%1$s-theme-scale-1 1.1
+             modus-%1$s-theme-scale-2 1.15
+             modus-%1$s-theme-scale-3 1.21
+             modus-%1$s-theme-scale-4 1.27
+             modus-%1$s-theme-scale-5 1.33)
+     theme))
+  :config
+  ;;Light for the day
+  (run-at-time "07:00" (* 60 60 24)
+               (lambda () (modus-themes-load-operandi)))
+
+  ;; Dark for the night
+	(run-at-time "00:00" (* 60 60 24)
+               (lambda () (modus-themes-load-vivendi)))
+  (run-at-time "15:00" (* 60 60 24)
+               (lambda () (modus-themes-load-vivendi)))
+
   )
-
-(use-package solar
-  :straight nil
-  :ensure nil
-  :demand
-  :config
-  (setq calendar-latitude 55.67
-        calendar-longitude 12.56))
-
-(use-package circadian
-  :after (solar modus-themes)
-  :demand
-  :config
-  (setq circadian-themes '((:sunrise . modus-operandi)
-                           (:sunset  . modus-vivendi)))
-  (circadian-setup))
 
 (use-package dashboard
   :demand
@@ -460,7 +454,6 @@
   (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate))
 
 (use-package consult
-  :demand
   :general
   (my/leader-keys
     "s o" '(consult-outline :which-key "outline")
@@ -473,8 +466,12 @@
     "s p" '(consult-ripgrep :wk "ripgrep")
     "t t" '(consult-theme :wk "theme")
     )
+  ;; :init
+  ;; (setq consult-preview-key "C-l")
+  ;; (setq consult-narrow-key ">")
   :config
-  (consult-preview-mode))
+  (consult-preview-mode)
+  )
 
 (use-package consult-selectrum
   :after selectrum
@@ -482,38 +479,35 @@
 
 (use-package projectile
   :demand
-  ;; :general (general-nvmap "SPC pp" 'projectile-switch-project)
   :general
-  (general-nmap
-    "SPC p" '(:keymap projectile-command-map
-                      :which-key "projectile"))
-  (general-nmap
-    "SPC p a" 'projectile-add-known-project)
-
-  :custom ((projectile-completion-system 'default))
+  (my/leader-keys
+   "p" '(:keymap projectile-command-map :which-key "projectile")
+   "p a" 'projectile-add-known-project
+   "p t" 'projectile-run-vterm)
   :init
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
+  (setq projectile-completion-system 'default)
   (setq projectile-switch-project-action #'projectile-find-file)
   ;; (add-to-list 'projectile-globally-ignored-directories "straight") ;; TODO
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
     (unless (file-remote-p default-directory) ad-do-it))
-  (projectile-mode)
-  )
+  (projectile-mode))
 
 (use-package perspective
   :general
-  (general-nvmap "SPC <tab> <tab>" 'persp-switch)
-  (general-nvmap "SPC <tab> `" 'persp-switch-last)
-  (general-nvmap "SPC <tab> d" 'persp-kill)
+  (my/leader-keys
+   "<tab> <tab>" 'persp-switch
+   "<tab> `" 'persp-switch-last
+   "<tab> d" 'persp-kill)
   :config
   (persp-mode))
 
 (use-package persp-projectile
   :general
-  (general-nvmap "SPC p p" 'projectile-persp-switch-project)
-  )
+  (my/leader-keys
+   "p p" 'projectile-persp-switch-project))
 
 (use-package magit
   :general
@@ -521,11 +515,8 @@
     "g g" 'magit-status
     "g G" 'magit-status-here)
   :init
-  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-(use-package evil-magit
-  :after magit
-  :demand)
+  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  )
 
 (use-package git-timemachine
   :hook (git-time-machine-mode . evil-normalize-keymaps)
@@ -539,9 +530,9 @@
 
 (use-package git-gutter-fringe
   :hook
-  ((text-mode . git-gutter-mode)
-   (org-mode . git-gutter-mode)
-   (prog-mode . git-gutter-mode))
+  ((text-mode
+    org-mode
+    prog-mode) . git-gutter-mode)
   :config
   (setq-default fringes-outside-margins t)
   )
@@ -619,7 +610,7 @@ Movement   Keep           Diff              Other │ smerge │
   )
 
 (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+  :hook (lisp-mode . rainbow-delimiters-mode))
 
 (use-package tree-sitter
   :hook (python-mode . tree-sitter-hl-mode)
@@ -628,54 +619,17 @@ Movement   Keep           Diff              Other │ smerge │
 (use-package tree-sitter-langs
   :after tree-sitter)
 
-;; (defun my/lsp-mode-setup ()
-;;   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-;;   (lsp-headerline-breadcrumb-mode))
-
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  ;; :hook (lsp-mode . my/lsp-mode-setup)
-  :general
-  (general-nmap
-    "SPC l" '(:keymap lsp-command-map
-                      :which-key "lsp"))
-  :init
-  (setq lsp-restart 'ignore)
-  :config
-  (lsp-enable-which-key-integration t))
-
-;; (use-package lsp-ui
-;;   :hook (lsp-mode . lsp-ui-mode)
-;;   :custom
-;;   (lsp-ui-doc-position 'bottom))
-
-(use-package dap-mode
-  :custom
-  (dap-auto-configure nil)
-  :config
-  (dap-ui-mode 1)
-
-  ;; Bind `C-c l d` to `dap-hydra` for easy access
-  ; TODO
-  ;; :general (lsp-mode-map "gcc" #'evilnc-comment-or-uncomment-lines)
-
-  (general-define-key
-    :keymaps 'lsp-mode-map
-    :prefix lsp-keymap-prefix
-    "d" '(dap-hydra t :wk "debugger")))
-
 (use-package company
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
+  :demand
+  :hook ((lsp-mode . company-mode)
+         (emacs-lisp-mode . company-mode))
   :bind
   (:map company-active-map
         ("<tab>" . company-complete-selection))
-  (:map lsp-mode-map
-        ("<tab>" . company-indent-or-complete-common))
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0)
-  )
+  :init
+  (setq company-minimum-prefix-length 1)
+  (setq company-idle-delay 0.0)
+  (setq company-backends '(company-dabbrev-code company-capf company-keywords company-files company-dabbrev)))
 
 ;; (use-package company-box
 ;;   :hook (company-mode . company-box-mode))
@@ -706,12 +660,19 @@ Movement   Keep           Diff              Other │ smerge │
         ;; evil-cleverparens-use-regular-insert t
         )
   :config
-  ;; Disable auto pair ' in elisp mode
   (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+  (sp-local-pair 'org-mode "<" nil :actions nil)
   )
 
 (use-package evil-mc
-  :commands (evil-mc-undo-all-cursors)
+  :commands (evil-mc-make-and-goto-next-match ;C-n
+             evil-mc-make-and-goto-prev-match ;C-p
+             evil-mc-make-cursor-here ; grh
+             evil-mc-undo-all-cursors ; grq
+             evil-mc-make-all-cursors ; grm
+             evil-mc-make-cursor-move-next-line ; grj
+             evil-mc-make-cursor-move-prev-line ; grk
+             )
   :config
   (global-evil-mc-mode +1)
   )
@@ -726,12 +687,7 @@ Movement   Keep           Diff              Other │ smerge │
   :general
   (:states 'visual
            "S" 'evil-surround-region
-           "gS" 'evil-Surround-region)
-  ;; equivalent to:
-  ;; :commands (evil-surround-region)
-  ;; :init
-  ;; (evil-define-key 'visual global-map "S" 'evil-surround-region)
-  )
+           "gS" 'evil-Surround-region))
 
 (use-package undo-fu
   :general
@@ -741,17 +697,53 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package vterm
   :general
-  (general-nmap "SPC '" 'vterm)
+  (my/leader-keys
+    "'" 'vterm-other-window)
   :config
   (setq vterm-shell (executable-find "fish")
         vterm-max-scrollback 10000))
+
+;; (defun my/lsp-mode-setup ()
+;;   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+;;   (lsp-headerline-breadcrumb-mode))
+
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  ;; :hook (lsp-mode . my/lsp-mode-setup)
+  :general
+  (my/leader-keys
+    "l" '(:keymap lsp-command-map :which-key "lsp"))
+
+  (lsp-mode-map "<tab>" 'company-indent-or-complete-common)
+  :init
+  (setq lsp-restart 'ignore)
+  (setq lsp-eldoc-enable-hover nil)
+  :config
+  (lsp-enable-which-key-integration t))
+
+(use-package lsp-ui
+  :hook ((lsp-mode . lsp-ui-mode))
+  :init
+  (setq lsp-ui-doc-show-with-cursor nil)
+  (setq lsp-ui-doc-show-with-mouse nil)
+  )
+
+(use-package dap-mode
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "d h" '(dap-hydra :wk "hydra"))
+  :init
+  (setq dap-auto-configure nil)
+  :config
+  (dap-ui-mode 1))
 
 (use-package python-mode
   :init
   (setq dap-python-debugger 'debugpy)
   :config
   (when (executable-find "ipython")
-    (setq python-shell-interpreter "ipython"
+    (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
           python-shell-interpreter-args "-i --simple-prompt --no-color-info"
           python-shell-prompt-regexp "In \\[[0-9]+\\]: "
           python-shell-prompt-block-regexp "\\.\\.\\.\\.: "
@@ -764,22 +756,39 @@ Movement   Keep           Diff              Other │ smerge │
     ))
 
 (use-package lsp-pyright
+  :init
+  (setq lsp-pyright-typechecking-mode "off")
   :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp-deferred))))  ; or lsp-deferred
+                         (require 'lsp-pyright)
+                         (lsp-deferred))))
 
 (use-package python-pytest
-  :general
-  (python-mode-map ", t" 'python-pytest-dispatch)
-  )
+:general
+(my/local-leader-keys
+    :keymaps 'python-mode-map
+    "t h" '(python-pytest-dispatch :wk "dispatch")))
 
 (use-package flymake
+:straight nil
+:ensure nil
+:init
+(setq python-flymake-command (executable-find "flake8"))
+:general
+(general-nmap "] !" 'flymake-goto-next-error)
+(general-nmap "[ !" 'flymake-goto-prev-error)
+)
+
+(use-package elisp-mode
   :straight nil
   :ensure nil
   :general
-  (general-nmap "] !" 'flymake-goto-next-error)
-  (general-nmap "[ !" 'flymake-goto-prev-error)
-  )
+  (my/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map)
+    "e l" '(eval-last-sexp :wk "last sexp"))
+  (my/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map)
+    :states 'visual
+    "e" '(eval-last-sexp :wk "sexp")))
 
 (use-package clojure-mode
   :mode "\\.clj$")
@@ -796,18 +805,19 @@ Movement   Keep           Diff              Other │ smerge │
 (use-package dired
   :straight nil
   :ensure nil
-  :commands (dired dired-jump)
   :general
-  (general-nvmap "SPC fd" 'dired)
-  ;; :bind (("C-x C-j" . dired-jump))
-  :custom
-  (dired-listing-switches "-al --group-directories-first")
-  (insert-directory-program "gls" dired-use-ls-dired t)
-  :config
-  (with-eval-after-load 'evil-collection
-    (evil-collection-define-key 'normal 'dired-mode-map
-                                "h" 'dired-single-up-directory
-                                "l" 'dired-single-buffer)))
+  (my/leader-keys
+    "f d" 'dired
+    "f j" 'dired-jump))
+
+(use-package dired-single
+  :after dired
+  :general
+  (dired-mode-map
+   :states 'normal
+   "h" 'dired-single-up-directory
+   "l" 'dired-single-buffer
+   "q" 'quit-window))
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
@@ -818,14 +828,7 @@ Movement   Keep           Diff              Other │ smerge │
   :general
   (my/leader-keys
     "C" '(org-capture :wk "capture"))
-  (my/local-leader-keys
-    :keymaps 'org-mode-map
-    "e e" '(eval-last-sexp :wk "eval last sexp")
-    "-" '(org-babel-demarcate-block :wk "split block"))
-  (my/local-leader-keys
-    :keymaps 'org-mode-map
-    :states 'visual
-    "e" '(eval-last-sexp :wk "eval last sexp"))
+  (org-mode-map "z i" '(org-toggle-inline-images :wk "inline images"))
   :init
   (setq org-directory "~/Dropbox/org"
         org-image-actual-width nil
@@ -835,6 +838,20 @@ Movement   Keep           Diff              Other │ smerge │
         org-agenda-files '("~/dropbox/org/personal/tasks/birthdays.org" "~/dropbox/org/personal/tasks/todo.org" "~/dropbox/Notes/Test.inbox.org")
         ;; org-export-in-background t
         org-catch-invisible-edits 'smart)
+
+;; disable modules for faster startup
+(setq org-modules
+  '(;; ol-w3m
+    ;; ol-bbdb
+    ;; ol-bibtex
+    ol-docview
+    ;; ol-gnus
+    ;; ol-info
+    ;; ol-irc
+    ;; ol-mhe
+    ;; ol-rmail
+    ;; ol-eww
+    ))
   (setq org-todo-keywords
         '((sequence "TODO(t)" "PROJ(p)" "|" "DONE(d)")))
   (setq org-capture-templates
@@ -933,20 +950,30 @@ Movement   Keep           Diff              Other │ smerge │
   (setq hl-todo-keyword-faces
         '(("TODO"   . "#FF4500")
           ("FIXME"  . "#FF0000")
-          ("DEBUG"  . "#A020F0")
+          ("STRT"  . "#A020F0")
           ("PROJ"   . "#1E90FF")))
   )
 
-;; (use-package org
-;;   :config
-;;   (org-babel-do-load-languages
-;;    'org-babel-load-languages
-;;    '((ruby . t)
-;;      (shell . t))))
+(use-package org
+  :general
+  (my/local-leader-keys
+    :keymaps 'org-mode-map
+    "," '(org-edit-special :wk "edit")
+    "-" '(org-babel-demarcate-block :wk "split block"))
+  (my/local-leader-keys
+    :keymaps 'org-src-mode-map
+    "," '(org-edit-src-exit :wk "exit")) ;;FIXME
+  :init
+  (setq org-confirm-babel-evaluate nil))
 
 ;; enable mermaid diagram blocks
 ;; (use-package ob-mermaid
 ;;   :custom (ob-mermaid-cli-path "~/.asdf/shims/mmdc"))
+
+(use-package ob-async
+  :hook (org-load . (lambda () (require 'ob-async)))
+  :init
+  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
 
 (use-package ox-gfm
   :config (eval-after-load "org" '(require 'ox-gfm nil t)))
@@ -982,5 +1009,3 @@ Movement   Keep           Diff              Other │ smerge │
   :config
   (org-tree-slide-presentation-profile)
   )
-
-(use-package nav-flash)
