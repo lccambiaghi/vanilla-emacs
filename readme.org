@@ -920,14 +920,75 @@ The prefix is =g r=, inspect the commands with ~which-key~
 ** dap-mode
 #+BEGIN_SRC emacs-lisp
   (use-package dap-mode
+    :hook
+    ((dap-stopped . my/show-debug-windows)
+     (dap-terminated . my/hide-debug-windows))
     :general
     (my/local-leader-keys
       :keymaps 'python-mode-map
+      "d d" '(dap-debug :wk "debug")
+      "d b" '(dap-breakpoint-toggle :wk "breakpoint")
+      "d c" '(dap-continue :wk "continue")
+      "d q" '(dap-disconnect :wk "quit")
       "d h" '(dap-hydra :wk "hydra"))
     :init
     (setq dap-auto-configure nil)
     (setq dap-python-debugger 'debugpy)
+    (setq dap-output-window-max-height 50)
+    (setq dap-output-window-min-height 50)
+    (setq dap-ui-buffer-configurations
+          `((,"*dap-ui-locals*"  . ((side . right) (slot . 1) (window-width . 0.50)))
+            (,"*dap-ui-repl*" . ((side . right) (slot . 1) (window-width . 0.50)))
+            (,"*dap-ui-expressions*" . ((side . right) (slot . 2) (window-width . 0.20)))
+            (,"*dap-ui-sessions*" . ((side . right) (slot . 3) (window-width . 0.20)))
+            (,"*dap-ui-breakpoints*" . ((side . left) (slot . 2) (window-width . , 0.20)))
+            (,"*debug-window*" . ((side . bottom) (slot . 3) (window-width . 0.20)))))
+    ;; helpers to show and hide windows
+    (defun my/window-visible (b-name)
+      "Return whether B-NAME is visible."
+      (-> (-compose 'buffer-name 'window-buffer)
+          (-map (window-list))
+          (-contains? b-name)))
+    (defun my/show-debug-windows (session)
+      "Show debug windows."
+      (let ((lsp--cur-workspace (dap--debug-session-workspace session)))
+        (save-excursion
+          (unless (my/window-visible dap-ui--repl-buffer)
+            (dap-ui-repl)))))
+    (defun my/hide-debug-windows (session)
+      "Hide debug windows when all debug sessions are dead."
+      (unless (-filter 'dap--session-running (dap--get-sessions))
+        (and (get-buffer dap-ui--repl-buffer)
+             (kill-buffer dap-ui--repl-buffer)
+             (get-buffer dap-ui--debug-window-buffer)
+             (kill-buffer dap-ui--debug-window-buffer))))
+    ;; disable annoying visuals
+    (remove-hook 'dap-mode-hook #'dap-tooltip-mode)
+    (remove-hook 'dap-ui-mode-hook #'dap-ui-controls-mode)
+    (defun my/dap-python--executable-find (orig-fun &rest args)
+      (executable-find "python"))
     :config
+    (require 'dap-python)
+    (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
+    (dap-register-debug-template "dap-debug-script"
+                                 (list :type "python"
+                                       :args []
+                                       :cwd "${workspaceFolder}"
+                                       ;; :justMyCode :json-false
+                                       ;; :program nil ; (expand-file-name "~/git/blabla")
+                                       :request "launch"
+                                       :debugger 'debugpy
+                                       :name "dap-debug-script"))
+    (dap-register-debug-template "dap-debug-test-at-point"
+                                 (list :type "python-test-at-point"
+                                       :args ""
+                                       :justMyCode :json-false
+                                       ;; :cwd "${workspaceFolder}"
+                                       :request "launch"
+                                       :module "pytest"
+                                       :debugger 'debugpy
+                                       :name "dap-debug-test-at-point"))
+
     (dap-ui-mode 1))
 #+END_SRC
 ** Python
@@ -953,9 +1014,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
           python-shell-completion-setup-code
           "from IPython.core.completerlib import module_completion"
           python-shell-completion-string-code
-          "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-    ;; (require 'dap-python)
-    )
+          "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
 #+END_SRC
 
 *** lsp-pyright
@@ -971,13 +1030,18 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 *** pytest
 #+begin_src emacs-lisp
   (use-package python-pytest
-    :hook (envrc-mode . (lambda ()
-                          (when (executable-find "pytest")
-                            (setq python-pytest-executable (executable-find "pytest")))))
     :general
     (my/local-leader-keys
       :keymaps 'python-mode-map
-      "t h" '(python-pytest-dispatch :wk "dispatch"))
+      "t t" '(python-pytest-dispatch :wk "dispatch")
+      "t d" '(python-pytest-function :wk "defun"))
+    :init
+    (defun my/pytest-use-venv (orig-fun &rest args)
+      (if-let ((python-pytest-executable (executable-find "pytest")))
+          (apply orig-fun args)
+        (apply orig-fun args)))
+    :config
+    (advice-add 'python-pytest--run :around #'my/pytest-use-venv)
     )
 #+end_src
 *** flymake 
