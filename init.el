@@ -68,6 +68,8 @@
 (setq user-full-name "Luca Cambiaghi"
       user-mail-address "luca.cambiaghi@me.com")
 
+(setq read-process-output-max (* 1024 1024))
+
 ;; always allow 'y' instead of 'yes'.
 (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -87,6 +89,12 @@
 
 ;; enable recent files mode.
 (recentf-mode t)
+
+;; auto-close parentheses
+(electric-pair-mode +1)
+;; disable auto pairing for <
+(add-function :before-until electric-pair-inhibit-predicate
+              (lambda (c) (eq c ?<)))
 
 ;; don't want ESC as a modifier
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -171,7 +179,7 @@
   (my/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
     "`" '(switch-to-prev-buffer :which-key "prev buffer")
-    ";" '(eval-expression :which-key "eval sexp")
+    ":" '(eval-expression :which-key "eval sexp")
 
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
@@ -383,6 +391,10 @@
   (general-nvmap "gT" 'centaur-tabs-backward)
   :init
   (setq centaur-tabs-set-icons t)
+  (setq ccentaur-tabs-set-modified-marker t
+        centaur-tabs-modified-marker "M"
+        centaur-tabs-cycle-scope 'tabs)
+  (setq centaur-tabs-set-close-button nil)
   :config
   (centaur-tabs-mode t)
   (centaur-tabs-group-by-projectile-project)
@@ -414,6 +426,20 @@
 (my/make-popup (rx bos "*Help*" eos))
 (my/make-popup (rx bos "*helpful*" eos))
 (my/make-popup (rx bos "*scratch*" eos) 0.4)
+
+(use-package winum
+:general
+(my/leader-keys
+"1" '(winum-select-window-1 :wk "win 1")
+"2" '(winum-select-window-2 :wk "win 2")
+"3" '(winum-select-window-3 :wk "win 3"))
+:config
+(winum-mode))
+
+(use-package persistent-scratch
+:demand
+:config
+(persistent-scratch-setup-default))
 
 (use-package selectrum
   :demand
@@ -498,14 +524,15 @@
   :demand
   :general
   (my/leader-keys
-   "p" '(:keymap projectile-command-map :which-key "projectile")
-   "p a" 'projectile-add-known-project
-   "p t" 'projectile-run-vterm)
+    "p" '(:keymap projectile-command-map :which-key "projectile")
+    "p a" 'projectile-add-known-project
+    "p t" 'projectile-run-vterm)
   :init
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
   (setq projectile-completion-system 'default)
   (setq projectile-switch-project-action #'projectile-find-file)
+  (setq projectile-project-root-files '("Dockerfile" "pyproject.toml" "project.clj" "deps.edn"))
   ;; (add-to-list 'projectile-globally-ignored-directories "straight") ;; TODO
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
@@ -530,10 +557,11 @@
   :general
   (my/leader-keys
     "g g" 'magit-status
-    "g G" 'magit-status-here)
+    "g G" 'magit-status-here
+    "g l" '(magit-log :wk "log"))
   :init
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  )
+  (setq magit-log-arguments '("--graph" "--decorate" "--color")))
 
 (use-package git-timemachine
   :hook (git-time-machine-mode . evil-normalize-keymaps)
@@ -600,20 +628,17 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package hydra)
 
-(use-package emacs
-  :config
+;; handle indentation automatically
+(use-package aggressive-indent
+  :hook ((clojure-mode . aggressive-indent-mode)
+         (emacs-lisp-mode . aggressive-indent-mode))
+  :init
   ;; use common convention for indentation by default
   (setq-default indent-tabs-mode t)
   (setq-default tab-width 2)
 
   ;; use a reasonable line length
-  (setq-default fill-column 120)
-
-  ;; let emacs handle indentation
-  (electric-indent-mode +1)
-  ;; and auto-close parentheses
-  (electric-pair-mode +1)              
-  )
+  (setq-default fill-column 120))
 
 ;; add a visual intent guide
 (use-package highlight-indent-guides
@@ -625,7 +650,8 @@ Movement   Keep           Diff              Other │ smerge │
   )
 
 (use-package rainbow-delimiters
-  :hook (lisp-mode . rainbow-delimiters-mode))
+  :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+         (org-mode . rainbow-delimiters-mode)))
 
 (use-package tree-sitter
   :hook (python-mode . (lambda ()
@@ -641,10 +667,24 @@ Movement   Keep           Diff              Other │ smerge │
   :hook ((lsp-mode . company-mode)
          (emacs-lisp-mode . company-mode)
          (jupyter-org-interaction-mode . company-mode))
+  :general
+  (company-active-map
+   "TAB"       nil    ;; interferes with yasnippet
+   [tab]       nil)
   :init
   (setq company-minimum-prefix-length 1)
   (setq company-idle-delay 0.0)
-  (setq company-backends '(company-capf company-dabbrev-code company-keywords company-files company-dabbrev)))
+  (setq company-backends '(company-capf company-dabbrev-code company-keywords company-files company-dabbrev))
+  ;; enable company-yasnippet backend
+  (defvar company-mode/enable-yas t
+    "Enable yasnippet for all backends.")
+  (defun company-mode/backend-with-yas (backend)
+    (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
+        backend
+      (append (if (consp backend) backend (list backend))
+              '(:with company-yasnippet))))
+  (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))
+  )
 
 ;; (use-package company-box
 ;;   :hook (company-mode . company-box-mode))
@@ -660,14 +700,10 @@ Movement   Keep           Diff              Other │ smerge │
    (org-mode . yas-minor-mode)))
 
 (use-package evil-cleverparens
+  :disabled
   :hook
-  (
-   (emacs-lisp-mode . evil-cleverparens-mode)
-   ;; (clojure-mode . evil-cleverparens-mode)
-   )
-  ;; (add-hook 'smartparens-enabled-hook #'evil-smartparens-mode)
-  :general
-  (evil-cleverparens-mode-map ", (" 'sp-wrap-round)
+  ((emacs-lisp-mode . evil-cleverparens-mode)
+   (clojure-mode . evil-cleverparens-mode))
   :init
   (setq evil-move-beyond-eol t
         evil-cleverparens-use-additional-bindings nil
@@ -701,9 +737,12 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package evil-surround
   :general
+  (:states 'operator
+   "s" 'evil-surround-edit
+   "S" 'evil-Surround-edit)
   (:states 'visual
-           "S" 'evil-surround-region
-           "gS" 'evil-Surround-region))
+   "S" 'evil-surround-region
+   "gS" 'evil-Surround-region))
 
 (use-package undo-fu
   :general
@@ -718,234 +757,6 @@ Movement   Keep           Diff              Other │ smerge │
   :config
   (setq vterm-shell (executable-find "fish")
         vterm-max-scrollback 10000))
-
-;; (defun my/lsp-mode-setup ()
-;;   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-;;   (lsp-headerline-breadcrumb-mode))
-
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  ;; :hook (lsp-mode . my/lsp-mode-setup)
-  :general
-  (my/leader-keys
-    "l" '(:keymap lsp-command-map :which-key "lsp"))
-
-  (lsp-mode-map "<tab>" 'company-indent-or-complete-common)
-  :init
-  (setq lsp-restart 'ignore)
-  (setq lsp-eldoc-enable-hover nil)
-  :config
-  (lsp-enable-which-key-integration t))
-
-(use-package lsp-ui
-  :hook ((lsp-mode . lsp-ui-mode))
-  :init
-  (setq lsp-ui-doc-show-with-cursor nil)
-  (setq lsp-ui-doc-show-with-mouse nil)
-  )
-
-(use-package dap-mode
-  :hook
-  ((dap-stopped . my/show-debug-windows)
-   (dap-terminated . my/hide-debug-windows))
-  :general
-  (my/local-leader-keys
-    :keymaps 'python-mode-map
-    "d d" '(dap-debug :wk "debug")
-    "d b" '(dap-breakpoint-toggle :wk "breakpoint")
-    "d c" '(dap-continue :wk "continue")
-    "d q" '(dap-disconnect :wk "quit")
-    "d h" '(dap-hydra :wk "hydra"))
-  :init
-  (setq dap-auto-configure nil)
-  (setq dap-python-debugger 'debugpy)
-  (setq dap-output-window-max-height 50)
-  (setq dap-output-window-min-height 50)
-  (setq dap-ui-buffer-configurations
-        `((,"*dap-ui-locals*"  . ((side . right) (slot . 1) (window-width . 0.50)))
-          (,"*dap-ui-repl*" . ((side . right) (slot . 1) (window-width . 0.50)))
-          (,"*dap-ui-expressions*" . ((side . right) (slot . 2) (window-width . 0.20)))
-          (,"*dap-ui-sessions*" . ((side . right) (slot . 3) (window-width . 0.20)))
-          (,"*dap-ui-breakpoints*" . ((side . left) (slot . 2) (window-width . , 0.20)))
-          (,"*debug-window*" . ((side . bottom) (slot . 3) (window-width . 0.20)))))
-  ;; helpers to show and hide windows
-  (defun my/window-visible (b-name)
-    "Return whether B-NAME is visible."
-    (-> (-compose 'buffer-name 'window-buffer)
-        (-map (window-list))
-        (-contains? b-name)))
-  (defun my/show-debug-windows (session)
-    "Show debug windows."
-    (let ((lsp--cur-workspace (dap--debug-session-workspace session)))
-      (save-excursion
-        (unless (my/window-visible dap-ui--repl-buffer)
-          (dap-ui-repl)))))
-  (defun my/hide-debug-windows (session)
-    "Hide debug windows when all debug sessions are dead."
-    (unless (-filter 'dap--session-running (dap--get-sessions))
-      (and (get-buffer dap-ui--repl-buffer)
-           (kill-buffer dap-ui--repl-buffer)
-           (get-buffer dap-ui--debug-window-buffer)
-           (kill-buffer dap-ui--debug-window-buffer))))
-  ;; disable annoying visuals
-  (remove-hook 'dap-mode-hook #'dap-tooltip-mode)
-  (remove-hook 'dap-ui-mode-hook #'dap-ui-controls-mode)
-  (defun my/dap-python--executable-find (orig-fun &rest args)
-    (executable-find "python"))
-  :config
-  (require 'dap-python)
-  (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
-  (dap-register-debug-template "dap-debug-script"
-                               (list :type "python"
-                                     :args []
-                                     :cwd "${workspaceFolder}"
-                                     ;; :justMyCode :json-false
-                                     ;; :program nil ; (expand-file-name "~/git/blabla")
-                                     :request "launch"
-                                     :debugger 'debugpy
-                                     :name "dap-debug-script"))
-  (dap-register-debug-template "dap-debug-test-at-point"
-                               (list :type "python-test-at-point"
-                                     :args ""
-                                     :justMyCode :json-false
-                                     ;; :cwd "${workspaceFolder}"
-                                     :request "launch"
-                                     :module "pytest"
-                                     :debugger 'debugpy
-                                     :name "dap-debug-test-at-point"))
-
-  (dap-ui-mode 1))
-
-(use-package python-mode
-  ;; :init
-  ;; (defun my/ipython-use-venv (orig-fun &rest args)
-  ;;   (when (getenv "VIRTUAL_ENV")
-  ;;     (when-let ((python-shell-interpreter (executable-find "ipython")))
-  ;;       (apply orig-fun args)))
-  ;;   (apply orig-fun args))
-  ;; (advice-add 'run-python :around #'my/ipython-use-venv)
-  :hook (envrc-mode . (lambda ()
-                        (when (executable-find "ipython")
-                          (setq python-shell-interpreter (executable-find "ipython")))))
-  :config
-  (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
-        python-shell-interpreter-args "-i --simple-prompt --no-color-info"
-        python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-        python-shell-prompt-block-regexp "\\.\\.\\.\\.: "
-        python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-        python-shell-completion-setup-code
-        "from IPython.core.completerlib import module_completion"
-        python-shell-completion-string-code
-        "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
-
-(use-package lsp-pyright
-  :init
-  (setq lsp-pyright-typechecking-mode "off") ;; too much noise in "real" projects
-  :hook (python-mode . (lambda ()
-                         (require 'lsp-pyright)
-                         (lsp-deferred))))
-
-(use-package python-pytest
-  :general
-  (my/local-leader-keys
-    :keymaps 'python-mode-map
-    "t t" '(python-pytest-dispatch :wk "dispatch")
-    "t d" '(python-pytest-function :wk "defun"))
-  :init
-  (defun my/pytest-use-venv (orig-fun &rest args)
-    (if-let ((python-pytest-executable (executable-find "pytest")))
-        (apply orig-fun args)
-      (apply orig-fun args)))
-  :config
-  (advice-add 'python-pytest--run :around #'my/pytest-use-venv)
-  )
-
-(use-package flymake
-  :straight nil
-  :ensure nil
-  :hook (emacs-lisp-mode . flymake-mode)
-  :init
-  (setq python-flymake-command (executable-find "flake8"))
-  :general
-  (general-nmap "] !" 'flymake-goto-next-error)
-  (general-nmap "[ !" 'flymake-goto-prev-error)
-  )
-
-(use-package jupyter
-  :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
-  :general
-  (my/local-leader-keys
-    :keymaps 'python-mode-map
-    "'" '(my/jupyter-repl :wk "jupyter REPL")
-    "e e" '(jupyter-eval-line-or-region :wk "line")
-    "e d" '(jupyter-eval-defun :wk "defun")
-    "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
-  (my/local-leader-keys
-    :keymaps 'jupyter-repl-interaction-mode-map
-    "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
-  :init
-  (setq jupyter-repl-prompt-margin-width 4)
-  (defun jupyter-command-venv (&rest args)
-    "This overrides jupyter-command to use the virtualenv's jupyter"
-    (let ((jupyter-executable (executable-find "jupyter")))
-      (with-temp-buffer
-        (when (zerop (apply #'process-file jupyter-executable nil t nil args))
-          (string-trim-right (buffer-string))))))
-  (defun my/jupyter-eval-buffer ()
-    "Send the contents of BUFFER using `jupyter-current-client'."
-    (interactive)
-    (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
-  (defun my/jupyter-repl ()
-    "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
-    (interactive)
-    (if (bound-and-true-p jupyter-current-client)
-        (jupyter-repl-pop-to-buffer)
-      (call-interactively 'jupyter-repl-associate-buffer)))
-  (advice-add 'jupyter-command :override #'jupyter-command-venv))
-
-(use-package elisp-mode
-  :straight nil
-  :ensure nil
-  :general
-  (my/local-leader-keys
-    :keymaps '(org-mode-map emacs-lisp-mode-map)
-    "e l" '(eval-last-sexp :wk "last sexp"))
-  (my/local-leader-keys
-    :keymaps '(org-mode-map emacs-lisp-mode-map)
-    :states 'visual
-    "e" '(eval-last-sexp :wk "sexp")))
-
-(use-package clojure-mode
-  :mode "\\.clj$")
-
-(use-package cider
-  :commands (cider-jack-in cider-mode)
-  :general
-  ;; (clojure-mode-map "")
-  :init
-  (setq nrepl-hide-special-buffers t)
-  :config
-  (add-hook 'cider-mode-hook #'eldoc-mode))
-
-(use-package dired
-  :straight nil
-  :ensure nil
-  :general
-  (my/leader-keys
-    "f d" 'dired
-    "f j" 'dired-jump))
-
-(use-package dired-single
-  :after dired
-  :general
-  (dired-mode-map
-   :states 'normal
-   "h" 'dired-single-up-directory
-   "l" 'dired-single-buffer
-   "q" 'quit-window))
-
-(use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package org
   :hook ((org-mode . my/org-mode-setup)
@@ -1062,6 +873,9 @@ Movement   Keep           Diff              Other │ smerge │
   (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
   )
 
+(use-package org-reverse-datetree
+:after org)
+
 
 
 (use-package org-superstar
@@ -1131,20 +945,37 @@ Movement   Keep           Diff              Other │ smerge │
           (org-babel-do-load-languages 'org-babel-load-languages
                                        (append org-babel-load-languages
                                                '((jupyter . t))))))))
-  :config
-  (with-eval-after-load 'org-src
-    (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
-    (add-to-list 'org-src-lang-modes '("jupyter-R" . R)))
-  ;;Remove text/html since it's not human readable
-  ;; (delete :text/html jupyter-org-mime-types)
-  ;; (require 'tramp)
-  )
+  (cl-defmethod jupyter-org--insert-result (_req context result)
+    (let ((str
+           (org-element-interpret-data
+            (jupyter-org--wrap-result-maybe
+             context (if (jupyter-org--stream-result-p result)
+                         (thread-last result
+                           jupyter-org-strip-last-newline
+                           jupyter-org-scalar)
+                       result)))))
+      (if (< (length str) 100000)
+          (insert str)
+        (insert (format ": Result was too long! Length was %d" (length str)))))
+    (when (/= (point) (line-beginning-position))
+      ;; Org objects such as file links do not have a newline added when
+      ;; converting to their string representation by
+      ;; `org-element-interpret-data' so insert one in these cases.
+      (insert "\n")))
+:config
+;;Remove text/html since it's not human readable
+;; (delete :text/html jupyter-org-mime-types)
+;; (require 'tramp)
+(with-eval-after-load 'org-src
+  (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+  (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
 
 (use-package ox-gfm
-  :config (eval-after-load "org" '(require 'ox-gfm nil t)))
+  :after org)
 
-;; (use-package ox-ipynb
-;;   :config (eval-after-load "org" '(require 'ox-ipynb)))
+(use-package ox-ipynb
+  :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
+  :after org)
 
 (use-package org-tree-slide
   :hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
@@ -1174,3 +1005,277 @@ Movement   Keep           Diff              Other │ smerge │
   :config
   (org-tree-slide-presentation-profile)
   )
+
+;; (defun my/lsp-mode-setup ()
+;;   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+;;   (lsp-headerline-breadcrumb-mode))
+
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  ;; :hook (lsp-mode . my/lsp-mode-setup)
+  :general
+  (my/leader-keys
+    "c" '(:keymap lsp-command-map :which-key "lsp"))
+
+  (lsp-mode-map "<tab>" 'company-indent-or-complete-common)
+  :init
+  (setq lsp-restart 'ignore)
+  (setq lsp-eldoc-enable-hover nil)
+  (setq lsp-enable-file-watchers nil)
+  :config
+  (lsp-enable-which-key-integration t))
+
+(use-package lsp-ui
+  :hook ((lsp-mode . lsp-ui-mode))
+  :init
+  (setq lsp-ui-doc-show-with-cursor nil)
+  (setq lsp-ui-doc-show-with-mouse nil)
+  )
+
+(use-package dap-mode
+  :hook
+  ((dap-stopped . my/show-debug-windows)
+   (dap-terminated . my/hide-debug-windows))
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "d d" '(dap-debug :wk "debug")
+    "d b" '(dap-breakpoint-toggle :wk "breakpoint")
+    "d c" '(dap-continue :wk "continue")
+    "d e" '(dap-eval-thing-at-point :wk "eval")
+    "d i" '(dap-step-in :wk "step in")
+    "d q" '(dap-disconnect :wk "quit")
+    "d r" '(dap-ui-repl :wk "repl")
+    "d h" '(dap-hydra :wk "hydra"))
+  :init
+  (setq dap-auto-configure nil)
+  (setq dap-python-debugger 'debugpy)
+  (setq dap-output-window-max-height 50)
+  (setq dap-output-window-min-height 50)
+  (setq dap-ui-buffer-configurations
+        `((,"*dap-ui-locals*"  . ((side . right) (slot . 1) (window-width . 0.50)))
+          (,"*dap-ui-repl*" . ((side . right) (slot . 1) (window-width . 0.50)))
+          (,"*dap-ui-expressions*" . ((side . right) (slot . 2) (window-width . 0.20)))
+          (,"*dap-ui-sessions*" . ((side . right) (slot . 3) (window-width . 0.20)))
+          (,"*dap-ui-breakpoints*" . ((side . left) (slot . 2) (window-width . , 0.20)))
+          (,"*debug-window*" . ((side . bottom) (slot . 3) (window-width . 0.20)))))
+  ;; helpers to show and hide windows
+  (defun my/window-visible (b-name)
+    "Return whether B-NAME is visible."
+    (-> (-compose 'buffer-name 'window-buffer)
+        (-map (window-list))
+        (-contains? b-name)))
+  (defun my/show-debug-windows (session)
+    "Show debug windows."
+    (let ((lsp--cur-workspace (dap--debug-session-workspace session)))
+      (save-excursion
+        (unless (my/window-visible dap-ui--repl-buffer)
+          (dap-ui-repl)))))
+  (defun my/hide-debug-windows (session)
+    "Hide debug windows when all debug sessions are dead."
+    (unless (-filter 'dap--session-running (dap--get-sessions))
+      (and (get-buffer dap-ui--repl-buffer)
+           (kill-buffer dap-ui--repl-buffer)
+           (get-buffer dap-ui--debug-window-buffer)
+           (kill-buffer dap-ui--debug-window-buffer))))
+  ;; disable annoying visuals
+  (remove-hook 'dap-mode-hook #'dap-tooltip-mode)
+  (remove-hook 'dap-ui-mode-hook #'dap-ui-controls-mode)
+  (defun my/dap-python--executable-find (orig-fun &rest args)
+    (executable-find "python"))
+  :config
+  (require 'dap-python)
+  (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
+  (dap-register-debug-template "dap-debug-script"
+                               (list :type "python"
+                                     :args []
+                                     :cwd "${workspaceFolder}"
+                                     ;; :justMyCode :json-false
+                                     ;; :program nil ; (expand-file-name "~/git/blabla")
+                                     :request "launch"
+                                     :debugger 'debugpy
+                                     :name "dap-debug-script"))
+  (dap-register-debug-template "dap-debug-test-at-point"
+                               (list :type "python-test-at-point"
+                                     :args ""
+                                     :justMyCode :json-false
+                                     ;; :cwd "${workspaceFolder}"
+                                     :request "launch"
+                                     :module "pytest"
+                                     :debugger 'debugpy
+                                     :name "dap-debug-test-at-point"))
+
+  (dap-ui-mode 1))
+
+(use-package python-mode
+  ;; :init
+  ;; (defun my/ipython-use-venv (orig-fun &rest args)
+  ;;   (when (getenv "VIRTUAL_ENV")
+  ;;     (when-let ((python-shell-interpreter (executable-find "ipython")))
+  ;;       (apply orig-fun args)))
+  ;;   (apply orig-fun args))
+  ;; (advice-add 'run-python :around #'my/ipython-use-venv)
+  :hook (envrc-mode . (lambda ()
+                        (when (executable-find "ipython")
+                          (setq python-shell-interpreter (executable-find "ipython")))))
+  :config
+  (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
+        python-shell-interpreter-args "-i --simple-prompt --no-color-info"
+        python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+        python-shell-prompt-block-regexp "\\.\\.\\.\\.: "
+        python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+        python-shell-completion-setup-code
+        "from IPython.core.completerlib import module_completion"
+        python-shell-completion-string-code
+        "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
+
+(use-package lsp-pyright
+  :init
+  (setq lsp-pyright-typechecking-mode "off") ;; too much noise in "real" projects
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-pyright)
+                         (lsp-deferred))))
+
+(use-package python-pytest
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "t t" '(python-pytest-dispatch :wk "dispatch")
+    "t d" '(python-pytest-function :wk "defun"))
+  :init
+  (setq python-pytest-arguments '("--color" "--failed-first"))
+  (defun my/pytest-use-venv (orig-fun &rest args)
+    (if-let ((python-pytest-executable (executable-find "pytest")))
+        (apply orig-fun args)
+      (apply orig-fun args)))
+  :config
+  (advice-add 'python-pytest--run :around #'my/pytest-use-venv)
+  )
+
+(use-package flymake
+  :straight nil
+  :ensure nil
+  :hook (emacs-lisp-mode . flymake-mode)
+  :init
+  (setq python-flymake-command (executable-find "flake8"))
+  :general
+  (general-nmap "] !" 'flymake-goto-next-error)
+  (general-nmap "[ !" 'flymake-goto-prev-error)
+  )
+
+(use-package jupyter
+  :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "'" '(my/jupyter-repl :wk "jupyter REPL")
+    "e e" '(jupyter-eval-line-or-region :wk "line")
+    "e d" '(jupyter-eval-defun :wk "defun")
+    "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
+  (my/local-leader-keys
+    :keymaps 'jupyter-repl-interaction-mode-map
+    "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
+  :init
+  (setq jupyter-repl-prompt-margin-width 4)
+  (defun jupyter-command-venv (&rest args)
+    "This overrides jupyter-command to use the virtualenv's jupyter"
+    (let ((jupyter-executable (executable-find "jupyter")))
+      (with-temp-buffer
+        (when (zerop (apply #'process-file jupyter-executable nil t nil args))
+          (string-trim-right (buffer-string))))))
+  (defun my/jupyter-eval-buffer ()
+    "Send the contents of BUFFER using `jupyter-current-client'."
+    (interactive)
+    (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
+  (defun my/jupyter-repl ()
+    "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
+    (interactive)
+    (if (bound-and-true-p jupyter-current-client)
+        (jupyter-repl-pop-to-buffer)
+      (call-interactively 'jupyter-repl-associate-buffer)))
+  (advice-add 'jupyter-command :override #'jupyter-command-venv))
+
+(use-package ess
+    :init
+  (setq ess-eval-visibly 'nowait)
+(setq ess-R-font-lock-keywords '((ess-R-fl-keyword:keywords . t)
+                                   (ess-R-fl-keyword:constants . t)
+                                   (ess-R-fl-keyword:modifiers . t)
+                                   (ess-R-fl-keyword:fun-defs . t)
+                                   (ess-R-fl-keyword:assign-ops . t)
+                                   (ess-R-fl-keyword:%op% . t)
+                                   (ess-fl-keyword:fun-calls . t)
+                                   (ess-fl-keyword:numbers . t)
+                                   (ess-fl-keyword:operators . t)
+                                   (ess-fl-keyword:delimiters . t)
+                                   (ess-fl-keyword:= . t)
+                                   (ess-R-fl-keyword:F&T . t)))
+      )
+
+(use-package elisp-mode
+  :straight nil
+  :ensure nil
+  :general
+  (my/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map)
+    "e l" '(eval-last-sexp :wk "last sexp")
+    ;; "e" '(eval-last-sexp :states 'visual :wk "sexp")
+		)
+  (my/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map)
+    :states 'visual
+    "e" '(eval-last-sexp :wk "sexp"))
+  )
+
+(use-package evil-lisp-state
+  :after evil
+  :demand
+  :init
+  ;; (setq evil-lisp-state-enter-lisp-state-on-command nil)
+  (setq evil-lisp-state-global t)
+  (setq evil-lisp-state-major-modes '(emacs-lisp-mode clojure-mode))
+  :config
+  (evil-lisp-state-leader ", l")
+  )
+
+(use-package nix-mode
+:commands (nix-mode) ;;FIXME
+:mode "\\.nix\\'")
+
+(use-package clojure-mode
+  :mode "\\.clj$")
+
+(use-package cider
+  :commands (cider-jack-in cider-mode)
+  :hook (cider-repl-mode . evil-normalize-keymaps)
+  :general
+  ;; (clojure-mode-map "")
+  :init
+  (setq nrepl-hide-special-buffers t)
+  :config
+  (add-hook 'cider-mode-hook #'eldoc-mode))
+
+(use-package org
+:config
+(require 'ob-clojure)
+(setq org-babel-clojure-backend 'cider))
+
+(use-package dired
+  :straight nil
+  :ensure nil
+  :general
+  (my/leader-keys
+    "f d" 'dired
+    "f j" 'dired-jump))
+
+(use-package dired-single
+  :after dired
+  :general
+  (dired-mode-map
+   :states 'normal
+   "h" 'dired-single-up-directory
+   "l" 'dired-single-buffer
+   "q" 'quit-window))
+
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
