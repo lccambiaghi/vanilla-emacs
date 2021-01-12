@@ -50,7 +50,7 @@
 ;; doing :sraight (:no-native-compile t)
 (setq comp-deferred-compilation-black-list nil)
 
-;; (setq use-package-compute-statistics t)
+(setq use-package-compute-statistics t)
 
 (use-package gcmh
   :demand
@@ -325,35 +325,25 @@
           ("bg-tab-inactive" . "#3a3a5a")
           ("fg-unfocused" . "#9a9aab")))
 
-  (defmacro modus-themes-format-sexp (sexp &rest objects)
-    `(eval (read (format ,(format "%S" sexp) ,@objects))))
-
-  (dolist (theme '("operandi" "vivendi"))
-    (modus-themes-format-sexp
-     (setq modus-%1$s-theme-slanted-constructs t
-           modus-%1$s-theme-bold-constructs t
-           modus-%1$s-theme-fringes 'subtle ; {nil,'subtle,'intense}
-           modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
-           modus-%1$s-theme-faint-syntax nil
-           modus-%1$s-theme-intense-hl-line nil
-           modus-%1$s-theme-intense-paren-match t
-           modus-%1$s-theme-no-link-underline t
-           modus-%1$s-theme-no-mixed-fonts nil
-           modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
-           modus-%1$s-theme-completions 'moderate ; {nil,'moderate,'opinionated}
-           modus-%1$s-theme-diffs nil ; {nil,'desaturated,'fg-only}
-           modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-           modus-%1$s-theme-headings  ; Read further below in the manual for this one
-           '((1 . line)
-             (t . rainbow-line-no-bold))
-           modus-%1$s-theme-variable-pitch-headings t
-           modus-%1$s-theme-scale-headings t
-           modus-%1$s-theme-scale-1 1.1
-           modus-%1$s-theme-scale-2 1.15
-           modus-%1$s-theme-scale-3 1.21
-           modus-%1$s-theme-scale-4 1.27
-           modus-%1$s-theme-scale-5 1.33)
-     theme))
+  (setq modus-themes-slanted-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-fringes 'subtle ; {nil,'subtle,'intense}
+        modus-themes-mode-line '3d ; {nil,'3d,'moody}
+        modus-themes-intense-hl-line nil
+        modus-themes-prompts nil ; {nil,'subtle,'intense}
+        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+        modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
+        modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+        modus-themes-headings  ; Read further below in the manual for this one
+        '((1 . line)
+          (t . rainbow-line-no-bold))
+        modus-themes-variable-pitch-headings t
+        modus-themes-scale-headings t
+        modus-themes-scale-1 1.1
+        modus-themes-scale-2 1.15
+        modus-themes-scale-3 1.21
+        modus-themes-scale-4 1.27
+        modus-themes-scale-5 1.33)
   :config
   ;;Light for the day
   (run-at-time "07:00" (* 60 60 24)
@@ -682,6 +672,8 @@ Movement   Keep           Diff              Other │ smerge │
    (org-mode . yas-minor-mode)))
 
 (use-package evil-mc
+  :after evil
+  :demand
   :commands (evil-mc-make-and-goto-next-match ;C-n
              evil-mc-make-and-goto-prev-match ;C-p
              evil-mc-make-cursor-here ; grh
@@ -853,8 +845,9 @@ Movement   Keep           Diff              Other │ smerge │
   :init
   (setq org-superstar-headline-bullets-list '("✖" "✚" "◆" "▶" "○")
         org-superstar-special-todo-items t
-			;; org-ellipsis "⤵"
-        org-ellipsis "▼")
+        ;; org-ellipsis "⤵"
+        ;; org-ellipsis "▼"
+        org-ellipsis "↴")
   )
 
 (use-package hl-todo
@@ -1113,6 +1106,7 @@ Movement   Keep           Diff              Other │ smerge │
   :hook (emacs-lisp-mode . flymake-mode)
   :init
   (setq python-flymake-command (executable-find "flake8"))
+  (setq flymake-fringe-indicator-position 'left-fringe)
   :general
   (general-nmap "] !" 'flymake-goto-next-error)
   (general-nmap "[ !" 'flymake-goto-prev-error)

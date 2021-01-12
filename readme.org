@@ -65,6 +65,7 @@ Taken from DOOM's init
   ;; Ensure Doom is running out of this file's directory
   (setq user-emacs-directory (file-name-directory load-file-name))
 #+END_SRC
+
 * Package manager
 ** bootstrap straight and straight-use-package
 Some rules/conventions:
@@ -99,12 +100,14 @@ You can keep your versions in a code block and tangle the block to that file.
   ;; doing :sraight (:no-native-compile t)
   (setq comp-deferred-compilation-black-list nil)
 #+END_SRC
+
 ** Enable use-package statistics
 If you'd like to see how many packages you've loaded, what stage of initialization they've reached, and how much aggregate time they've spent (roughly), you can enable use-package-compute-statistics after loading use-package but before any use-package forms, and then run the command M-x use-package-report to see the results. The buffer displayed is a tabulated list. You can use S in a column to sort the rows based on it.
 
 #+BEGIN_SRC emacs-lisp
-;; (setq use-package-compute-statistics t)
+(setq use-package-compute-statistics t)
 #+END_SRC
+
 ** Garbage collector magic hack
 Used by DOOM to manage garbage collection
 #+BEGIN_SRC emacs-lisp
@@ -113,6 +116,7 @@ Used by DOOM to manage garbage collection
     :config
     (gcmh-mode 1))
 #+END_SRC
+
 * Emacs
 ** Sane defaults
 Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathancox.org
@@ -189,6 +193,7 @@ We do the same for ~dired~.
   ;; (setq-default mode-line-format nil) ;TODO
   (setq column-number-mode t)
 #+END_SRC
+
 ** macOS
 #+BEGIN_SRC emacs-lisp
 (when (eq system-type 'darwin)
@@ -209,11 +214,13 @@ We do the same for ~dired~.
     ([remap describe-variable] . helpful-variable)
     ([remap describe-key] . helpful-key))
 #+END_SRC
+
 ** eldoc
 #+begin_src emacs-lisp
   (use-package eldoc
     :hook (emacs-lisp-mode cider-mode))
 #+end_src
+
 ** exec path from shell
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
@@ -229,6 +236,7 @@ We do the same for ~dired~.
     ;;    "JAVA_HOME"))
     )
 #+end_src
+
 * Keybindings
 ** general
 In this block we load ~general~ and define bindings for generic commands e.g. ~find-file~.
@@ -305,6 +313,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
       )
     )
 #+END_SRC
+
 ** evil mode
 #+BEGIN_SRC emacs-lisp
   (use-package evil
@@ -348,6 +357,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     (evil-goggles-mode)
     (evil-goggles-use-diff-faces))
 #+END_SRC
+
 ** which-key
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
@@ -359,11 +369,13 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
   :config
   (which-key-mode))
 #+END_SRC
+
 * UI
 ** all the icons
 #+BEGIN_SRC emacs-lisp
   (use-package all-the-icons)
 #+END_SRC
+
 ** doom modeline
 #+BEGIN_SRC emacs-lisp
   (use-package doom-modeline
@@ -418,35 +430,25 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
             ("bg-tab-inactive" . "#3a3a5a")
             ("fg-unfocused" . "#9a9aab")))
 
-    (defmacro modus-themes-format-sexp (sexp &rest objects)
-      `(eval (read (format ,(format "%S" sexp) ,@objects))))
-
-    (dolist (theme '("operandi" "vivendi"))
-      (modus-themes-format-sexp
-       (setq modus-%1$s-theme-slanted-constructs t
-             modus-%1$s-theme-bold-constructs t
-             modus-%1$s-theme-fringes 'subtle ; {nil,'subtle,'intense}
-             modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
-             modus-%1$s-theme-faint-syntax nil
-             modus-%1$s-theme-intense-hl-line nil
-             modus-%1$s-theme-intense-paren-match t
-             modus-%1$s-theme-no-link-underline t
-             modus-%1$s-theme-no-mixed-fonts nil
-             modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
-             modus-%1$s-theme-completions 'moderate ; {nil,'moderate,'opinionated}
-             modus-%1$s-theme-diffs nil ; {nil,'desaturated,'fg-only}
-             modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-             modus-%1$s-theme-headings  ; Read further below in the manual for this one
-             '((1 . line)
-               (t . rainbow-line-no-bold))
-             modus-%1$s-theme-variable-pitch-headings t
-             modus-%1$s-theme-scale-headings t
-             modus-%1$s-theme-scale-1 1.1
-             modus-%1$s-theme-scale-2 1.15
-             modus-%1$s-theme-scale-3 1.21
-             modus-%1$s-theme-scale-4 1.27
-             modus-%1$s-theme-scale-5 1.33)
-       theme))
+    (setq modus-themes-slanted-constructs t
+          modus-themes-bold-constructs t
+          modus-themes-fringes 'subtle ; {nil,'subtle,'intense}
+          modus-themes-mode-line '3d ; {nil,'3d,'moody}
+          modus-themes-intense-hl-line nil
+          modus-themes-prompts nil ; {nil,'subtle,'intense}
+          modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+          modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
+          modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+          modus-themes-headings  ; Read further below in the manual for this one
+          '((1 . line)
+            (t . rainbow-line-no-bold))
+          modus-themes-variable-pitch-headings t
+          modus-themes-scale-headings t
+          modus-themes-scale-1 1.1
+          modus-themes-scale-2 1.15
+          modus-themes-scale-3 1.21
+          modus-themes-scale-4 1.27
+          modus-themes-scale-5 1.33)
     :config
     ;;Light for the day
     (run-at-time "07:00" (* 60 60 24)
@@ -458,6 +460,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
                  (lambda () (modus-themes-load-vivendi)))
     )
 #+END_SRC
+
 ** dashboard
 #+BEGIN_SRC emacs-lisp
   (use-package dashboard
@@ -497,16 +500,19 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     (centaur-tabs-group-by-projectile-project)
     )
 #+end_src
+
 ** centered cursor mode
 #+begin_src emacs-lisp
   (use-package centered-cursor-mode
     :general (my/leader-keys "t -" (lambda () (interactive) (centered-cursor-mode 'toggle))))
 #+end_src
+
 ** hide mode line
 #+begin_src emacs-lisp
   (use-package hide-mode-line
     :commands (hide-mode-line-mode))
 #+end_src
+
 ** popup management
 Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 #+begin_src emacs-lisp :tangle no
@@ -540,6 +546,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
          (display-buffer-reuse-mode-window display-buffer-pop-up-window)
          (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
 #+end_src
+
 ** winum
 #+begin_src emacs-lisp
 (use-package winum
@@ -551,6 +558,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 :config
 (winum-mode))
 #+end_src
+
 ** transpose frame
 #+begin_src emacs-lisp
   (use-package transpose-frame
@@ -559,6 +567,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
       "w V" '(flop-frame "flip vertically")
       "w S" '(flip-frame "flip horizontally")))
 #+end_src
+
 ** persistent scratch
 #+begin_src emacs-lisp
 (use-package persistent-scratch
@@ -566,6 +575,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 :config
 (persistent-scratch-setup-default))
 #+end_src
+
 * Completion framework
 ** selectrum
 #+BEGIN_SRC emacs-lisp
@@ -578,6 +588,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     (selectrum-mode t)
     )
 #+END_SRC
+
 ** prescient
 #+BEGIN_SRC emacs-lisp
   (use-package selectrum-prescient
@@ -594,6 +605,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     :config
     (company-prescient-mode t))
 #+END_SRC
+
 ** marginalia
 #+BEGIN_SRC emacs-lisp
   (use-package marginalia
@@ -603,6 +615,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
     :config (marginalia-mode t))
 #+END_SRC
+
 ** embark
    Taken from https://github.com/oantolin/embark
 
@@ -633,6 +646,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     ;; No unnecessary computation delay after injection.
     (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate))
 #+END_SRC
+
 ** consult
 #+BEGIN_SRC emacs-lisp
   (use-package consult
@@ -659,6 +673,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     :after selectrum
     :demand)
 #+END_SRC
+
 * Programming helpers
 ** project
 *** projectile
@@ -682,6 +697,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
       (unless (file-remote-p default-directory) ad-do-it))
     (projectile-mode))
 #+END_SRC
+
 *** perspective
 #+BEGIN_SRC emacs-lisp
     (use-package perspective
@@ -698,6 +714,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
       (my/leader-keys
        "p p" 'projectile-persp-switch-project))
 #+END_SRC
+
 ** git
 *** magit
 #+BEGIN_SRC emacs-lisp
@@ -711,6 +728,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
     (setq magit-log-arguments '("--graph" "--decorate" "--color")))
 #+END_SRC
+
 *** TODO forge
 #+BEGIN_SRC emacs-lisp :tangle no
 ;; NOTE: Make sure to configure a GitHub token before using this package!
@@ -731,6 +749,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     (git-timemachine-mode-map "q" 'git-timemachine-quit)
     )
 #+end_src
+
 *** git-gutter
 #+begin_src emacs-lisp
   (use-package git-gutter-fringe
@@ -739,9 +758,18 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
       org-mode
       prog-mode) . git-gutter-mode)
     :config
+    ;; subtle diff indicators in the fringe
+    ;; places the git gutter outside the margins.
     (setq-default fringes-outside-margins t)
+    (define-fringe-bitmap 'git-gutter-fr:added [224]
+      nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:modified [224]
+      nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
+      nil nil 'bottom)
     )
 #+end_src
+
 *** hydra-smerge
 #+begin_src emacs-lisp
   (use-package smerge-mode
@@ -788,10 +816,12 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
       ("R" smerge-kill-current)
       ("q" nil :color blue)))
 #+end_src
+
 ** hydra
 #+begin_src emacs-lisp
   (use-package hydra)
 #+end_src
+
 ** Indentation
 #+BEGIN_SRC emacs-lisp
   ;; use common convention for indentation by default
@@ -811,6 +841,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     ;; (highlight-indent-guides-responsive 'stack)
     )
 #+END_SRC
+
 ** rainbow parenthesis
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
@@ -818,6 +849,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
            (clojure-mode . rainbow-delimiters-mode)
            (org-mode . rainbow-delimiters-mode)))
 #+END_SRC
+
 ** syntax highlighting
 #+BEGIN_SRC emacs-lisp
   (use-package tree-sitter
@@ -830,6 +862,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
   (use-package tree-sitter-langs
     :after tree-sitter)
 #+END_SRC
+
 ** company-mode
 #+BEGIN_SRC emacs-lisp
 	(use-package company
@@ -854,6 +887,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 		(global-company-mode)
 		)
 #+END_SRC
+
 ** TODO company box
 Taken from DOOM
 #+begin_src emacs-lisp :tangle no
@@ -909,6 +943,7 @@ Taken from DOOM
       :hook ((python-mode . envrc-mode)
              (org-mode . envrc-mode)))
 #+end_src
+
 ** yasnippet
 #+begin_src emacs-lisp
     (use-package yasnippet
@@ -917,10 +952,13 @@ Taken from DOOM
        (prog-mode . yas-minor-mode)
        (org-mode . yas-minor-mode)))
 #+end_src
+
 ** evil-multicursor
 The prefix is =g r=, inspect the commands with ~which-key~
 #+begin_src emacs-lisp
   (use-package evil-mc
+    :after evil
+    :demand
     :commands (evil-mc-make-and-goto-next-match ;C-n
                evil-mc-make-and-goto-prev-match ;C-p
                evil-mc-make-cursor-here ; grh
@@ -933,6 +971,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
     (global-evil-mc-mode +1)
     )
 #+end_src
+
 ** evil-nerd-commenter
 #+BEGIN_SRC emacs-lisp
   (use-package evil-nerd-commenter
@@ -941,6 +980,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
     (general-vmap "gc" 'evilnc-comment-or-uncomment-lines)
     )
 #+END_SRC
+
 ** evil-surround
 #+BEGIN_SRC emacs-lisp
 (use-package evil-surround
@@ -952,6 +992,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
    "S" 'evil-surround-region
    "gS" 'evil-Surround-region))
 #+END_SRC
+
 ** undo fu
 #+begin_src emacs-lisp
   (use-package undo-fu
@@ -960,6 +1001,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
              "u" 'undo-fu-only-undo
              "\C-r" 'undo-fu-only-redo))
 #+end_src
+
 ** vterm
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
@@ -970,6 +1012,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
     (setq vterm-shell (executable-find "fish")
           vterm-max-scrollback 10000))
 #+END_SRC
+
 * Org mode
 - demote subtree with =M-l=
 ** Org mode configuration
@@ -1101,6 +1144,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
 (use-package org-reverse-datetree
 :after org)
 #+end_src
+
 ** better bullets
 #+BEGIN_SRC emacs-lisp
   (use-package org-superstar
@@ -1108,10 +1152,12 @@ The prefix is =g r=, inspect the commands with ~which-key~
     :init
     (setq org-superstar-headline-bullets-list '("✖" "✚" "◆" "▶" "○")
           org-superstar-special-todo-items t
-				;; org-ellipsis "⤵"
-          org-ellipsis "▼")
+          ;; org-ellipsis "⤵"
+          ;; org-ellipsis "▼"
+          org-ellipsis "↴")
     )
 #+END_SRC
+
 ** todo highlight
 #+begin_src emacs-lisp
   (use-package hl-todo
@@ -1124,6 +1170,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
             ("PROJ"   . "#1E90FF")))
     )
 #+end_src
+
 ** org babel
 #+BEGIN_SRC emacs-lisp
   (use-package org
@@ -1147,6 +1194,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
   ;; (use-package ob-mermaid
   ;;   :custom (ob-mermaid-cli-path "~/.asdf/shims/mmdc"))
 #+END_SRC
+
 ** ob-async
 #+begin_src emacs-lisp
   (use-package ob-async
@@ -1154,6 +1202,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
     :init
     (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
 #+end_src
+
 ** ob-jupyter
 Note:
 - We can only load ~ob-jupyter~ when we have ~jupyter~ on our ~PATH~.
@@ -1209,6 +1258,7 @@ Note:
     (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
     (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
 #+end_src
+
 ** exporters
 #+BEGIN_SRC emacs-lisp
   (use-package ox-gfm
@@ -1218,6 +1268,7 @@ Note:
     :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
     :after org)
 #+END_SRC
+
 ** org-tree-slide
 #+begin_src emacs-lisp
   (use-package org-tree-slide
@@ -1249,6 +1300,7 @@ Note:
     (org-tree-slide-presentation-profile)
     )
 #+end_src
+
 * Programming languages
 ** lsp mode
 #+BEGIN_SRC emacs-lisp
@@ -1278,6 +1330,7 @@ Note:
     (setq lsp-ui-doc-show-with-mouse nil)
     )
 #+END_SRC
+
 ** dap-mode
 #+BEGIN_SRC emacs-lisp
   (use-package dap-mode
@@ -1339,6 +1392,7 @@ Note:
                                        :debugger 'debugpy
                                        :name "dap-debug-test-at-point")))
 #+END_SRC
+
 ** Python
 *** python mode
 #+BEGIN_SRC emacs-lisp
@@ -1375,6 +1429,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
                            (require 'lsp-pyright)
                            (lsp-deferred))))
 #+END_SRC
+
 *** pytest
 #+begin_src emacs-lisp
   (use-package python-pytest
@@ -1393,6 +1448,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     (advice-add 'python-pytest--run :around #'my/pytest-use-venv)
     )
 #+end_src
+
 *** flymake 
 #+begin_src emacs-lisp
   (use-package flymake
@@ -1401,11 +1457,13 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     :hook (emacs-lisp-mode . flymake-mode)
     :init
     (setq python-flymake-command (executable-find "flake8"))
+    (setq flymake-fringe-indicator-position 'left-fringe)
     :general
     (general-nmap "] !" 'flymake-goto-next-error)
     (general-nmap "[ !" 'flymake-goto-prev-error)
     )
 #+end_src
+
 *** jupyter
 #+begin_src emacs-lisp
   (use-package jupyter
@@ -1440,6 +1498,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
         (call-interactively 'jupyter-repl-associate-buffer)))
     (advice-add 'jupyter-command :override #'jupyter-command-venv))
 #+end_src
+
 ** R
 *** ess
 #+begin_src emacs-lisp
@@ -1461,6 +1520,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
       )
     
 #+end_src
+
 ** emacs-lisp
 *** elisp-mode
 #+begin_src emacs-lisp
@@ -1479,6 +1539,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
       "e" '(eval-last-sexp :wk "sexp"))
     )
 #+end_src
+
 *** evil-lisp state
 #+begin_src emacs-lisp
   (use-package evil-lisp-state
@@ -1493,13 +1554,15 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     )
 
 #+end_src
+
 ** Nix
 *** nix mode
 #+begin_src emacs-lisp
 (use-package nix-mode
 :commands (nix-mode) ;;FIXME
 :mode "\\.nix\\'")
-  #+end_src
+#+end_src
+
 ** Clojure
 *** Clojure mode
 #+begin_src emacs-lisp
@@ -1508,6 +1571,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     :init
     (setq clojure-align-forms-automatically t))
 #+end_src
+
 *** Cider
 #+begin_src emacs-lisp
   (use-package cider
@@ -1530,6 +1594,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     (setq nrepl-sync-request-timeout nil)
     )
 #+end_src
+
 *** ob-clojure
 #+begin_src emacs-lisp
 (use-package org
@@ -1537,6 +1602,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider))
 #+end_src
+
 *** evil-cleverparens
 This package provides additional text objects for LISPs.
 For example, you can mark the outer form with =v a d=.
@@ -1556,6 +1622,7 @@ For example, you can mark the outer form with =v a d=.
     ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
     )
 #+end_src
+
 *** aggressive-indent
 #+begin_src emacs-lisp
   ;; keep the file indented
@@ -1563,6 +1630,7 @@ For example, you can mark the outer form with =v a d=.
     :hook ((clojure-mode . aggressive-indent-mode)
            (emacs-lisp-mode . aggressive-indent-mode)))
 #+end_src
+
 * File management
 ** dired
 - Jump to current file with =SPC f j=
