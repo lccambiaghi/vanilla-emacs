@@ -4,7 +4,6 @@
 (setq package-enable-at-startup nil)
 (setq comp-deferred-compilation nil)
 
-
 ;; `file-name-handler-alist' is consulted on every `require', `load' and various
 ;; path/io functions. You get a minor speed up by nooping this. However, this
 ;; may cause problems on builds of Emacs where its site lisp files aren't
@@ -165,7 +164,7 @@
   (general-evil-setup)
 
   (general-create-definer my/leader-keys
-    :states '(normal visual emacs)
+    :states '(normal insert visual emacs)
     :keymaps 'override
     :prefix "SPC"
     :global-prefix "C-SPC")
@@ -337,7 +336,7 @@
            modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
            modus-%1$s-theme-faint-syntax nil
            modus-%1$s-theme-intense-hl-line nil
-           modus-%1$s-theme-intense-paren-match nil
+           modus-%1$s-theme-intense-paren-match t
            modus-%1$s-theme-no-link-underline t
            modus-%1$s-theme-no-mixed-fonts nil
            modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
@@ -406,26 +405,10 @@
 (use-package hide-mode-line
   :commands (hide-mode-line-mode))
 
-(defvar my-popups '()
-  "A list of popup matchers that determine if a popup can be escaped")
-
-(cl-defun my/make-popup (buffer-rx &optional (height 0.4))
-  (add-to-list 'my-popups buffer-rx)
-  (add-to-list 'display-buffer-alist
-               `(,buffer-rx
-                 (display-buffer-reuse-window
-                  display-buffer-in-side-window)
-                 (reusable-frames . visible)
-                 (side            . bottom)
-                 (window-height   . ,height))))
-
-(my/make-popup (rx bos "*Messages*" eos))
-(my/make-popup (rx bos "*Backtrace*" eos))
-(my/make-popup (rx bos "*Warnings*" eos))
-(my/make-popup (rx bos "*compilation*" eos))
-(my/make-popup (rx bos "*Help*" eos))
-(my/make-popup (rx bos "*helpful*" eos))
-(my/make-popup (rx bos "*scratch*" eos) 0.4)
+(setq display-buffer-alist
+      `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
+         (display-buffer-reuse-mode-window display-buffer-pop-up-window)
+         (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
 
 (use-package winum
 :general
@@ -435,6 +418,12 @@
 "3" '(winum-select-window-3 :wk "win 3"))
 :config
 (winum-mode))
+
+(use-package transpose-frame
+  :general
+  (my/leader-keys
+    "w V" '(flop-frame "flip vertically")
+    "w S" '(flip-frame "flip horizontally")))
 
 (use-package persistent-scratch
 :demand
@@ -628,17 +617,13 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package hydra)
 
-;; handle indentation automatically
-(use-package aggressive-indent
-  :hook ((clojure-mode . aggressive-indent-mode)
-         (emacs-lisp-mode . aggressive-indent-mode))
-  :init
-  ;; use common convention for indentation by default
-  (setq-default indent-tabs-mode t)
-  (setq-default tab-width 2)
+;; use common convention for indentation by default
+(setq-default indent-tabs-mode t)
+(setq-default tab-width 2)
 
-  ;; use a reasonable line length
-  (setq-default fill-column 120))
+;; use a reasonable line length
+(setq-default fill-column 120)
+
 
 ;; add a visual intent guide
 (use-package highlight-indent-guides
@@ -651,6 +636,7 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package rainbow-delimiters
   :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+         (clojure-mode . rainbow-delimiters-mode)
          (org-mode . rainbow-delimiters-mode)))
 
 (use-package tree-sitter
@@ -664,30 +650,26 @@ Movement   Keep           Diff              Other │ smerge │
   :after tree-sitter)
 
 (use-package company
-  :hook ((lsp-mode . company-mode)
-         (emacs-lisp-mode . company-mode)
-         (jupyter-org-interaction-mode . company-mode))
-  :general
-  (company-active-map
-   "TAB"       nil    ;; interferes with yasnippet
-   [tab]       nil)
-  :init
-  (setq company-minimum-prefix-length 1)
-  (setq company-idle-delay 0.0)
-  (setq company-backends '(company-capf company-dabbrev-code company-keywords company-files company-dabbrev))
-  ;; enable company-yasnippet backend
-  (defvar company-mode/enable-yas t
-    "Enable yasnippet for all backends.")
-  (defun company-mode/backend-with-yas (backend)
-    (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
-        backend
-      (append (if (consp backend) backend (list backend))
-              '(:with company-yasnippet))))
-  (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))
-  )
-
-;; (use-package company-box
-;;   :hook (company-mode . company-box-mode))
+	:demand
+	:general
+	(company-active-map
+	 "TAB"       nil    ;; interferes with yasnippet
+	 [tab]       nil)
+	:init
+	(setq company-backends '((company-capf :with company-yasnippet)
+													 (company-keywords company-files)))
+	(setq company-minimum-prefix-length 1)
+	(setq company-idle-delay 0.0)
+	(setq company-frontends
+				'(company-pseudo-tooltip-frontend  ; always show candidates in overlay tooltip
+					company-echo-metadata-frontend)  ; show selected candidate docs in echo area
+				)
+	;; don't fill the only candidate
+	(setq company-auto-complete nil
+				company-auto-complete-chars nil)
+	:config
+	(global-company-mode)
+	)
 
 (use-package envrc
   :hook ((python-mode . envrc-mode)
@@ -698,23 +680,6 @@ Movement   Keep           Diff              Other │ smerge │
   ((text-mode . yas-minor-mode)
    (prog-mode . yas-minor-mode)
    (org-mode . yas-minor-mode)))
-
-(use-package evil-cleverparens
-  :disabled
-  :hook
-  ((emacs-lisp-mode . evil-cleverparens-mode)
-   (clojure-mode . evil-cleverparens-mode))
-  :init
-  (setq evil-move-beyond-eol t
-        evil-cleverparens-use-additional-bindings nil
-        evil-cleverparens-use-s-and-S nil
-        ;; evil-cleverparens-swap-move-by-word-and-symbol t
-        ;; evil-cleverparens-use-regular-insert t
-        )
-  :config
-  (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
-  (sp-local-pair 'org-mode "<" nil :actions nil)
-  )
 
 (use-package evil-mc
   :commands (evil-mc-make-and-goto-next-match ;C-n
@@ -760,6 +725,7 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package org
   :hook ((org-mode . my/org-mode-setup)
+         (org-mode . prettify-symbols-mode)
          (org-mode . (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config))))
   :general
   (my/leader-keys
@@ -837,6 +803,12 @@ Movement   Keep           Diff              Other │ smerge │
 
           ))
 
+  (setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
+                                         ("#+END_SRC" . "«")
+                                         ("#+begin_src" . "»")
+                                         ("#+end_src" . "«")))
+  (setq prettify-symbols-unprettify-at-point 'right-edge)
+
   ;; (setq org-agenda-custom-commands
   ;;         '(("d" "Dashboard"
   ;;            ((agenda "" ((org-deadline-warning-days 7)))
@@ -876,13 +848,12 @@ Movement   Keep           Diff              Other │ smerge │
 (use-package org-reverse-datetree
 :after org)
 
-
-
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode)
   :init
   (setq org-superstar-headline-bullets-list '("✖" "✚" "◆" "▶" "○")
         org-superstar-special-todo-items t
+			;; org-ellipsis "⤵"
         org-ellipsis "▼")
   )
 
@@ -1034,8 +1005,7 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package dap-mode
   :hook
-  ((dap-stopped . my/show-debug-windows)
-   (dap-terminated . my/hide-debug-windows))
+  (dap-terminated . my/hide-debug-windows)
   :general
   (my/local-leader-keys
     :keymaps 'python-mode-map
@@ -1048,42 +1018,29 @@ Movement   Keep           Diff              Other │ smerge │
     "d r" '(dap-ui-repl :wk "repl")
     "d h" '(dap-hydra :wk "hydra"))
   :init
-  (setq dap-auto-configure nil)
+  (setq dap-auto-configure-features '(sessions locals breakpoints repl))
   (setq dap-python-debugger 'debugpy)
+  ;; show stdout
+  (setq dap-auto-show-output t)
   (setq dap-output-window-max-height 50)
   (setq dap-output-window-min-height 50)
-  (setq dap-ui-buffer-configurations
-        `((,"*dap-ui-locals*"  . ((side . right) (slot . 1) (window-width . 0.50)))
-          (,"*dap-ui-repl*" . ((side . right) (slot . 1) (window-width . 0.50)))
-          (,"*dap-ui-expressions*" . ((side . right) (slot . 2) (window-width . 0.20)))
-          (,"*dap-ui-sessions*" . ((side . right) (slot . 3) (window-width . 0.20)))
-          (,"*dap-ui-breakpoints*" . ((side . left) (slot . 2) (window-width . , 0.20)))
-          (,"*debug-window*" . ((side . bottom) (slot . 3) (window-width . 0.20)))))
-  ;; helpers to show and hide windows
-  (defun my/window-visible (b-name)
-    "Return whether B-NAME is visible."
-    (-> (-compose 'buffer-name 'window-buffer)
-        (-map (window-list))
-        (-contains? b-name)))
-  (defun my/show-debug-windows (session)
-    "Show debug windows."
-    (let ((lsp--cur-workspace (dap--debug-session-workspace session)))
-      (save-excursion
-        (unless (my/window-visible dap-ui--repl-buffer)
-          (dap-ui-repl)))))
+  ;; hide stdout window  when done
   (defun my/hide-debug-windows (session)
     "Hide debug windows when all debug sessions are dead."
     (unless (-filter 'dap--session-running (dap--get-sessions))
-      (and (get-buffer dap-ui--repl-buffer)
-           (kill-buffer dap-ui--repl-buffer)
-           (get-buffer dap-ui--debug-window-buffer)
-           (kill-buffer dap-ui--debug-window-buffer))))
-  ;; disable annoying visuals
-  (remove-hook 'dap-mode-hook #'dap-tooltip-mode)
-  (remove-hook 'dap-ui-mode-hook #'dap-ui-controls-mode)
+      (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))))
   (defun my/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
   :config
+  ;; configure windows
+  (require 'dap-ui)
+  (setq dap-ui-buffer-configurations
+        `((,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
+          (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
+          (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.30)))
+          (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.30)))))
+  (dap-ui-mode 1)
+  ;; python specific
   (require 'dap-python)
   (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
   (dap-register-debug-template "dap-debug-script"
@@ -1103,9 +1060,7 @@ Movement   Keep           Diff              Other │ smerge │
                                      :request "launch"
                                      :module "pytest"
                                      :debugger 'debugpy
-                                     :name "dap-debug-test-at-point"))
-
-  (dap-ui-mode 1))
+                                     :name "dap-debug-test-at-point")))
 
 (use-package python-mode
   ;; :init
@@ -1243,22 +1198,54 @@ Movement   Keep           Diff              Other │ smerge │
 :mode "\\.nix\\'")
 
 (use-package clojure-mode
-  :mode "\\.clj$")
+  :mode "\\.clj$"
+  :init
+  (setq clojure-align-forms-automatically t))
 
 (use-package cider
-  :commands (cider-jack-in cider-mode)
-  :hook (cider-repl-mode . evil-normalize-keymaps)
+  :hook ((cider-repl-mode . evil-normalize-keymaps)
+         (cider-mode . eldoc-mode))
   :general
-  ;; (clojure-mode-map "")
+  (my/local-leader-keys
+    :keymaps 'clojure-mode-map
+    "'" '(cider-jack-in :wk "jack in")
+    "e l" 'cider-eval-last-sexp
+    "e E" 'cider-pprint-eval-last-sexp-to-comment
+    "e d" '(cider-eval-defun-at-point :wk "defun")
+    "e D" 'cider-pprint-eval-defun-to-comment)
+  (my/local-leader-keys
+    :keymaps 'clojure-mode-map
+    :states 'visual
+    "e" 'cider-eval-region)
   :init
   (setq nrepl-hide-special-buffers t)
-  :config
-  (add-hook 'cider-mode-hook #'eldoc-mode))
+  (setq nrepl-sync-request-timeout nil)
+  )
 
 (use-package org
 :config
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider))
+
+(use-package evil-cleverparens
+  :hook
+  ((emacs-lisp-mode . evil-cleverparens-mode)
+   (clojure-mode . evil-cleverparens-mode))
+  :init
+  (setq evil-move-beyond-eol t
+        evil-cleverparens-use-additional-bindings nil
+        evil-cleverparens-use-s-and-S nil
+        ;; evil-cleverparens-swap-move-by-word-and-symbol t
+        ;; evil-cleverparens-use-regular-insert t
+        )
+  ;; :config
+  ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+  )
+
+;; keep the file indented
+(use-package aggressive-indent
+  :hook ((clojure-mode . aggressive-indent-mode)
+         (emacs-lisp-mode . aggressive-indent-mode)))
 
 (use-package dired
   :straight nil

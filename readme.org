@@ -41,7 +41,6 @@ Taken from DOOM's init
   (setq package-enable-at-startup nil)
   (setq comp-deferred-compilation nil)
 
-
   ;; `file-name-handler-alist' is consulted on every `require', `load' and various
   ;; path/io functions. You get a minor speed up by nooping this. However, this
   ;; may cause problems on builds of Emacs where its site lisp files aren't
@@ -243,7 +242,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     (general-evil-setup)
 
     (general-create-definer my/leader-keys
-      :states '(normal visual emacs)
+      :states '(normal insert visual emacs)
       :keymaps 'override
       :prefix "SPC"
       :global-prefix "C-SPC")
@@ -387,77 +386,77 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 
 ** Modus themes
 #+BEGIN_SRC emacs-lisp
-     (use-package modus-themes
-       ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "master")
-       :demand
-       :init
-       (setq modus-operandi-theme-override-colors-alist
-             '(("bg-main" . "#fefcf4")
-               ("bg-dim" . "#faf6ef")
-               ("bg-alt" . "#f7efe5")
-               ("bg-hl-line" . "#f4f0e3")
-               ("bg-active" . "#e8dfd1")
-               ("bg-inactive" . "#f6ece5")
-               ("bg-region" . "#c6bab1")
-               ("bg-header" . "#ede3e0")
-               ("bg-tab-bar" . "#dcd3d3")
-               ("bg-tab-active" . "#fdf6eb")
-               ("bg-tab-inactive" . "#c8bab8")
-               ("fg-unfocused" . "#55556f")))
+  (use-package modus-themes
+    ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "master")
+    :demand
+    :init
+    (setq modus-operandi-theme-override-colors-alist
+          '(("bg-main" . "#fefcf4")
+            ("bg-dim" . "#faf6ef")
+            ("bg-alt" . "#f7efe5")
+            ("bg-hl-line" . "#f4f0e3")
+            ("bg-active" . "#e8dfd1")
+            ("bg-inactive" . "#f6ece5")
+            ("bg-region" . "#c6bab1")
+            ("bg-header" . "#ede3e0")
+            ("bg-tab-bar" . "#dcd3d3")
+            ("bg-tab-active" . "#fdf6eb")
+            ("bg-tab-inactive" . "#c8bab8")
+            ("fg-unfocused" . "#55556f")))
 
-       (setq modus-vivendi-theme-override-colors-alist
-             '(("bg-main" . "#100b17")
-               ("bg-dim" . "#161129")
-               ("bg-alt" . "#181732")
-               ("bg-hl-line" . "#191628")
-               ("bg-active" . "#282e46")
-               ("bg-inactive" . "#1a1e39")
-               ("bg-region" . "#393a53")
-               ("bg-header" . "#202037")
-               ("bg-tab-bar" . "#262b41")
-               ("bg-tab-active" . "#120f18")
-               ("bg-tab-inactive" . "#3a3a5a")
-               ("fg-unfocused" . "#9a9aab")))
+    (setq modus-vivendi-theme-override-colors-alist
+          '(("bg-main" . "#100b17")
+            ("bg-dim" . "#161129")
+            ("bg-alt" . "#181732")
+            ("bg-hl-line" . "#191628")
+            ("bg-active" . "#282e46")
+            ("bg-inactive" . "#1a1e39")
+            ("bg-region" . "#393a53")
+            ("bg-header" . "#202037")
+            ("bg-tab-bar" . "#262b41")
+            ("bg-tab-active" . "#120f18")
+            ("bg-tab-inactive" . "#3a3a5a")
+            ("fg-unfocused" . "#9a9aab")))
 
-       (defmacro modus-themes-format-sexp (sexp &rest objects)
-         `(eval (read (format ,(format "%S" sexp) ,@objects))))
+    (defmacro modus-themes-format-sexp (sexp &rest objects)
+      `(eval (read (format ,(format "%S" sexp) ,@objects))))
 
-       (dolist (theme '("operandi" "vivendi"))
-         (modus-themes-format-sexp
-          (setq modus-%1$s-theme-slanted-constructs t
-                modus-%1$s-theme-bold-constructs t
-                modus-%1$s-theme-fringes 'subtle ; {nil,'subtle,'intense}
-                modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
-                modus-%1$s-theme-faint-syntax nil
-                modus-%1$s-theme-intense-hl-line nil
-                modus-%1$s-theme-intense-paren-match nil
-                modus-%1$s-theme-no-link-underline t
-                modus-%1$s-theme-no-mixed-fonts nil
-                modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
-                modus-%1$s-theme-completions 'moderate ; {nil,'moderate,'opinionated}
-                modus-%1$s-theme-diffs nil ; {nil,'desaturated,'fg-only}
-                modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-                modus-%1$s-theme-headings  ; Read further below in the manual for this one
-                '((1 . line)
-                  (t . rainbow-line-no-bold))
-                modus-%1$s-theme-variable-pitch-headings t
-                modus-%1$s-theme-scale-headings t
-                modus-%1$s-theme-scale-1 1.1
-                modus-%1$s-theme-scale-2 1.15
-                modus-%1$s-theme-scale-3 1.21
-                modus-%1$s-theme-scale-4 1.27
-                modus-%1$s-theme-scale-5 1.33)
-          theme))
-       :config
-       ;;Light for the day
-       (run-at-time "07:00" (* 60 60 24)
-                    (lambda () (modus-themes-load-operandi)))
-       ;; Dark for the night
-       (run-at-time "00:00" (* 60 60 24)
-                    (lambda () (modus-themes-load-vivendi)))
-       (run-at-time "15:00" (* 60 60 24)
-                    (lambda () (modus-themes-load-vivendi)))
-       )
+    (dolist (theme '("operandi" "vivendi"))
+      (modus-themes-format-sexp
+       (setq modus-%1$s-theme-slanted-constructs t
+             modus-%1$s-theme-bold-constructs t
+             modus-%1$s-theme-fringes 'subtle ; {nil,'subtle,'intense}
+             modus-%1$s-theme-mode-line '3d ; {nil,'3d,'moody}
+             modus-%1$s-theme-faint-syntax nil
+             modus-%1$s-theme-intense-hl-line nil
+             modus-%1$s-theme-intense-paren-match t
+             modus-%1$s-theme-no-link-underline t
+             modus-%1$s-theme-no-mixed-fonts nil
+             modus-%1$s-theme-prompts nil ; {nil,'subtle,'intense}
+             modus-%1$s-theme-completions 'moderate ; {nil,'moderate,'opinionated}
+             modus-%1$s-theme-diffs nil ; {nil,'desaturated,'fg-only}
+             modus-%1$s-theme-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+             modus-%1$s-theme-headings  ; Read further below in the manual for this one
+             '((1 . line)
+               (t . rainbow-line-no-bold))
+             modus-%1$s-theme-variable-pitch-headings t
+             modus-%1$s-theme-scale-headings t
+             modus-%1$s-theme-scale-1 1.1
+             modus-%1$s-theme-scale-2 1.15
+             modus-%1$s-theme-scale-3 1.21
+             modus-%1$s-theme-scale-4 1.27
+             modus-%1$s-theme-scale-5 1.33)
+       theme))
+    :config
+    ;;Light for the day
+    (run-at-time "07:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-operandi)))
+    ;; Dark for the night
+    (run-at-time "00:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-vivendi)))
+    (run-at-time "15:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-vivendi)))
+    )
 #+END_SRC
 ** dashboard
 #+BEGIN_SRC emacs-lisp
@@ -510,9 +509,10 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 #+end_src
 ** popup management
 Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (defvar my-popups '()
     "A list of popup matchers that determine if a popup can be escaped")
+
 
   (cl-defun my/make-popup (buffer-rx &optional (height 0.4))
     (add-to-list 'my-popups buffer-rx)
@@ -532,6 +532,14 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
   (my/make-popup (rx bos "*helpful*" eos))
   (my/make-popup (rx bos "*scratch*" eos) 0.4)
 #+end_src
+
+Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
+#+begin_src emacs-lisp
+(setq display-buffer-alist
+      `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
+         (display-buffer-reuse-mode-window display-buffer-pop-up-window)
+         (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+#+end_src
 ** winum
 #+begin_src emacs-lisp
 (use-package winum
@@ -542,6 +550,14 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 "3" '(winum-select-window-3 :wk "win 3"))
 :config
 (winum-mode))
+#+end_src
+** transpose frame
+#+begin_src emacs-lisp
+  (use-package transpose-frame
+    :general
+    (my/leader-keys
+      "w V" '(flop-frame "flip vertically")
+      "w S" '(flip-frame "flip horizontally")))
 #+end_src
 ** persistent scratch
 #+begin_src emacs-lisp
@@ -778,17 +794,13 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 #+end_src
 ** Indentation
 #+BEGIN_SRC emacs-lisp
-  ;; handle indentation automatically
-  (use-package aggressive-indent
-    :hook ((clojure-mode . aggressive-indent-mode)
-           (emacs-lisp-mode . aggressive-indent-mode))
-    :init
-    ;; use common convention for indentation by default
-    (setq-default indent-tabs-mode t)
-    (setq-default tab-width 2)
+  ;; use common convention for indentation by default
+  (setq-default indent-tabs-mode t)
+  (setq-default tab-width 2)
 
-    ;; use a reasonable line length
-    (setq-default fill-column 120))
+  ;; use a reasonable line length
+  (setq-default fill-column 120)
+
 
   ;; add a visual intent guide
   (use-package highlight-indent-guides
@@ -803,6 +815,7 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
     :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+           (clojure-mode . rainbow-delimiters-mode)
            (org-mode . rainbow-delimiters-mode)))
 #+END_SRC
 ** syntax highlighting
@@ -819,32 +832,76 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
 #+END_SRC
 ** company-mode
 #+BEGIN_SRC emacs-lisp
-  (use-package company
-    :hook ((lsp-mode . company-mode)
-           (emacs-lisp-mode . company-mode)
-           (jupyter-org-interaction-mode . company-mode))
-    :general
-    (company-active-map
-     "TAB"       nil    ;; interferes with yasnippet
-     [tab]       nil)
-    :init
-    (setq company-minimum-prefix-length 1)
-    (setq company-idle-delay 0.0)
-    (setq company-backends '(company-capf company-dabbrev-code company-keywords company-files company-dabbrev))
-    ;; enable company-yasnippet backend
-    (defvar company-mode/enable-yas t
-      "Enable yasnippet for all backends.")
-    (defun company-mode/backend-with-yas (backend)
-      (if (or (not company-mode/enable-yas) (and (listp backend) (member 'company-yasnippet backend)))
-          backend
-        (append (if (consp backend) backend (list backend))
-                '(:with company-yasnippet))))
-    (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))
-    )
-
-  ;; (use-package company-box
-  ;;   :hook (company-mode . company-box-mode))
+	(use-package company
+		:demand
+		:general
+		(company-active-map
+		 "TAB"       nil    ;; interferes with yasnippet
+		 [tab]       nil)
+		:init
+		(setq company-backends '((company-capf :with company-yasnippet)
+														 (company-keywords company-files)))
+		(setq company-minimum-prefix-length 1)
+		(setq company-idle-delay 0.0)
+		(setq company-frontends
+					'(company-pseudo-tooltip-frontend  ; always show candidates in overlay tooltip
+						company-echo-metadata-frontend)  ; show selected candidate docs in echo area
+					)
+		;; don't fill the only candidate
+		(setq company-auto-complete nil
+					company-auto-complete-chars nil)
+		:config
+		(global-company-mode)
+		)
 #+END_SRC
+** TODO company box
+Taken from DOOM
+#+begin_src emacs-lisp :tangle no
+  (use-package company-box
+    :hook (company-mode . company-box-mode)
+    :config
+    (setq company-box-show-single-candidate t
+          company-box-backends-colors nil
+          company-box-max-candidates 50
+          company-box-icons-alist 'company-box-icons-all-the-icons
+          company-box-icons-all-the-icons
+          (let ((all-the-icons-scale-factor 0.8))
+            `((Unknown       . ,(all-the-icons-material "find_in_page"             :face 'all-the-icons-purple))
+              (Text          . ,(all-the-icons-material "text_fields"              :face 'all-the-icons-green))
+              (Method        . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Function      . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Constructor   . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Field         . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Variable      . ,(all-the-icons-material "adjust"                   :face 'all-the-icons-blue))
+              (Class         . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+              (Interface     . ,(all-the-icons-material "settings_input_component" :face 'all-the-icons-red))
+              (Module        . ,(all-the-icons-material "view_module"              :face 'all-the-icons-red))
+              (Property      . ,(all-the-icons-material "settings"                 :face 'all-the-icons-red))
+              (Unit          . ,(all-the-icons-material "straighten"               :face 'all-the-icons-red))
+              (Value         . ,(all-the-icons-material "filter_1"                 :face 'all-the-icons-red))
+              (Enum          . ,(all-the-icons-material "plus_one"                 :face 'all-the-icons-red))
+              (Keyword       . ,(all-the-icons-material "filter_center_focus"      :face 'all-the-icons-red))
+              (Snippet       . ,(all-the-icons-material "short_text"               :face 'all-the-icons-red))
+              (Color         . ,(all-the-icons-material "color_lens"               :face 'all-the-icons-red))
+              (File          . ,(all-the-icons-material "insert_drive_file"        :face 'all-the-icons-red))
+              (Reference     . ,(all-the-icons-material "collections_bookmark"     :face 'all-the-icons-red))
+              (Folder        . ,(all-the-icons-material "folder"                   :face 'all-the-icons-red))
+              (EnumMember    . ,(all-the-icons-material "people"                   :face 'all-the-icons-red))
+              (Constant      . ,(all-the-icons-material "pause_circle_filled"      :face 'all-the-icons-red))
+              (Struct        . ,(all-the-icons-material "streetview"               :face 'all-the-icons-red))
+              (Event         . ,(all-the-icons-material "event"                    :face 'all-the-icons-red))
+              (Operator      . ,(all-the-icons-material "control_point"            :face 'all-the-icons-red))
+              (TypeParameter . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+              (Template      . ,(all-the-icons-material "short_text"               :face 'all-the-icons-green))
+              (ElispFunction . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (ElispVariable . ,(all-the-icons-material "check_circle"             :face 'all-the-icons-blue))
+              (ElispFeature  . ,(all-the-icons-material "stars"                    :face 'all-the-icons-orange))
+              (ElispFace     . ,(all-the-icons-material "format_paint"             :face 'all-the-icons-pink)))))
+
+    ;; Disable tab-bar in company-box child frames
+    (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
+    )
+#+end_src
 
 ** envrc
 #+begin_src emacs-lisp
@@ -859,25 +916,6 @@ Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
       ((text-mode . yas-minor-mode)
        (prog-mode . yas-minor-mode)
        (org-mode . yas-minor-mode)))
-#+end_src
-** TODO evil-cleverparens
-#+begin_src emacs-lisp
-  (use-package evil-cleverparens
-    :disabled
-    :hook
-    ((emacs-lisp-mode . evil-cleverparens-mode)
-     (clojure-mode . evil-cleverparens-mode))
-    :init
-    (setq evil-move-beyond-eol t
-          evil-cleverparens-use-additional-bindings nil
-          evil-cleverparens-use-s-and-S nil
-          ;; evil-cleverparens-swap-move-by-word-and-symbol t
-          ;; evil-cleverparens-use-regular-insert t
-          )
-    :config
-    (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
-    (sp-local-pair 'org-mode "<" nil :actions nil)
-    )
 #+end_src
 ** evil-multicursor
 The prefix is =g r=, inspect the commands with ~which-key~
@@ -938,6 +976,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
 #+BEGIN_SRC emacs-lisp
   (use-package org
     :hook ((org-mode . my/org-mode-setup)
+           (org-mode . prettify-symbols-mode)
            (org-mode . (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config))))
     :general
     (my/leader-keys
@@ -1015,6 +1054,12 @@ The prefix is =g r=, inspect the commands with ~which-key~
 
             ))
 
+    (setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
+                                           ("#+END_SRC" . "«")
+                                           ("#+begin_src" . "»")
+                                           ("#+end_src" . "«")))
+    (setq prettify-symbols-unprettify-at-point 'right-edge)
+
     ;; (setq org-agenda-custom-commands
     ;;         '(("d" "Dashboard"
     ;;            ((agenda "" ((org-deadline-warning-days 7)))
@@ -1056,10 +1101,6 @@ The prefix is =g r=, inspect the commands with ~which-key~
 (use-package org-reverse-datetree
 :after org)
 #+end_src
-** Auto-tangle on save
-Taken from https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#auto-tangle-configuration-files
-#+BEGIN_SRC emacs-lisp
-#+END_SRC
 ** better bullets
 #+BEGIN_SRC emacs-lisp
   (use-package org-superstar
@@ -1067,6 +1108,7 @@ Taken from https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org#a
     :init
     (setq org-superstar-headline-bullets-list '("✖" "✚" "◆" "▶" "○")
           org-superstar-special-todo-items t
+				;; org-ellipsis "⤵"
           org-ellipsis "▼")
     )
 #+END_SRC
@@ -1240,8 +1282,7 @@ Note:
 #+BEGIN_SRC emacs-lisp
   (use-package dap-mode
     :hook
-    ((dap-stopped . my/show-debug-windows)
-     (dap-terminated . my/hide-debug-windows))
+    (dap-terminated . my/hide-debug-windows)
     :general
     (my/local-leader-keys
       :keymaps 'python-mode-map
@@ -1254,42 +1295,29 @@ Note:
       "d r" '(dap-ui-repl :wk "repl")
       "d h" '(dap-hydra :wk "hydra"))
     :init
-    (setq dap-auto-configure nil)
+    (setq dap-auto-configure-features '(sessions locals breakpoints repl))
     (setq dap-python-debugger 'debugpy)
+    ;; show stdout
+    (setq dap-auto-show-output t)
     (setq dap-output-window-max-height 50)
     (setq dap-output-window-min-height 50)
-    (setq dap-ui-buffer-configurations
-          `((,"*dap-ui-locals*"  . ((side . right) (slot . 1) (window-width . 0.50)))
-            (,"*dap-ui-repl*" . ((side . right) (slot . 1) (window-width . 0.50)))
-            (,"*dap-ui-expressions*" . ((side . right) (slot . 2) (window-width . 0.20)))
-            (,"*dap-ui-sessions*" . ((side . right) (slot . 3) (window-width . 0.20)))
-            (,"*dap-ui-breakpoints*" . ((side . left) (slot . 2) (window-width . , 0.20)))
-            (,"*debug-window*" . ((side . bottom) (slot . 3) (window-width . 0.20)))))
-    ;; helpers to show and hide windows
-    (defun my/window-visible (b-name)
-      "Return whether B-NAME is visible."
-      (-> (-compose 'buffer-name 'window-buffer)
-          (-map (window-list))
-          (-contains? b-name)))
-    (defun my/show-debug-windows (session)
-      "Show debug windows."
-      (let ((lsp--cur-workspace (dap--debug-session-workspace session)))
-        (save-excursion
-          (unless (my/window-visible dap-ui--repl-buffer)
-            (dap-ui-repl)))))
+    ;; hide stdout window  when done
     (defun my/hide-debug-windows (session)
       "Hide debug windows when all debug sessions are dead."
       (unless (-filter 'dap--session-running (dap--get-sessions))
-        (and (get-buffer dap-ui--repl-buffer)
-             (kill-buffer dap-ui--repl-buffer)
-             (get-buffer dap-ui--debug-window-buffer)
-             (kill-buffer dap-ui--debug-window-buffer))))
-    ;; disable annoying visuals
-    (remove-hook 'dap-mode-hook #'dap-tooltip-mode)
-    (remove-hook 'dap-ui-mode-hook #'dap-ui-controls-mode)
+        (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))))
     (defun my/dap-python--executable-find (orig-fun &rest args)
       (executable-find "python"))
     :config
+    ;; configure windows
+    (require 'dap-ui)
+    (setq dap-ui-buffer-configurations
+          `((,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
+            (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
+            (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.30)))
+            (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.30)))))
+    (dap-ui-mode 1)
+    ;; python specific
     (require 'dap-python)
     (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
     (dap-register-debug-template "dap-debug-script"
@@ -1309,9 +1337,7 @@ Note:
                                        :request "launch"
                                        :module "pytest"
                                        :debugger 'debugpy
-                                       :name "dap-debug-test-at-point"))
-
-    (dap-ui-mode 1))
+                                       :name "dap-debug-test-at-point")))
 #+END_SRC
 ** Python
 *** python mode
@@ -1477,20 +1503,32 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 ** Clojure
 *** Clojure mode
 #+begin_src emacs-lisp
-(use-package clojure-mode
-  :mode "\\.clj$")
+  (use-package clojure-mode
+    :mode "\\.clj$"
+    :init
+    (setq clojure-align-forms-automatically t))
 #+end_src
 *** Cider
 #+begin_src emacs-lisp
   (use-package cider
-    :commands (cider-jack-in cider-mode)
-    :hook (cider-repl-mode . evil-normalize-keymaps)
+    :hook ((cider-repl-mode . evil-normalize-keymaps)
+           (cider-mode . eldoc-mode))
     :general
-    ;; (clojure-mode-map "")
+    (my/local-leader-keys
+      :keymaps 'clojure-mode-map
+      "'" '(cider-jack-in :wk "jack in")
+      "e l" 'cider-eval-last-sexp
+      "e E" 'cider-pprint-eval-last-sexp-to-comment
+      "e d" '(cider-eval-defun-at-point :wk "defun")
+      "e D" 'cider-pprint-eval-defun-to-comment)
+    (my/local-leader-keys
+      :keymaps 'clojure-mode-map
+      :states 'visual
+      "e" 'cider-eval-region)
     :init
     (setq nrepl-hide-special-buffers t)
-    :config
-    (add-hook 'cider-mode-hook #'eldoc-mode))
+    (setq nrepl-sync-request-timeout nil)
+    )
 #+end_src
 *** ob-clojure
 #+begin_src emacs-lisp
@@ -1498,6 +1536,32 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 :config
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider))
+#+end_src
+*** evil-cleverparens
+This package provides additional text objects for LISPs.
+For example, you can mark the outer form with =v a d=.
+#+begin_src emacs-lisp
+  (use-package evil-cleverparens
+    :hook
+    ((emacs-lisp-mode . evil-cleverparens-mode)
+     (clojure-mode . evil-cleverparens-mode))
+    :init
+    (setq evil-move-beyond-eol t
+          evil-cleverparens-use-additional-bindings nil
+          evil-cleverparens-use-s-and-S nil
+          ;; evil-cleverparens-swap-move-by-word-and-symbol t
+          ;; evil-cleverparens-use-regular-insert t
+          )
+    ;; :config
+    ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+    )
+#+end_src
+*** aggressive-indent
+#+begin_src emacs-lisp
+  ;; keep the file indented
+  (use-package aggressive-indent
+    :hook ((clojure-mode . aggressive-indent-mode)
+           (emacs-lisp-mode . aggressive-indent-mode)))
 #+end_src
 * File management
 ** dired
@@ -1539,20 +1603,11 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 
 * TODO missing
 ** restart emacs
-** hide BEGIN and END in org blocks
 ** completion in org blocks
 ** keybindings
 - =, t t= to set headline to TODO
 - org-insert-item
 ** toggle big font
-** TODO prettify symbols
-#+begin_src emacs-lisp :tangle no
-(defconst clojure--prettify-symbols-alist
-'(("fn"   . ?λ)
-("__"   . ?⁈)))
-
-(add-hook 'clojure-mode-hook 'global-prettify-symbols-mode)
-#+end_src
 ** TODO ox-reveal
 #+begin_src emacs-lisp :tangle no
 (use-package! org-re-reveal
