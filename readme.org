@@ -77,6 +77,7 @@ Some rules/conventions:
 
 You can run ~M-x straight-freeze-versions~ to write the file ~~/.emacs.d/straight/versions/default.el~.
 You can keep your versions in a code block and tangle the block to that file.
+You can restore package versions using ~M-x straight-thaw-versions~.
 #+BEGIN_SRC emacs-lisp
   (setq straight-use-package-by-default t)
   (setq straight-vc-git-default-clone-depth 1)
@@ -100,6 +101,120 @@ You can keep your versions in a code block and tangle the block to that file.
   ;; doing :sraight (:no-native-compile t)
   (setq comp-deferred-compilation-black-list nil)
 #+END_SRC
+** straight lockfile
+#+begin_src emacs-lisp :tangle straight/versions/default.el
+(("ESS" . "a9e9367976658391126c907b6a5dfc8ad3033ebd")
+ ("a.el" . "3d341eb7813ee02b00ab28e11c915295bfd4b5a7")
+ ("ace-window" . "c7cb315c14e36fded5ac4096e158497ae974bec9")
+ ("aggressive-indent-mode" . "b0ec0047aaae071ad1647159613166a253410a63")
+ ("all-the-icons-dired" . "fc2dfa1e9eb8bf1c402a675e7089638d702a27a5")
+ ("all-the-icons.el" . "6917b08f64dd8487e23769433d6cb9ba11f4152f")
+ ("annalist.el" . "134fa3f0fb91a636a1c005c483516d4b64905a6d")
+ ("avy" . "e92cb37457b43336b765630dbfbea8ba4be601fa")
+ ("bui.el" . "28a9b0a36cb69b931cf32db7546ad5c6589752cf")
+ ("centaur-tabs" . "23eda0a0292a84c7e0a0aa2b598f9e29c7e5b54f")
+ ("centered-cursor-mode.el" . "4093821cc9759ca5a3c6e527d4cc915fc3a5ad74")
+ ("cfrs" . "a5225c1830ae4c5a98fc0973d62d131321c059cd")
+ ("cider" . "9c137c52cf5b769fcc52b4e8108acda10638f766")
+ ("clojure-mode" . "53ef8ac076ae7811627fbdd408e519ab7fca9a0b")
+ ("company-mode" . "6116c4617a7934acfe84cb82a058e9b198f0f480")
+ ("consult" . "7a2f751421f4a1601811fa59571bd64baf7ec900")
+ ("dap-mode" . "612388d0b85e77972a9c28391bac6224a63408c7")
+ ("dash.el" . "8879c41d30211ae2e72298e354fdffef627a3836")
+ ("dired-single" . "98c2102429fcac6fbfdba9198c126eb1b3dcc4e5")
+ ("doom-modeline" . "49816da1a6c05e6215ec3c8aac6c5eabeb47e74c")
+ ("eldoc" . "b906386cf04029e01228fde239c3a2e3e5b53603")
+ ("elisp-refs" . "b3634a4567c655a1cda51b217629849cba0ac6a7")
+ ("emacs-async" . "14f48de586b0977e3470f053b810d77b07ea427a")
+ ("emacs-bind-map" . "bf4181e3a41463684adfffc6c5c305b30480e30f")
+ ("emacs-dashboard" . "2b1ef13392be2f07d2a52636edf578b89512d501")
+ ("emacs-hide-mode-line" . "88888825b5b27b300683e662fa3be88d954b1cea")
+ ("emacs-jupyter" . "360cae2c70ab28c7a7848c0c56473d984f0243e5")
+ ("emacs-libvterm" . "6f95a1b2949f60539fd92e3a63011801a7e765fd")
+ ("emacs-memoize" . "51b075935ca7070f62fae1d69fe0ff7d8fa56fdd")
+ ("emacs-python-pytest" . "4a1c4c8915c12e540d41aae1d4e326a2362da541")
+ ("emacs-tree-sitter" . "076865a6c879840ab61e0aa7b336a2e3e1f97cd4")
+ ("emacs-undo-fu" . "c0806c1903c5a0e4c69b6615cdc3366470a9b8ca")
+ ("emacs-web-server" . "22ce66ea43e0eadb9ec1d691a35d9695fc29cee6")
+ ("emacs-websocket" . "36deb3ff85368d000a88435d5a645ffbab490654")
+ ("emacs-which-key" . "428aedfce0157920814fbb2ae5d00b4aea89df88")
+ ("emacs-winum" . "c5455e866e8a5f7eab6a7263e2057aff5f1118b9")
+ ("emacs-zmq" . "eb4e01715cbf2f356a8ae5e678ffec3380a907dc")
+ ("emacsmirror-mirror" . "73d68771488284cceb42f70fda551e0a516cb249")
+ ("embark" . "f78ad7e1dfc0864b8def91888d1866dd47d69ed3")
+ ("envrc" . "18caf5154f61d7f78cd4719d999e0fa6ef52345f")
+ ("epl" . "78ab7a85c08222cd15582a298a364774e3282ce6")
+ ("evil" . "d6cf6680ec52733ea78dc530ed75fadc5171c758")
+ ("evil-cleverparens" . "8c45879d49bfa6d4e414b6c1df700a4a51cbb869")
+ ("evil-collection" . "f53ef08224f709c732740d45b373ef3617f6d759")
+ ("evil-goggles" . "08a22058fd6a167f9f1b684c649008caef571459")
+ ("evil-lisp-state" . "3c65fecd9917a41eaf6460f22187e2323821f3ce")
+ ("evil-mc" . "7dfb2ca5ac00c249cb2f55cd6fa91fb2bfb1117e")
+ ("evil-nerd-commenter" . "563cdc154b1f29d181b883563dd37be7eafafdee")
+ ("evil-surround" . "346d4d85fcf1f9517e9c4991c1efe68b4130f93a")
+ ("exec-path-from-shell" . "d14d6d2966efe5a1409f84a6b9d998268f74761d")
+ ("f.el" . "1814209e2ff43cf2e6d38c4cd476218915f550fb")
+ ("fringe-helper.el" . "ef4a9c023bae18ec1ddd7265f1f2d6d2e775efdd")
+ ("gcmh" . "0089f9c3a6d4e9a310d0791cf6fa8f35642ecfd9")
+ ("general.el" . "a0b17d207badf462311b2eef7c065b884462cb7c")
+ ("git-gutter" . "34ae23dfed4f2afb06286c120cbc7793cf4c5bc1")
+ ("git-gutter-fringe" . "4f19866494fa1debfa319382913e39a153431634")
+ ("git-timemachine" . "8d675750e921a047707fcdc36d84f8439b19a907")
+ ("gnu-elpa-mirror" . "fcb3cf5ba5f16885f7851885c954222aee6f03ab")
+ ("goto-chg" . "2af612153bc9f5bed135d25abe62f46ddaa9027f")
+ ("helpful" . "584ecc887bb92133119f93a6716cdf7af0b51dca")
+ ("highlight-indent-guides" . "cf352c85cd15dd18aa096ba9d9ab9b7ab493e8f6")
+ ("hl-todo" . "9661a462d86b22293caaa4c3d94f971a15dbf1d5")
+ ("ht.el" . "2850301d19176b8d3bb6cc8d95af6ab7e529bd56")
+ ("hydra" . "2d553787aca1aceb3e6927e426200e9bb9f056f1")
+ ("lsp-mode" . "f51741e2bbf002381d9bc51a6c7ae504c11d827b")
+ ("lsp-pyright" . "71ff088ac4c93b0edd012f305a3dfd1602c5d21e")
+ ("lsp-treemacs" . "64e375fcc700d4d47cf52ad912e6863d479e3bfa")
+ ("lsp-ui" . "62568188b7cbc0758a0c4bfb57647708406ddf51")
+ ("magit" . "25f432551347468ce97b8b03987e59092e91f8f0")
+ ("marginalia" . "d38a27867bcec0bafa43e8d1bd3fd96a32b15d31")
+ ("markdown-mode" . "e250a8465f805644d372c264eb0572f569d7f2a1")
+ ("melpa" . "ea7b38971ea1ac02d1de128d3526f9b7b9f601f9")
+ ("modus-themes" . "2a7228e09402f2f69aabf4fd8f367e5f6e8248b3")
+ ("nix-mode" . "53ea839a52335d089699d3530bae8ea5914cdbb6")
+ ("ob-async" . "de1cd6c93242a4cb8773bbe115b7be3d4dd6b97e")
+ ("org" . "94d1753ec8b171442f0e789ca38beee2415198b0")
+ ("org-reverse-datetree" . "be24274dd62cd3c586cbea99c8f73db251bf319d")
+ ("org-superstar-mode" . "7f83636db215bf5a10edbfdf11d12a132864a914")
+ ("org-tree-slide" . "d6e8e91433dfe4968f1343b483f2680f45a77d52")
+ ("ox-gfm" . "99f93011b069e02b37c9660b8fcb45dab086a07f")
+ ("ox-ipynb" . "919b694763035c0ea04a3a368418355185f896b8")
+ ("page-break-lines" . "69caea070379f3324c530e96e06625c3cd097cb9")
+ ("paredit" . "8330a41e8188fe18d3fa805bb9aa529f015318e8")
+ ("parseclj" . "eff941126859bc9e949eae5cd6c2592e731629f2")
+ ("parseedn" . "90cfe3df51b96f85e346f336c0a0ee6bf7fee508")
+ ("persistent-scratch" . "57221e5fdff22985c0ea2f3e7c282ce823ea5932")
+ ("persp-projectile" . "533808b3e4f8f95a1e3ed9c55d9aa720277ebd5f")
+ ("perspective-el" . "2f2b59e693f08b8d9c81062fca25e6076b6e7f8d")
+ ("pfuture" . "d7926de3ba0105a36cfd00811fd6278aea903eef")
+ ("pkg-info" . "76ba7415480687d05a4353b27fea2ae02b8d9d61")
+ ("posframe" . "ae8ac91744010c8975f07cf18282f58ce56605d0")
+ ("powerline" . "b293abf83c0a2b2988af19dd0ef0426c3b1d1501")
+ ("prescient.el" . "42adc802d3ba6c747bed7ea1f6e3ffbbdfc7192d")
+ ("projectile" . "c31bd41c0b9d6fba8837ebfd3a31dec0b3cd73c6")
+ ("python-mode" . "41b123b4d4906cce7591900a952bb75a38c5296c")
+ ("queue" . "52206c0f78afc0dfb9a287cb928c1e725103336d")
+ ("rainbow-delimiters" . "f43d48a24602be3ec899345a3326ed0247b960c6")
+ ("s.el" . "43ba8b563bee3426cead0e6d4ddc09398e1a349d")
+ ("selectrum" . "87ec4296f4fc9baf05dbaff0b9e63b2b4afd5bb6")
+ ("sesman" . "edee869c209c016e5f0c5cbb8abb9f3ccd2d1e05")
+ ("shrink-path.el" . "c14882c8599aec79a6e8ef2d06454254bb3e1e41")
+ ("smartparens" . "63695c64233d215a92bf08e762f643cdb595bdd9")
+ ("spinner" . "61f59fab44d22cd5add61a1baf3f0b88a5d829d7")
+ ("straight.el" . "2d407bccd9378f1d5218f8ba2ae85c6be73fbaf1")
+ ("transient" . "90e640fe8fa3f309c7cf347501e86ca5cd0bd85e")
+ ("transpose-frame" . "12e523d70ff78cc8868097b56120848befab5dbc")
+ ("treemacs" . "a0a1e96393c41b909ea75a35e0c8972047cfd1ae")
+ ("use-package" . "caa92f1d64fc25480551757d854b4b49981dfa6b")
+ ("with-editor" . "6735180e73e787b79535c245b162249b70dbf841")
+ ("yasnippet" . "5cbdbf0d2015540c59ed8ee0fcf4788effdf75b6"))
+:beta
+#+end_src
 
 ** Enable use-package statistics
 If you'd like to see how many packages you've loaded, what stage of initialization they've reached, and how much aggregate time they've spent (roughly), you can enable use-package-compute-statistics after loading use-package but before any use-package forms, and then run the command M-x use-package-report to see the results. The buffer displayed is a tabulated list. You can use S in a column to sort the rows based on it.
@@ -264,7 +379,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     (my/leader-keys
       "SPC" '(execute-extended-command :which-key "execute command")
       "`" '(switch-to-prev-buffer :which-key "prev buffer")
-      ":" '(eval-expression :which-key "eval sexp")
+      ";" '(eval-expression :which-key "eval sexp")
 
       "b" '(:ignore t :which-key "buffer")
       "br"  'revert-buffer
@@ -336,8 +451,8 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
     (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
     ;; Use visual line motions even outside of visual-line-mode buffers
-    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-    (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+    ;; (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+    ;; (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
     (evil-set-initial-state 'messages-buffer-mode 'normal)
     (evil-set-initial-state 'dashboard-mode 'normal))
@@ -436,7 +551,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
           modus-themes-mode-line '3d ; {nil,'3d,'moody}
           modus-themes-intense-hl-line nil
           modus-themes-prompts nil ; {nil,'subtle,'intense}
-          modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+          modus-themes-completions 'nil ; {nil,'moderate,'opinionated}
           modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
           modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
           modus-themes-headings  ; Read further below in the manual for this one
@@ -564,8 +679,8 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
   (use-package transpose-frame
     :general
     (my/leader-keys
-      "w V" '(flop-frame "flip vertically")
-      "w S" '(flip-frame "flip horizontally")))
+      "w t" '(transpose-frame "transpose")
+      "w f" '(rotate-frame "flip")))
 #+end_src
 
 ** persistent scratch
@@ -674,7 +789,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     :demand)
 #+END_SRC
 
-* Programming helpers
+* Core packages
 ** project
 *** projectile
 #+BEGIN_SRC emacs-lisp
@@ -773,8 +888,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 *** hydra-smerge
 #+begin_src emacs-lisp
   (use-package smerge-mode
-    :straight nil
-    :ensure nil
+    :straight (:type built-in)
     :after hydra
     :general
     (my/leader-keys "g m" 'hydra-smerge)
@@ -957,17 +1071,33 @@ Taken from DOOM
 The prefix is =g r=, inspect the commands with ~which-key~
 #+begin_src emacs-lisp
   (use-package evil-mc
-    :after evil
-    :demand
-    :commands (evil-mc-make-and-goto-next-match ;C-n
-               evil-mc-make-and-goto-prev-match ;C-p
-               evil-mc-make-cursor-here ; grh
-               evil-mc-undo-all-cursors ; grq
-               evil-mc-make-all-cursors ; grm
-               evil-mc-make-cursor-move-next-line ; grj
-               evil-mc-make-cursor-move-prev-line ; grk
-               )
+    :general
+    (general-nmap "gz" #'mc-hydra/body)
     :config
+    (defhydra mc-hydra (:color pink :hint nil
+                               :pre (evil-mc-pause-cursors))
+      "
+  ^Match^            ^Line-wise^           ^Manual^
+  ^^^^^^----------------------------------------------------
+  _Z_: match all     _J_: make & go down   _R_: remove all
+  _m_: make & next   _K_: make & go up     
+  _M_: make & prev   ^ ^                   
+  _n_: skip & next   ^ ^                   
+  _N_: skip & prev
+
+  Current pattern: %`evil-mc-pattern
+
+  "
+      ("Z" #'evil-mc-make-all-cursors)
+      ("m" #'evil-mc-make-and-goto-next-match)
+      ("M" #'evil-mc-make-and-goto-prev-match)
+      ("n" #'evil-mc-skip-and-goto-next-match)
+      ("N" #'evil-mc-skip-and-goto-prev-match)
+      ("J" #'evil-mc-make-cursor-move-next-line)
+      ("K" #'evil-mc-make-cursor-move-prev-line)
+      ("R" #'evil-mc-undo-all-cursors)
+      ("q" #'evil-mc-resume-cursors "quit" :color blue)
+      ("<escape>" #'evil-mc-resume-cursors "quit" :color blue))
     (global-evil-mc-mode +1)
     )
 #+end_src
@@ -1024,6 +1154,9 @@ The prefix is =g r=, inspect the commands with ~which-key~
     :general
     (my/leader-keys
       "C" '(org-capture :wk "capture"))
+    (my/local-leader-keys
+      :keymaps 'org-mode-map
+      "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree"))
     (org-mode-map
      :states '(normal)
      "z i" '(org-toggle-inline-images :wk "inline images"))
@@ -1129,7 +1262,6 @@ The prefix is =g r=, inspect the commands with ~which-key~
     :config
     (require 'org-habit)
     (add-to-list 'org-modules 'org-habit)
-
     ;; (efs/org-font-setup)
     (require 'org-tempo)
     (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -1275,8 +1407,11 @@ Note:
     :hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
            (org-tree-slide-stop . (lambda () (+remap-faces-at-stop-present))))
     :general
-    (org-tree-slide-mode-map "C-j" 'org-tree-slide-move-next-tree)
-    (org-tree-slide-mode-map "C-j" 'org-tree-slide-move-previous-tree)
+    (my/leader-keys
+      "t p" '(org-tree-slide-mode :wk "present"))
+    (org-tree-slide-mode-map
+     "gs" '(org-tree-slide-move-next-tree :wk "next slide")
+     "gS" '(org-tree-slide-move-previous-tree :wk "prev slide"))
     :init
     (defun +remap-faces-at-start-present ()
       (setq-local face-remapping-alist '((default (:height 2.0) variable-pitch)
@@ -1293,9 +1428,17 @@ Note:
       (setq-local face-remapping-alist '((default variable-pitch default)))
       (hide-mode-line-mode 0)
       (centaur-tabs-mode 1))
-    (setq org-tree-slide-skip-outline-level 0
-          org-tree-slide-modeline-display nil
-          org-tree-slide-slide-in-effect nil)
+    (setq org-tree-slide-breadcrumbs nil)
+    (setq org-tree-slide-header nil)
+    (setq org-tree-slide-slide-in-effect nil)
+    (setq org-tree-slide-heading-emphasis nil)
+    (setq org-tree-slide-cursor-init t)
+    (setq org-tree-slide-modeline-display nil)
+    (setq org-tree-slide-skip-done nil)
+    (setq org-tree-slide-skip-comments t)
+    (setq org-tree-slide-fold-subtrees-skipped t)
+    (setq org-tree-slide-skip-outline-level 8) ;; or 0?
+    (setq org-tree-slide-never-touch-face t)
     :config
     (org-tree-slide-presentation-profile)
     )
@@ -1333,64 +1476,71 @@ Note:
 
 ** dap-mode
 #+BEGIN_SRC emacs-lisp
-  (use-package dap-mode
-    :hook
-    (dap-terminated . my/hide-debug-windows)
-    :general
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-      "d d" '(dap-debug :wk "debug")
-      "d b" '(dap-breakpoint-toggle :wk "breakpoint")
-      "d c" '(dap-continue :wk "continue")
-      "d e" '(dap-eval-thing-at-point :wk "eval")
-      "d i" '(dap-step-in :wk "step in")
-      "d q" '(dap-disconnect :wk "quit")
-      "d r" '(dap-ui-repl :wk "repl")
-      "d h" '(dap-hydra :wk "hydra"))
-    :init
-    (setq dap-auto-configure-features '(sessions locals breakpoints repl))
-    (setq dap-python-debugger 'debugpy)
-    ;; show stdout
-    (setq dap-auto-show-output t)
-    (setq dap-output-window-max-height 50)
-    (setq dap-output-window-min-height 50)
-    ;; hide stdout window  when done
-    (defun my/hide-debug-windows (session)
-      "Hide debug windows when all debug sessions are dead."
-      (unless (-filter 'dap--session-running (dap--get-sessions))
-        (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))))
-    (defun my/dap-python--executable-find (orig-fun &rest args)
-      (executable-find "python"))
-    :config
-    ;; configure windows
-    (require 'dap-ui)
-    (setq dap-ui-buffer-configurations
-          `((,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
-            (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
-            (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.30)))
-            (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.30)))))
-    (dap-ui-mode 1)
-    ;; python specific
-    (require 'dap-python)
-    (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
-    (dap-register-debug-template "dap-debug-script"
-                                 (list :type "python"
-                                       :args []
-                                       :cwd "${workspaceFolder}"
-                                       ;; :justMyCode :json-false
-                                       ;; :program nil ; (expand-file-name "~/git/blabla")
-                                       :request "launch"
-                                       :debugger 'debugpy
-                                       :name "dap-debug-script"))
-    (dap-register-debug-template "dap-debug-test-at-point"
-                                 (list :type "python-test-at-point"
-                                       :args ""
-                                       :justMyCode :json-false
-                                       ;; :cwd "${workspaceFolder}"
-                                       :request "launch"
-                                       :module "pytest"
-                                       :debugger 'debugpy
-                                       :name "dap-debug-test-at-point")))
+        (use-package dap-mode
+          :hook
+          (dap-terminated . my/hide-debug-windows)
+          :general
+          (my/local-leader-keys
+            :keymaps 'python-mode-map
+            "d d" '(dap-debug :wk "debug")
+            "d b" '(dap-breakpoint-toggle :wk "breakpoint")
+            "d c" '(dap-continue :wk "continue")
+            "d e" '(dap-eval-thing-at-point :wk "eval")
+            "d i" '(dap-step-in :wk "step in")
+            "d q" '(dap-disconnect :wk "quit")
+            "d r" '(dap-ui-repl :wk "repl")
+            "d h" '(dap-hydra :wk "hydra"))
+          :init
+          (setq dap-auto-configure-features '(sessions locals breakpoints repl))
+          (setq dap-python-debugger 'debugpy)
+          ;; show stdout
+          (setq dap-auto-show-output t)
+          (setq dap-output-window-max-height 50)
+          (setq dap-output-window-min-height 50)
+          ;; hide stdout window  when done
+          (defun my/hide-debug-windows (session)
+            "Hide debug windows when all debug sessions are dead."
+            (unless (-filter 'dap--session-running (dap--get-sessions))
+              (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))))
+          (defun my/dap-python--executable-find (orig-fun &rest args)
+            (executable-find "python"))
+          :config
+          ;; configure windows
+          (require 'dap-ui)
+          (setq dap-ui-buffer-configurations
+                `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.30)))
+                  ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
+                  ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
+                  (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.30)))))
+          (dap-ui-mode 1)
+          ;; python virtualenv
+          (require 'dap-python)
+          (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
+          ;; debug templates
+          (defvar dap-script-args (list :type "python"
+                                        :args []
+                                        :cwd "${workspaceFolder}"
+                                        :justMyCode :json-false
+                                        :request "launch"
+                                        :debugger 'debugpy
+                                        :name "dap-debug-script"))
+          (defvar dap-test-args (list :type "python-test-at-point"
+                                      :args ""
+                                      :justMyCode :json-false
+                                      ;; :cwd "${workspaceFolder}"
+                                      :request "launch"
+                                      :module "pytest"
+                                      :debugger 'debugpy
+                                      :name "dap-debug-test-at-point"))
+          (dap-register-debug-template "dap-debug-script" dap-script-args)
+          (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
+          ;; bind the templates
+          (my/local-leader-keys
+            :keymaps 'python-mode-map
+            "d t" '((lambda () (interactive) (dap-debug dap-test-args)) :wk "test")
+            "d s" '((lambda () (interactive) (dap-debug dap-script-args)) :wk "script")
+            )
+          )
 #+END_SRC
 
 ** Python
@@ -1452,8 +1602,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 *** flymake 
 #+begin_src emacs-lisp
   (use-package flymake
-    :straight nil
-    :ensure nil
+    :straight (:type built-in)
     :hook (emacs-lisp-mode . flymake-mode)
     :init
     (setq python-flymake-command (executable-find "flake8"))
@@ -1525,14 +1674,13 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 *** elisp-mode
 #+begin_src emacs-lisp
   (use-package elisp-mode
-    :straight nil
-    :ensure nil
+    :straight (:type built-in)
     :general
     (my/local-leader-keys
       :keymaps '(org-mode-map emacs-lisp-mode-map)
       "e l" '(eval-last-sexp :wk "last sexp")
       ;; "e" '(eval-last-sexp :states 'visual :wk "sexp")
-			)
+      )
     (my/local-leader-keys
       :keymaps '(org-mode-map emacs-lisp-mode-map)
       :states 'visual
@@ -1631,6 +1779,17 @@ For example, you can mark the outer form with =v a d=.
            (emacs-lisp-mode . aggressive-indent-mode)))
 #+end_src
 
+** markdown
+*** markdown-mode
+#+begin_src emacs-lisp :tagle no
+(use-package markdown-mode
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
+#+end_src
+
 * File management
 ** dired
 - Jump to current file with =SPC f j=
@@ -1649,8 +1808,7 @@ For example, you can mark the outer form with =v a d=.
 
 #+BEGIN_SRC emacs-lisp
   (use-package dired
-    :straight nil
-    :ensure nil
+    :straight (:type built-in)
     :general
     (my/leader-keys
       "f d" 'dired
@@ -1676,6 +1834,7 @@ For example, you can mark the outer form with =v a d=.
 - =, t t= to set headline to TODO
 - org-insert-item
 ** toggle big font
+** narrowing
 ** TODO ox-reveal
 #+begin_src emacs-lisp :tangle no
 (use-package! org-re-reveal

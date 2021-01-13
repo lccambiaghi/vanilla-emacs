@@ -178,7 +178,7 @@
   (my/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
     "`" '(switch-to-prev-buffer :which-key "prev buffer")
-    ":" '(eval-expression :which-key "eval sexp")
+    ";" '(eval-expression :which-key "eval sexp")
 
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
@@ -247,8 +247,8 @@
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
   ;; Use visual line motions even outside of visual-line-mode buffers
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  ;; (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  ;; (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal))
@@ -331,7 +331,7 @@
         modus-themes-mode-line '3d ; {nil,'3d,'moody}
         modus-themes-intense-hl-line nil
         modus-themes-prompts nil ; {nil,'subtle,'intense}
-        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+        modus-themes-completions 'nil ; {nil,'moderate,'opinionated}
         modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
         modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
         modus-themes-headings  ; Read further below in the manual for this one
@@ -412,8 +412,8 @@
 (use-package transpose-frame
   :general
   (my/leader-keys
-    "w V" '(flop-frame "flip vertically")
-    "w S" '(flip-frame "flip horizontally")))
+    "w t" '(transpose-frame "transpose")
+    "w f" '(rotate-frame "flip")))
 
 (use-package persistent-scratch
 :demand
@@ -558,12 +558,19 @@
     org-mode
     prog-mode) . git-gutter-mode)
   :config
+  ;; subtle diff indicators in the fringe
+  ;; places the git gutter outside the margins.
   (setq-default fringes-outside-margins t)
+  (define-fringe-bitmap 'git-gutter-fr:added [224]
+    nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224]
+    nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
+    nil nil 'bottom)
   )
 
 (use-package smerge-mode
-  :straight nil
-  :ensure nil
+  :straight (:type built-in)
   :after hydra
   :general
   (my/leader-keys "g m" 'hydra-smerge)
@@ -672,17 +679,33 @@ Movement   Keep           Diff              Other │ smerge │
    (org-mode . yas-minor-mode)))
 
 (use-package evil-mc
-  :after evil
-  :demand
-  :commands (evil-mc-make-and-goto-next-match ;C-n
-             evil-mc-make-and-goto-prev-match ;C-p
-             evil-mc-make-cursor-here ; grh
-             evil-mc-undo-all-cursors ; grq
-             evil-mc-make-all-cursors ; grm
-             evil-mc-make-cursor-move-next-line ; grj
-             evil-mc-make-cursor-move-prev-line ; grk
-             )
+  :general
+  (general-nmap "gz" #'mc-hydra/body)
   :config
+  (defhydra mc-hydra (:color pink :hint nil
+                             :pre (evil-mc-pause-cursors))
+    "
+^Match^            ^Line-wise^           ^Manual^
+^^^^^^----------------------------------------------------
+_Z_: match all     _J_: make & go down   _R_: remove all
+_m_: make & next   _K_: make & go up     
+_M_: make & prev   ^ ^                   
+_n_: skip & next   ^ ^                   
+_N_: skip & prev
+
+Current pattern: %`evil-mc-pattern
+
+"
+    ("Z" #'evil-mc-make-all-cursors)
+    ("m" #'evil-mc-make-and-goto-next-match)
+    ("M" #'evil-mc-make-and-goto-prev-match)
+    ("n" #'evil-mc-skip-and-goto-next-match)
+    ("N" #'evil-mc-skip-and-goto-prev-match)
+    ("J" #'evil-mc-make-cursor-move-next-line)
+    ("K" #'evil-mc-make-cursor-move-prev-line)
+    ("R" #'evil-mc-undo-all-cursors)
+    ("q" #'evil-mc-resume-cursors "quit" :color blue)
+    ("<escape>" #'evil-mc-resume-cursors "quit" :color blue))
   (global-evil-mc-mode +1)
   )
 
@@ -722,6 +745,9 @@ Movement   Keep           Diff              Other │ smerge │
   :general
   (my/leader-keys
     "C" '(org-capture :wk "capture"))
+  (my/local-leader-keys
+    :keymaps 'org-mode-map
+    "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree"))
   (org-mode-map
    :states '(normal)
    "z i" '(org-toggle-inline-images :wk "inline images"))
@@ -827,7 +853,6 @@ Movement   Keep           Diff              Other │ smerge │
   :config
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
-
   ;; (efs/org-font-setup)
   (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -945,8 +970,11 @@ Movement   Keep           Diff              Other │ smerge │
   :hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
          (org-tree-slide-stop . (lambda () (+remap-faces-at-stop-present))))
   :general
-  (org-tree-slide-mode-map "C-j" 'org-tree-slide-move-next-tree)
-  (org-tree-slide-mode-map "C-j" 'org-tree-slide-move-previous-tree)
+  (my/leader-keys
+    "t p" '(org-tree-slide-mode :wk "present"))
+  (org-tree-slide-mode-map
+   "gs" '(org-tree-slide-move-next-tree :wk "next slide")
+   "gS" '(org-tree-slide-move-previous-tree :wk "prev slide"))
   :init
   (defun +remap-faces-at-start-present ()
     (setq-local face-remapping-alist '((default (:height 2.0) variable-pitch)
@@ -963,9 +991,17 @@ Movement   Keep           Diff              Other │ smerge │
     (setq-local face-remapping-alist '((default variable-pitch default)))
     (hide-mode-line-mode 0)
     (centaur-tabs-mode 1))
-  (setq org-tree-slide-skip-outline-level 0
-        org-tree-slide-modeline-display nil
-        org-tree-slide-slide-in-effect nil)
+  (setq org-tree-slide-breadcrumbs nil)
+  (setq org-tree-slide-header nil)
+  (setq org-tree-slide-slide-in-effect nil)
+  (setq org-tree-slide-heading-emphasis nil)
+  (setq org-tree-slide-cursor-init t)
+  (setq org-tree-slide-modeline-display nil)
+  (setq org-tree-slide-skip-done nil)
+  (setq org-tree-slide-skip-comments t)
+  (setq org-tree-slide-fold-subtrees-skipped t)
+  (setq org-tree-slide-skip-outline-level 8) ;; or 0?
+  (setq org-tree-slide-never-touch-face t)
   :config
   (org-tree-slide-presentation-profile)
   )
@@ -1028,32 +1064,39 @@ Movement   Keep           Diff              Other │ smerge │
   ;; configure windows
   (require 'dap-ui)
   (setq dap-ui-buffer-configurations
-        `((,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
-          (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
-          (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.30)))
+        `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.30)))
+          ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
+          ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
           (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.30)))))
   (dap-ui-mode 1)
-  ;; python specific
+  ;; python virtualenv
   (require 'dap-python)
   (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
-  (dap-register-debug-template "dap-debug-script"
-                               (list :type "python"
-                                     :args []
-                                     :cwd "${workspaceFolder}"
-                                     ;; :justMyCode :json-false
-                                     ;; :program nil ; (expand-file-name "~/git/blabla")
-                                     :request "launch"
-                                     :debugger 'debugpy
-                                     :name "dap-debug-script"))
-  (dap-register-debug-template "dap-debug-test-at-point"
-                               (list :type "python-test-at-point"
-                                     :args ""
-                                     :justMyCode :json-false
-                                     ;; :cwd "${workspaceFolder}"
-                                     :request "launch"
-                                     :module "pytest"
-                                     :debugger 'debugpy
-                                     :name "dap-debug-test-at-point")))
+  ;; debug templates
+  (defvar dap-script-args (list :type "python"
+                                :args []
+                                :cwd "${workspaceFolder}"
+                                :justMyCode :json-false
+                                :request "launch"
+                                :debugger 'debugpy
+                                :name "dap-debug-script"))
+  (defvar dap-test-args (list :type "python-test-at-point"
+                              :args ""
+                              :justMyCode :json-false
+                              ;; :cwd "${workspaceFolder}"
+                              :request "launch"
+                              :module "pytest"
+                              :debugger 'debugpy
+                              :name "dap-debug-test-at-point"))
+  (dap-register-debug-template "dap-debug-script" dap-script-args)
+  (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
+  ;; bind the templates
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "d t" '((lambda () (interactive) (dap-debug dap-test-args)) :wk "test")
+    "d s" '((lambda () (interactive) (dap-debug dap-script-args)) :wk "script")
+    )
+  )
 
 (use-package python-mode
   ;; :init
@@ -1101,8 +1144,7 @@ Movement   Keep           Diff              Other │ smerge │
   )
 
 (use-package flymake
-  :straight nil
-  :ensure nil
+  :straight (:type built-in)
   :hook (emacs-lisp-mode . flymake-mode)
   :init
   (setq python-flymake-command (executable-find "flake8"))
@@ -1162,14 +1204,13 @@ Movement   Keep           Diff              Other │ smerge │
       )
 
 (use-package elisp-mode
-  :straight nil
-  :ensure nil
+  :straight (:type built-in)
   :general
   (my/local-leader-keys
     :keymaps '(org-mode-map emacs-lisp-mode-map)
     "e l" '(eval-last-sexp :wk "last sexp")
     ;; "e" '(eval-last-sexp :states 'visual :wk "sexp")
-		)
+    )
   (my/local-leader-keys
     :keymaps '(org-mode-map emacs-lisp-mode-map)
     :states 'visual
@@ -1241,9 +1282,15 @@ Movement   Keep           Diff              Other │ smerge │
   :hook ((clojure-mode . aggressive-indent-mode)
          (emacs-lisp-mode . aggressive-indent-mode)))
 
+(use-package markdown-mode
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
+
 (use-package dired
-  :straight nil
-  :ensure nil
+  :straight (:type built-in)
   :general
   (my/leader-keys
     "f d" 'dired
