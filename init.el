@@ -294,36 +294,36 @@
 (setq frame-title-format nil)
 
 (use-package modus-themes
-  ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "master")
-  :demand
+  :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+  :hook (emacs-startup . my/load-modus-theme)
   :init
-  (setq modus-operandi-theme-override-colors-alist
-        '(("bg-main" . "#fefcf4")
-          ("bg-dim" . "#faf6ef")
-          ("bg-alt" . "#f7efe5")
-          ("bg-hl-line" . "#f4f0e3")
-          ("bg-active" . "#e8dfd1")
-          ("bg-inactive" . "#f6ece5")
-          ("bg-region" . "#c6bab1")
-          ("bg-header" . "#ede3e0")
-          ("bg-tab-bar" . "#dcd3d3")
-          ("bg-tab-active" . "#fdf6eb")
-          ("bg-tab-inactive" . "#c8bab8")
-          ("fg-unfocused" . "#55556f")))
+  (setq modus-themes-operandi-color-overrides
+        '((bg-main . "#fefcf4")
+          (bg-dim . "#faf6ef")
+          (bg-alt . "#f7efe5")
+          (bg-hl-line . "#f4f0e3")
+          (bg-active . "#e8dfd1")
+          (bg-inactive . "#f6ece5")
+          (bg-region . "#c6bab1")
+          (bg-header . "#ede3e0")
+          (bg-tab-bar . "#dcd3d3")
+          (bg-tab-active . "#fdf6eb")
+          (bg-tab-inactive . "#c8bab8")
+          (fg-unfocused ."#55556f")))
 
-  (setq modus-vivendi-theme-override-colors-alist
-        '(("bg-main" . "#100b17")
-          ("bg-dim" . "#161129")
-          ("bg-alt" . "#181732")
-          ("bg-hl-line" . "#191628")
-          ("bg-active" . "#282e46")
-          ("bg-inactive" . "#1a1e39")
-          ("bg-region" . "#393a53")
-          ("bg-header" . "#202037")
-          ("bg-tab-bar" . "#262b41")
-          ("bg-tab-active" . "#120f18")
-          ("bg-tab-inactive" . "#3a3a5a")
-          ("fg-unfocused" . "#9a9aab")))
+  (setq modus-themes-vivendi-color-overrides
+        '((bg-main . "#100b17")
+          (bg-dim . "#161129")
+          (bg-alt . "#181732")
+          (bg-hl-line . "#191628")
+          (bg-active . "#282e46")
+          (bg-inactive . "#1a1e39")
+          (bg-region . "#393a53")
+          (bg-header . "#202037")
+          (bg-tab-bar . "#262b41")
+          (bg-tab-active . "#120f18")
+          (bg-tab-inactive . "#3a3a5a")
+          (fg-unfocused . "#9a9aab")))
 
   (setq modus-themes-slanted-constructs t
         modus-themes-bold-constructs t
@@ -344,15 +344,16 @@
         modus-themes-scale-3 1.21
         modus-themes-scale-4 1.27
         modus-themes-scale-5 1.33)
-  :config
-  ;;Light for the day
-  (run-at-time "07:00" (* 60 60 24)
-               (lambda () (modus-themes-load-operandi)))
-  ;; Dark for the night
-  (run-at-time "00:00" (* 60 60 24)
-               (lambda () (modus-themes-load-vivendi)))
-  (run-at-time "15:00" (* 60 60 24)
-               (lambda () (modus-themes-load-vivendi)))
+  (defun my/load-modus-theme ()
+    ;;Light for the day
+    (run-at-time "07:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-operandi)))
+    ;; Dark for the night
+    (run-at-time "00:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-vivendi)))
+    (run-at-time "15:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-vivendi)))
+    )
   )
 
 (use-package dashboard
@@ -560,7 +561,7 @@
   :config
   ;; subtle diff indicators in the fringe
   ;; places the git gutter outside the margins.
-  (setq-default fringes-outside-margins t)
+  ;; (setq-default fringes-outside-margins t)
   (define-fringe-bitmap 'git-gutter-fr:added [224]
     nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224]
@@ -738,7 +739,27 @@ Current pattern: %`evil-mc-pattern
   (setq vterm-shell (executable-find "fish")
         vterm-max-scrollback 10000))
 
+(use-package dired
+  :straight (:type built-in)
+  :general
+  (my/leader-keys
+    "f d" 'dired
+    "f j" 'dired-jump))
+
+(use-package dired-single
+  :after dired
+  :general
+  (dired-mode-map
+   :states 'normal
+   "h" 'dired-single-up-directory
+   "l" 'dired-single-buffer
+   "q" 'quit-window))
+
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
+
 (use-package org
+  :straight (:type built-in)
   :hook ((org-mode . my/org-mode-setup)
          (org-mode . prettify-symbols-mode)
          (org-mode . (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config))))
@@ -872,7 +893,7 @@ Current pattern: %`evil-mc-pattern
         org-superstar-special-todo-items t
         ;; org-ellipsis "⤵"
         ;; org-ellipsis "▼"
-        org-ellipsis "↴")
+        org-ellipsis " ↴ ")
   )
 
 (use-package hl-todo
@@ -1088,6 +1109,19 @@ Current pattern: %`evil-mc-pattern
                               :module "pytest"
                               :debugger 'debugpy
                               :name "dap-debug-test-at-point"))
+  (defvar empties-forecast (list
+                            :name "empties forecast"
+                            :type "python"
+                            :request "launch"
+                            :program "./src/empties/forecasting/predict.py"
+                            :env '(("NO_JSON_LOG" . "true"))
+                            :args ["--source01" "./data/empties-history-sample.parquet"
+                                   "--source02" "./data/model_selection.files"
+                                   "--source03" "./data/booking-feature-sample.parquet"
+                                   "--source04" "./data/holiday-2019-05-24-1558683595"
+                                   "--output-data" "./data/predictions.parquet"
+                                   "--output-metrics" "./data/metrics.json"]
+                            ))
   (dap-register-debug-template "dap-debug-script" dap-script-args)
   (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
   ;; bind the templates
@@ -1148,7 +1182,7 @@ Current pattern: %`evil-mc-pattern
   :hook (emacs-lisp-mode . flymake-mode)
   :init
   (setq python-flymake-command (executable-find "flake8"))
-  (setq flymake-fringe-indicator-position 'left-fringe)
+  (setq flymake-fringe-indicator-position 'right-fringe)
   :general
   (general-nmap "] !" 'flymake-goto-next-error)
   (general-nmap "[ !" 'flymake-goto-prev-error)
@@ -1288,22 +1322,3 @@ Current pattern: %`evil-mc-pattern
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "multimarkdown"))
-
-(use-package dired
-  :straight (:type built-in)
-  :general
-  (my/leader-keys
-    "f d" 'dired
-    "f j" 'dired-jump))
-
-(use-package dired-single
-  :after dired
-  :general
-  (dired-mode-map
-   :states 'normal
-   "h" 'dired-single-up-directory
-   "l" 'dired-single-buffer
-   "q" 'quit-window))
-
-(use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode))

@@ -514,36 +514,36 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 ** Modus themes
 #+BEGIN_SRC emacs-lisp
   (use-package modus-themes
-    ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "master")
-    :demand
+    :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+    :hook (emacs-startup . my/load-modus-theme)
     :init
-    (setq modus-operandi-theme-override-colors-alist
-          '(("bg-main" . "#fefcf4")
-            ("bg-dim" . "#faf6ef")
-            ("bg-alt" . "#f7efe5")
-            ("bg-hl-line" . "#f4f0e3")
-            ("bg-active" . "#e8dfd1")
-            ("bg-inactive" . "#f6ece5")
-            ("bg-region" . "#c6bab1")
-            ("bg-header" . "#ede3e0")
-            ("bg-tab-bar" . "#dcd3d3")
-            ("bg-tab-active" . "#fdf6eb")
-            ("bg-tab-inactive" . "#c8bab8")
-            ("fg-unfocused" . "#55556f")))
+    (setq modus-themes-operandi-color-overrides
+          '((bg-main . "#fefcf4")
+            (bg-dim . "#faf6ef")
+            (bg-alt . "#f7efe5")
+            (bg-hl-line . "#f4f0e3")
+            (bg-active . "#e8dfd1")
+            (bg-inactive . "#f6ece5")
+            (bg-region . "#c6bab1")
+            (bg-header . "#ede3e0")
+            (bg-tab-bar . "#dcd3d3")
+            (bg-tab-active . "#fdf6eb")
+            (bg-tab-inactive . "#c8bab8")
+            (fg-unfocused ."#55556f")))
 
-    (setq modus-vivendi-theme-override-colors-alist
-          '(("bg-main" . "#100b17")
-            ("bg-dim" . "#161129")
-            ("bg-alt" . "#181732")
-            ("bg-hl-line" . "#191628")
-            ("bg-active" . "#282e46")
-            ("bg-inactive" . "#1a1e39")
-            ("bg-region" . "#393a53")
-            ("bg-header" . "#202037")
-            ("bg-tab-bar" . "#262b41")
-            ("bg-tab-active" . "#120f18")
-            ("bg-tab-inactive" . "#3a3a5a")
-            ("fg-unfocused" . "#9a9aab")))
+    (setq modus-themes-vivendi-color-overrides
+          '((bg-main . "#100b17")
+            (bg-dim . "#161129")
+            (bg-alt . "#181732")
+            (bg-hl-line . "#191628")
+            (bg-active . "#282e46")
+            (bg-inactive . "#1a1e39")
+            (bg-region . "#393a53")
+            (bg-header . "#202037")
+            (bg-tab-bar . "#262b41")
+            (bg-tab-active . "#120f18")
+            (bg-tab-inactive . "#3a3a5a")
+            (fg-unfocused . "#9a9aab")))
 
     (setq modus-themes-slanted-constructs t
           modus-themes-bold-constructs t
@@ -564,15 +564,16 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
           modus-themes-scale-3 1.21
           modus-themes-scale-4 1.27
           modus-themes-scale-5 1.33)
-    :config
-    ;;Light for the day
-    (run-at-time "07:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-operandi)))
-    ;; Dark for the night
-    (run-at-time "00:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))
-    (run-at-time "15:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))
+    (defun my/load-modus-theme ()
+      ;;Light for the day
+      (run-at-time "07:00" (* 60 60 24)
+                   (lambda () (modus-themes-load-operandi)))
+      ;; Dark for the night
+      (run-at-time "00:00" (* 60 60 24)
+                   (lambda () (modus-themes-load-vivendi)))
+      (run-at-time "15:00" (* 60 60 24)
+                   (lambda () (modus-themes-load-vivendi)))
+      )
     )
 #+END_SRC
 
@@ -875,7 +876,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     :config
     ;; subtle diff indicators in the fringe
     ;; places the git gutter outside the margins.
-    (setq-default fringes-outside-margins t)
+    ;; (setq-default fringes-outside-margins t)
     (define-fringe-bitmap 'git-gutter-fr:added [224]
       nil nil '(center repeated))
     (define-fringe-bitmap 'git-gutter-fr:modified [224]
@@ -883,6 +884,14 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
       nil nil 'bottom)
     )
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (use-package diff-hl
+    :hook
+    (((text-mode org-mode prog-mode) . diff-hl-mode)
+     (magit-pre-refresh . diff-hl-magit-pre-refresh)
+     (magit-post-refresh . diff-hl-magit-post-refresh)))
 #+end_src
 
 *** hydra-smerge
@@ -1143,11 +1152,48 @@ The prefix is =g r=, inspect the commands with ~which-key~
           vterm-max-scrollback 10000))
 #+END_SRC
 
+** dired
+- Jump to current file with =SPC f j=
+- Hide details with ~(~
+- Hide dotfiles with =H=
+- Mark with ~m~, unmark with ~u~
+- Invert selection with ~t~
+- ~*~ has some helpers for marking
+- First mark some files and then ~K~ to "hide" them
+- Open directory in right window with ~S-RET~
+  + When copying from left window, target will be right window
+  + Copy with ~C~
+- Open subdir in buffer below with ~I~
+- Open files with macos with =O=
+- View files with =go= and exit with ~q~
+
+#+BEGIN_SRC emacs-lisp
+  (use-package dired
+    :straight (:type built-in)
+    :general
+    (my/leader-keys
+      "f d" 'dired
+      "f j" 'dired-jump))
+
+  (use-package dired-single
+    :after dired
+    :general
+    (dired-mode-map
+     :states 'normal
+     "h" 'dired-single-up-directory
+     "l" 'dired-single-buffer
+     "q" 'quit-window))
+
+  (use-package all-the-icons-dired
+    :hook (dired-mode . all-the-icons-dired-mode))
+#+END_SRC
+
 * Org mode
 - demote subtree with =M-l=
 ** Org mode configuration
 #+BEGIN_SRC emacs-lisp
   (use-package org
+    :straight (:type built-in)
     :hook ((org-mode . my/org-mode-setup)
            (org-mode . prettify-symbols-mode)
            (org-mode . (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config))))
@@ -1286,7 +1332,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
           org-superstar-special-todo-items t
           ;; org-ellipsis "⤵"
           ;; org-ellipsis "▼"
-          org-ellipsis "↴")
+          org-ellipsis " ↴ ")
     )
 #+END_SRC
 
@@ -1476,71 +1522,84 @@ Note:
 
 ** dap-mode
 #+BEGIN_SRC emacs-lisp
-        (use-package dap-mode
-          :hook
-          (dap-terminated . my/hide-debug-windows)
-          :general
-          (my/local-leader-keys
-            :keymaps 'python-mode-map
-            "d d" '(dap-debug :wk "debug")
-            "d b" '(dap-breakpoint-toggle :wk "breakpoint")
-            "d c" '(dap-continue :wk "continue")
-            "d e" '(dap-eval-thing-at-point :wk "eval")
-            "d i" '(dap-step-in :wk "step in")
-            "d q" '(dap-disconnect :wk "quit")
-            "d r" '(dap-ui-repl :wk "repl")
-            "d h" '(dap-hydra :wk "hydra"))
-          :init
-          (setq dap-auto-configure-features '(sessions locals breakpoints repl))
-          (setq dap-python-debugger 'debugpy)
-          ;; show stdout
-          (setq dap-auto-show-output t)
-          (setq dap-output-window-max-height 50)
-          (setq dap-output-window-min-height 50)
-          ;; hide stdout window  when done
-          (defun my/hide-debug-windows (session)
-            "Hide debug windows when all debug sessions are dead."
-            (unless (-filter 'dap--session-running (dap--get-sessions))
-              (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))))
-          (defun my/dap-python--executable-find (orig-fun &rest args)
-            (executable-find "python"))
-          :config
-          ;; configure windows
-          (require 'dap-ui)
-          (setq dap-ui-buffer-configurations
-                `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.30)))
-                  ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
-                  ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
-                  (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.30)))))
-          (dap-ui-mode 1)
-          ;; python virtualenv
-          (require 'dap-python)
-          (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
-          ;; debug templates
-          (defvar dap-script-args (list :type "python"
-                                        :args []
-                                        :cwd "${workspaceFolder}"
+          (use-package dap-mode
+            :hook
+            (dap-terminated . my/hide-debug-windows)
+            :general
+            (my/local-leader-keys
+              :keymaps 'python-mode-map
+              "d d" '(dap-debug :wk "debug")
+              "d b" '(dap-breakpoint-toggle :wk "breakpoint")
+              "d c" '(dap-continue :wk "continue")
+              "d e" '(dap-eval-thing-at-point :wk "eval")
+              "d i" '(dap-step-in :wk "step in")
+              "d q" '(dap-disconnect :wk "quit")
+              "d r" '(dap-ui-repl :wk "repl")
+              "d h" '(dap-hydra :wk "hydra"))
+            :init
+            (setq dap-auto-configure-features '(sessions locals breakpoints repl))
+            (setq dap-python-debugger 'debugpy)
+            ;; show stdout
+            (setq dap-auto-show-output t)
+            (setq dap-output-window-max-height 50)
+            (setq dap-output-window-min-height 50)
+            ;; hide stdout window  when done
+            (defun my/hide-debug-windows (session)
+              "Hide debug windows when all debug sessions are dead."
+              (unless (-filter 'dap--session-running (dap--get-sessions))
+                (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))))
+            (defun my/dap-python--executable-find (orig-fun &rest args)
+              (executable-find "python"))
+            :config
+            ;; configure windows
+            (require 'dap-ui)
+            (setq dap-ui-buffer-configurations
+                  `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.30)))
+                    ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
+                    ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
+                    (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.30)))))
+            (dap-ui-mode 1)
+            ;; python virtualenv
+            (require 'dap-python)
+            (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
+            ;; debug templates
+            (defvar dap-script-args (list :type "python"
+                                          :args []
+                                          :cwd "${workspaceFolder}"
+                                          :justMyCode :json-false
+                                          :request "launch"
+                                          :debugger 'debugpy
+                                          :name "dap-debug-script"))
+            (defvar dap-test-args (list :type "python-test-at-point"
+                                        :args ""
                                         :justMyCode :json-false
+                                        ;; :cwd "${workspaceFolder}"
                                         :request "launch"
+                                        :module "pytest"
                                         :debugger 'debugpy
-                                        :name "dap-debug-script"))
-          (defvar dap-test-args (list :type "python-test-at-point"
-                                      :args ""
-                                      :justMyCode :json-false
-                                      ;; :cwd "${workspaceFolder}"
+                                        :name "dap-debug-test-at-point"))
+            (defvar empties-forecast (list
+                                      :name "empties forecast"
+                                      :type "python"
                                       :request "launch"
-                                      :module "pytest"
-                                      :debugger 'debugpy
-                                      :name "dap-debug-test-at-point"))
-          (dap-register-debug-template "dap-debug-script" dap-script-args)
-          (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
-          ;; bind the templates
-          (my/local-leader-keys
-            :keymaps 'python-mode-map
-            "d t" '((lambda () (interactive) (dap-debug dap-test-args)) :wk "test")
-            "d s" '((lambda () (interactive) (dap-debug dap-script-args)) :wk "script")
+                                      :program "./src/empties/forecasting/predict.py"
+                                      :env '(("NO_JSON_LOG" . "true"))
+                                      :args ["--source01" "./data/empties-history-sample.parquet"
+                                             "--source02" "./data/model_selection.files"
+                                             "--source03" "./data/booking-feature-sample.parquet"
+                                             "--source04" "./data/holiday-2019-05-24-1558683595"
+                                             "--output-data" "./data/predictions.parquet"
+                                             "--output-metrics" "./data/metrics.json"]
+                                      ))
+            (dap-register-debug-template "dap-debug-script" dap-script-args)
+            (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
+            ;; bind the templates
+            (my/local-leader-keys
+              :keymaps 'python-mode-map
+              "d t" '((lambda () (interactive) (dap-debug dap-test-args)) :wk "test")
+              "d s" '((lambda () (interactive) (dap-debug dap-script-args)) :wk "script")
+              )
             )
-          )
 #+END_SRC
 
 ** Python
@@ -1606,7 +1665,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     :hook (emacs-lisp-mode . flymake-mode)
     :init
     (setq python-flymake-command (executable-find "flake8"))
-    (setq flymake-fringe-indicator-position 'left-fringe)
+    (setq flymake-fringe-indicator-position 'right-fringe)
     :general
     (general-nmap "] !" 'flymake-goto-next-error)
     (general-nmap "[ !" 'flymake-goto-prev-error)
@@ -1781,7 +1840,7 @@ For example, you can mark the outer form with =v a d=.
 
 ** markdown
 *** markdown-mode
-#+begin_src emacs-lisp :tagle no
+#+begin_src emacs-lisp
 (use-package markdown-mode
   :commands (markdown-mode gfm-mode)
   :mode (("README\\.md\\'" . gfm-mode)
@@ -1790,51 +1849,12 @@ For example, you can mark the outer form with =v a d=.
   :init (setq markdown-command "multimarkdown"))
 #+end_src
 
-* File management
-** dired
-- Jump to current file with =SPC f j=
-- Hide details with ~(~
-- Hide dotfiles with =H=
-- Mark with ~m~, unmark with ~u~
-- Invert selection with ~t~
-- ~*~ has some helpers for marking
-- First mark some files and then ~K~ to "hide" them
-- Open directory in right window with ~S-RET~
-  + When copying from left window, target will be right window
-  + Copy with ~C~
-- Open subdir in buffer below with ~I~
-- Open files with macos with =O=
-- View files with =go= and exit with ~q~
-
-#+BEGIN_SRC emacs-lisp
-  (use-package dired
-    :straight (:type built-in)
-    :general
-    (my/leader-keys
-      "f d" 'dired
-      "f j" 'dired-jump))
-
-  (use-package dired-single
-    :after dired
-    :general
-    (dired-mode-map
-     :states 'normal
-     "h" 'dired-single-up-directory
-     "l" 'dired-single-buffer
-     "q" 'quit-window))
-
-  (use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
-#+END_SRC
-
 * TODO missing
-** restart emacs
-** completion in org blocks
+** restart emacs/reload config
 ** keybindings
 - =, t t= to set headline to TODO
 - org-insert-item
-** toggle big font
-** narrowing
+** Make different font configurations (toggle big font)
 ** TODO ox-reveal
 #+begin_src emacs-lisp :tangle no
 (use-package! org-re-reveal
