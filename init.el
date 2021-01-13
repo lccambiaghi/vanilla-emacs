@@ -52,11 +52,6 @@
 
 (setq use-package-compute-statistics t)
 
-(use-package gcmh
-  :demand
-  :config
-  (gcmh-mode 1))
-
 (setq inhibit-startup-screen t
       default-fill-column 80
       initial-scratch-message nil
@@ -116,6 +111,13 @@
   (menu-bar-mode   -1)
   (toggle-scroll-bar -1))
 
+;; Main typeface
+;; (set-face-attribute 'default nil :family "DejaVu Sans Mono" :height 110)
+;; Proportionately spaced typeface
+;; (set-face-attribute 'variable-pitch nil :family "DejaVu Serif" :height 1.0)
+;; Monospaced typeface
+;; (set-face-attribute 'fixed-pitch nil :family "DejaVu Sans Mono" :height 1.0)
+
 ;; use a font I like, but fail gracefully if it isn't available
 (ignore-errors (set-frame-font "Fira Code Retina 18"))
 
@@ -131,6 +133,11 @@
   (setq mac-command-modifier 'super)     ; command as super
   (setq mac-option-modifier 'meta)     ; alt as meta
   (setq mac-control-modifier 'control)) ; control as... control
+
+(use-package gcmh
+  :demand
+  :config
+  (gcmh-mode 1))
 
 (use-package helpful
   :after evil
@@ -184,6 +191,8 @@
     "br"  'revert-buffer
     "bd"  'kill-current-buffer
     "bs" '((lambda () (interactive) (pop-to-buffer "*scratch*")) :wk "scratch")
+
+    "c" '(:ignore t :which-key "code")
 
     "f" '(:ignore t :which-key "file")
     "ff"  'find-file
@@ -324,10 +333,9 @@
           (bg-tab-active . "#120f18")
           (bg-tab-inactive . "#3a3a5a")
           (fg-unfocused . "#9a9aab")))
-
   (setq modus-themes-slanted-constructs t
         modus-themes-bold-constructs t
-        modus-themes-fringes 'subtle ; {nil,'subtle,'intense}
+        modus-themes-fringes 'nil ; {nil,'subtle,'intense}
         modus-themes-mode-line '3d ; {nil,'3d,'moody}
         modus-themes-intense-hl-line nil
         modus-themes-prompts nil ; {nil,'subtle,'intense}
@@ -353,8 +361,7 @@
                  (lambda () (modus-themes-load-vivendi)))
     (run-at-time "15:00" (* 60 60 24)
                  (lambda () (modus-themes-load-vivendi)))
-    )
-  )
+    ))
 
 (use-package dashboard
   :after projectile
@@ -548,26 +555,18 @@
   :init (setq git-timemachine-show-minibuffer-details t)
   :general
   (general-nmap "SPC g t" 'git-timemachine-toggle)
-  (git-timemachine-mode-map "C-k" 'git-timemachine-show-previous-revision)
-  (git-timemachine-mode-map "C-j" 'git-timemachine-show-next-revision)
-  (git-timemachine-mode-map "q" 'git-timemachine-quit)
-  )
+  (git-timemachine-mode-map
+   "C-k" 'git-timemachine-show-previous-revision
+   "C-j" 'git-timemachine-show-next-revision
+   "q" 'git-timemachine-quit))
 
-(use-package git-gutter-fringe
+(use-package diff-hl
   :hook
-  ((text-mode
-    org-mode
-    prog-mode) . git-gutter-mode)
-  :config
-  ;; subtle diff indicators in the fringe
-  ;; places the git gutter outside the margins.
-  ;; (setq-default fringes-outside-margins t)
-  (define-fringe-bitmap 'git-gutter-fr:added [224]
-    nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [224]
-    nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
-    nil nil 'bottom)
+  (((text-mode org-mode prog-mode) . diff-hl-mode)
+   (magit-pre-refresh . diff-hl-magit-pre-refresh)
+   (magit-post-refresh . diff-hl-magit-post-refresh))
+  :init
+  (setq diff-hl-draw-borders nil)
   )
 
 (use-package smerge-mode
@@ -648,26 +647,24 @@ Movement   Keep           Diff              Other │ smerge │
   :after tree-sitter)
 
 (use-package company
-	:demand
-	:general
-	(company-active-map
-	 "TAB"       nil    ;; interferes with yasnippet
-	 [tab]       nil)
-	:init
-	(setq company-backends '((company-capf :with company-yasnippet)
-													 (company-keywords company-files)))
-	(setq company-minimum-prefix-length 1)
-	(setq company-idle-delay 0.0)
-	(setq company-frontends
-				'(company-pseudo-tooltip-frontend  ; always show candidates in overlay tooltip
-					company-echo-metadata-frontend)  ; show selected candidate docs in echo area
-				)
-	;; don't fill the only candidate
-	(setq company-auto-complete nil
-				company-auto-complete-chars nil)
-	:config
-	(global-company-mode)
-	)
+  :demand
+  :general
+  (company-active-map
+   "TAB"       nil    ;; interferes with yasnippet
+   [tab]       nil)
+  :init
+  (setq company-backends '((company-capf :with company-yasnippet)
+                           (company-keywords company-files)))
+  (setq company-minimum-prefix-length 1)
+  (setq company-idle-delay 0.0)
+  ;; always show candidates in overlay tooltip
+  (setq company-frontends '(company-pseudo-tooltip-frontend))
+  ;; don't fill the only candidate
+  (setq company-auto-complete nil
+        company-auto-complete-chars nil)
+  :config
+  (global-company-mode)
+  )
 
 (use-package envrc
   :hook ((python-mode . envrc-mode)
@@ -759,7 +756,7 @@ Current pattern: %`evil-mc-pattern
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package org
-  :straight (:type built-in)
+  ;; :straight (:type built-in)
   :hook ((org-mode . my/org-mode-setup)
          (org-mode . prettify-symbols-mode)
          (org-mode . (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config))))
@@ -893,7 +890,9 @@ Current pattern: %`evil-mc-pattern
         org-superstar-special-todo-items t
         ;; org-ellipsis "⤵"
         ;; org-ellipsis "▼"
-        org-ellipsis " ↴ ")
+        ;; org-ellipsis "..."
+        org-ellipsis " ↴ "
+        )
   )
 
 (use-package hl-todo
@@ -988,29 +987,36 @@ Current pattern: %`evil-mc-pattern
   :after org)
 
 (use-package org-tree-slide
+  :after org
   :hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
          (org-tree-slide-stop . (lambda () (+remap-faces-at-stop-present))))
   :general
   (my/leader-keys
     "t p" '(org-tree-slide-mode :wk "present"))
-  (org-tree-slide-mode-map
-   "gs" '(org-tree-slide-move-next-tree :wk "next slide")
-   "gS" '(org-tree-slide-move-previous-tree :wk "prev slide"))
+  (general-nmap
+    :keymaps '(org-tree-slide-mode-map org-mode-map)
+    "C-j" 'org-tree-slide-move-next-tree
+    "C-k" 'org-tree-slide-move-previous-tree)
   :init
+  (setq org-tree-slide-activate-message "Presentation mode ON")
+  (setq org-tree-slide-deactivate-message "Presentation mode OFF")
+  (setq org-tree-slide-indicator nil)
   (defun +remap-faces-at-start-present ()
-    (setq-local face-remapping-alist '((default (:height 2.0) variable-pitch)
-                                       (org-verbatim (:height 1.75) org-verbatim)
-                                       (org-block (:height 1.25) org-block)))
+    ;; (setq-local face-remapping-alist '((default (:height 1.50) variable-pitch)
+    ;;                                    (org-verbatim (:height 1.35) org-verbatim)
+    ;;                                    (org-block (:height 1.25) org-block)))
     (hide-mode-line-mode 1)
+    (diff-hl-mode 0)
     (centaur-tabs-mode 0))
   (defun +remap-faces-at-start-present-term ()
     (interactive)
-    (setq-local face-remapping-alist '((default (:height 2.0) variable-pitch)
-                                       (org-verbatim (:height 1.75) org-verbatim)
+    (setq-local face-remapping-alist '((default (:height 1.50) variable-pitch)
+                                       (org-verbatim (:height 1.35) org-verbatim)
                                        (org-block (:height 1.25) org-block))))
   (defun +remap-faces-at-stop-present ()
     (setq-local face-remapping-alist '((default variable-pitch default)))
     (hide-mode-line-mode 0)
+    (diff-hl-mode 1)
     (centaur-tabs-mode 1))
   (setq org-tree-slide-breadcrumbs nil)
   (setq org-tree-slide-header nil)
@@ -1023,22 +1029,32 @@ Current pattern: %`evil-mc-pattern
   (setq org-tree-slide-fold-subtrees-skipped t)
   (setq org-tree-slide-skip-outline-level 8) ;; or 0?
   (setq org-tree-slide-never-touch-face t)
-  :config
-  (org-tree-slide-presentation-profile)
+  ;; :config
+  ;; (org-tree-slide-presentation-profile)
   )
 
-;; (defun my/lsp-mode-setup ()
-;;   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-;;   (lsp-headerline-breadcrumb-mode))
+(use-package olivetti
+  :general
+  (my/leader-keys
+    "t o" '(olivetti-mode :wk "olivetti"))
+  :init
+  (setq olivetti-body-width 0.7)
+  (setq olivetti-minimum-body-width 80)
+  (setq olivetti-recall-visual-line-mode-entry-state t))
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
-  ;; :hook (lsp-mode . my/lsp-mode-setup)
+  :hook (lsp-mode . (lambda ()
+                      (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
   :general
   (my/leader-keys
-    "c" '(:keymap lsp-command-map :which-key "lsp"))
-
-  (lsp-mode-map "<tab>" 'company-indent-or-complete-common)
+    "c" '(:keymap lsp-command-map))
+  (my/local-leader-keys
+    :keymaps 'lsp-mode-map
+    "r" '(lsp-rename :wk "rename"))
+  (lsp-mode-map
+   "gd" 'lsp-lsp-find-definition
+   "gD" 'lsp-find-references)
   :init
   (setq lsp-restart 'ignore)
   (setq lsp-eldoc-enable-hover nil)
@@ -1259,7 +1275,7 @@ Current pattern: %`evil-mc-pattern
   (setq evil-lisp-state-global t)
   (setq evil-lisp-state-major-modes '(emacs-lisp-mode clojure-mode))
   :config
-  (evil-lisp-state-leader ", l")
+  (evil-lisp-state-leader "SPC l")
   )
 
 (use-package nix-mode
