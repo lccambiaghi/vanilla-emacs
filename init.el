@@ -204,11 +204,13 @@
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
     "bd"  'kill-current-buffer
+    "bD" 'kill-buffer-and-window
     "bs" '((lambda () (interactive) (pop-to-buffer "*scratch*")) :wk "scratch")
 
     "c" '(:ignore t :which-key "code")
 
     "f" '(:ignore t :which-key "file")
+    "fD" '(delete-file :wk "delete")
     "ff"  'find-file
     "fs" 'save-buffer
     "fr" 'recentf-open-files
@@ -240,6 +242,7 @@
     "wj"  'windmove-down
     "wr" 'winner-redo
     "wd"  'delete-window
+    "wD" 'kill-buffer-and-window
     "wu" 'winner-undo
     "wr" 'winner-redo
     "wm"  '(delete-other-windows :wk "maximize")
@@ -357,7 +360,7 @@
         modus-themes-mode-line '3d ; {nil,'3d,'moody}
         modus-themes-intense-hl-line nil
         modus-themes-prompts nil ; {nil,'subtle,'intense}
-        modus-themes-completions 'nil ; {nil,'moderate,'opinionated}
+        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
         modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
         modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
         modus-themes-headings  ; Read further below in the manual for this one
@@ -560,16 +563,19 @@
 (use-package perspective
   :general
   (my/leader-keys
-   "<tab> <tab>" 'persp-switch
-   "<tab> `" 'persp-switch-last
-   "<tab> d" 'persp-kill)
+    "<tab> <tab>" 'persp-switch
+    "<tab> `" 'persp-switch-last
+    "<tab> d" 'persp-kill
+    "<tab> D" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
+    "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "all")
+    )
   :config
   (persp-mode))
 
 (use-package persp-projectile
   :general
   (my/leader-keys
-   "p p" 'projectile-persp-switch-project))
+    "p p" 'projectile-persp-switch-project))
 
 (use-package magit
   :general
@@ -791,11 +797,16 @@ Current pattern: %`evil-mc-pattern
   :general
   (my/leader-keys
     "o c" '(org-capture :wk "capture")
-    "o a" '(org-agenda-list :wk "agenda"))
+    "o a" '(org-agenda-list :wk "agenda")
+    "o t" '(org-todo-list :wk "todo list"))
   (my/local-leader-keys
     :keymaps 'org-mode-map
+    "e" '(org-export-dispatch :wk "export")
+    "l" '(:ignore true :wk "link")
+    "l l" '(org-insert-link :wk "insert link")
+    "l s" '(org-store-link :wk "store link")
     "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
-    "t t" '(org-todo :wk "heading todo"))
+    "t" '(org-todo :wk "heading todo"))
   (org-mode-map
    :states '(normal)
    "z i" '(org-toggle-inline-images :wk "inline images"))
@@ -910,6 +921,9 @@ Current pattern: %`evil-mc-pattern
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
   (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
   (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
+  ;; latex
+  (setq org-latex-compiler "xelatex")
+  (add-to-list 'org-export-backends 'beamer)
   )
 
 (use-package org-reverse-datetree

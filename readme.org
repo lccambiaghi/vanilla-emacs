@@ -449,11 +449,13 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
       "b" '(:ignore t :which-key "buffer")
       "br"  'revert-buffer
       "bd"  'kill-current-buffer
+      "bD" 'kill-buffer-and-window
       "bs" '((lambda () (interactive) (pop-to-buffer "*scratch*")) :wk "scratch")
 
       "c" '(:ignore t :which-key "code")
 
       "f" '(:ignore t :which-key "file")
+      "fD" '(delete-file :wk "delete")
       "ff"  'find-file
       "fs" 'save-buffer
       "fr" 'recentf-open-files
@@ -485,6 +487,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
       "wj"  'windmove-down
       "wr" 'winner-redo
       "wd"  'delete-window
+      "wD" 'kill-buffer-and-window
       "wu" 'winner-undo
       "wr" 'winner-redo
       "wm"  '(delete-other-windows :wk "maximize")
@@ -621,7 +624,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
           modus-themes-mode-line '3d ; {nil,'3d,'moody}
           modus-themes-intense-hl-line nil
           modus-themes-prompts nil ; {nil,'subtle,'intense}
-          modus-themes-completions 'nil ; {nil,'moderate,'opinionated}
+          modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
           modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
           modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
           modus-themes-headings  ; Read further below in the manual for this one
@@ -923,19 +926,22 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 
 *** perspective
 #+BEGIN_SRC emacs-lisp
-    (use-package perspective
-      :general
-      (my/leader-keys
-       "<tab> <tab>" 'persp-switch
-       "<tab> `" 'persp-switch-last
-       "<tab> d" 'persp-kill)
-      :config
-      (persp-mode))
+  (use-package perspective
+    :general
+    (my/leader-keys
+      "<tab> <tab>" 'persp-switch
+      "<tab> `" 'persp-switch-last
+      "<tab> d" 'persp-kill
+      "<tab> D" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
+      "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "all")
+      )
+    :config
+    (persp-mode))
 
-    (use-package persp-projectile
-      :general
-      (my/leader-keys
-       "p p" 'projectile-persp-switch-project))
+  (use-package persp-projectile
+    :general
+    (my/leader-keys
+      "p p" 'projectile-persp-switch-project))
 #+END_SRC
 
 ** git
@@ -1288,11 +1294,16 @@ The prefix is =g r=, inspect the commands with ~which-key~
     :general
     (my/leader-keys
       "o c" '(org-capture :wk "capture")
-      "o a" '(org-agenda-list :wk "agenda"))
+      "o a" '(org-agenda-list :wk "agenda")
+      "o t" '(org-todo-list :wk "todo list"))
     (my/local-leader-keys
       :keymaps 'org-mode-map
+      "e" '(org-export-dispatch :wk "export")
+      "l" '(:ignore true :wk "link")
+      "l l" '(org-insert-link :wk "insert link")
+      "l s" '(org-store-link :wk "store link")
       "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
-      "t t" '(org-todo :wk "heading todo"))
+      "t" '(org-todo :wk "heading todo"))
     (org-mode-map
      :states '(normal)
      "z i" '(org-toggle-inline-images :wk "inline images"))
@@ -1407,6 +1418,9 @@ The prefix is =g r=, inspect the commands with ~which-key~
     (add-to-list 'org-structure-template-alist '("py" . "src python"))
     (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
     (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
+    ;; latex
+    (setq org-latex-compiler "xelatex")
+    (add-to-list 'org-export-backends 'beamer)
     )
 #+END_SRC
 
@@ -2204,11 +2218,8 @@ For example, you can mark the outer form with =v a d=.
 * TODO missing / to fix
 ** Missing
 *** Make different font configurations (toggle big font)
-*** keybindings
-- insert links =, l l= store link =, l s=
-- persp-kill-all =SPC <tab> X=
-- persp-kill-current =SPC <tab> D=
-- delete file =SPC f D=
+*** org-encrypt
+https://beorgapp.com/learning/emacs-encryption/
 ** Half done
 *** TODO ox-reveal
 #+begin_src emacs-lisp :tangle no
@@ -2221,13 +2232,6 @@ For example, you can mark the outer form with =v a d=.
         org-re-reveal-revealjs-version "3.8"
         org-re-reveal-external-plugins  '((progress . "{ src: '%s/plugin/toc-progress/toc-progress.js', async: true, callback: function() { toc_progress.initialize(); toc_progress.create();} }"))
         ))
-#+end_src
-
-*** TODO latex
-#+begin_src emacs-lisp :tangle no
-(setq org-latex-compiler "xelatex")
-
-(add-to-list 'org-export-backends 'beamer)
 #+end_src
 
 *** TODO scimax utilities for ob-jupyter
@@ -2282,4 +2286,5 @@ Found at https://github.com/nnicandro/emacs-jupyter/issues/160
 *** ~org-ellipsis~ not shown in heading when ~git-gutter-fringe-mode~ is active
 *** ~em~ not working
 *** ~helpful-variable~ sometimes throws syntax error
+*** ~switch-to-prev-buffer~ twice in a row should behave like ~cmd+tab~
 
