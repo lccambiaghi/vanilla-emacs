@@ -1,6 +1,8 @@
 ;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
 ;; repeating here in case early-init.el is not loaded with chemacs
-(setq gc-cons-threshold most-positive-fixnum)
+
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6)
 (setq package-enable-at-startup nil)
 (setq comp-deferred-compilation nil)
 
@@ -52,82 +54,92 @@
 
 (setq use-package-compute-statistics t)
 
-(setq inhibit-startup-screen t
-      default-fill-column 80
-      initial-scratch-message nil
-      sentence-end-double-space nil
-      ring-bell-function 'ignore
-      frame-resize-pixelwise t)
+(use-package emacs
+  :init
+  (setq inhibit-startup-screen t
+        default-fill-column 80
+        initial-scratch-message nil
+        sentence-end-double-space nil
+        ring-bell-function 'ignore
+        frame-resize-pixelwise t)
 
-(setq user-full-name "Luca Cambiaghi"
-      user-mail-address "luca.cambiaghi@me.com")
+  (setq user-full-name "Luca Cambiaghi"
+        user-mail-address "luca.cambiaghi@me.com")
 
-(setq read-process-output-max (* 1024 1024))
+  (setq read-process-output-max (* 1024 1024))
 
-;; always allow 'y' instead of 'yes'.
-(defalias 'yes-or-no-p 'y-or-n-p)
+  ;; always allow 'y' instead of 'yes'.
+  (defalias 'yes-or-no-p 'y-or-n-p)
 
-;; default to utf-8 for all the things
-(set-charset-priority 'unicode)
-(setq locale-coding-system 'utf-8
-      coding-system-for-read 'utf-8
-      coding-system-for-write 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(set-selection-coding-system 'utf-8)
-(prefer-coding-system 'utf-8)
-(setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+  ;; default to utf-8 for all the things
+  (set-charset-priority 'unicode)
+  (setq locale-coding-system 'utf-8
+        coding-system-for-read 'utf-8
+        coding-system-for-write 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
-;; write over selected text on input... like all modern editors do
-(delete-selection-mode t)
+  ;; write over selected text on input... like all modern editors do
+  (delete-selection-mode t)
 
-;; enable recent files mode.
-(recentf-mode t)
+  ;; enable recent files mode.
+  (recentf-mode t)
 
-;; auto-close parentheses
-(electric-pair-mode +1)
-;; disable auto pairing for <
-(add-function :before-until electric-pair-inhibit-predicate
-              (lambda (c) (eq c ?<)))
+  ;; auto-close parentheses
+  (electric-pair-mode +1)
+  ;; disable auto pairing for <
+  (add-function :before-until electric-pair-inhibit-predicate
+                (lambda (c) (eq c ?<)))
 
-;; don't want ESC as a modifier
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  ;; don't want ESC as a modifier
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-;; Don't persist a custom file, this bites me more than it helps
-(setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
-(setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
-(setq enable-local-variables :all)     ; fix =defvar= warnings
+  ;; Don't persist a custom file, this bites me more than it helps
+  (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
+  (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
+  (setq enable-local-variables :all)     ; fix =defvar= warnings
 
-;; stop emacs from littering the file system with backup files
-(setq make-backup-files nil
-      auto-save-default nil
-      create-lockfiles nil)
+  ;; stop emacs from littering the file system with backup files
+  (setq make-backup-files nil
+        auto-save-default nil
+        create-lockfiles nil)
 
-;; don't show any extra window chrome
-(when (window-system)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
-  (tooltip-mode -1)
-  (menu-bar-mode   -1)
-  (toggle-scroll-bar -1))
+  ;; follow symlinks 
+  (setq vc-follow-symlinks t)
 
-;; Main typeface
-;; (set-face-attribute 'default nil :family "DejaVu Sans Mono" :height 110)
-;; Proportionately spaced typeface
-;; (set-face-attribute 'variable-pitch nil :family "DejaVu Serif" :height 1.0)
-;; Monospaced typeface
-;; (set-face-attribute 'fixed-pitch nil :family "DejaVu Sans Mono" :height 1.0)
+  ;; don't show any extra window chrome
+  (when (window-system)
+    (tool-bar-mode -1)
+    (toggle-scroll-bar -1))
 
-;; use a font I like, but fail gracefully if it isn't available
-(ignore-errors (set-frame-font "Fira Code Retina 18"))
+  ;; Main typeface
+  ;; point size * 10, so 18*10 =180
+  (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 180 :weight 'regular)
 
-;; enable winner mode globally for undo/redo window layout changes
-(winner-mode t)
+  ;; enable winner mode globally for undo/redo window layout changes
+  (winner-mode t)
 
-;; clean up the mode line
-(display-time-mode -1)
-;; (setq-default mode-line-format nil) ;TODO
-(setq column-number-mode t)
+  ;; less noise when compiling elisp
+  (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+
+  ;; clean up the mode line
+  (display-time-mode -1)
+  (setq column-number-mode t)
+
+  ;; use common convention for indentation by default
+  (setq-default indent-tabs-mode t)
+  (setq-default tab-width 2)
+
+  ;; use a reasonable line length
+  (setq-default fill-column 120)
+  )
 
 (when (eq system-type 'darwin)
   (setq mac-command-modifier 'super)     ; command as super
@@ -164,6 +176,8 @@
   ;;    "SSH_AGENT_PID" "SSH_AUTH_SOCK" "SHELL"
   ;;    "JAVA_HOME"))
   )
+
+(use-package no-littering)
 
 (use-package general
   :demand t
@@ -253,6 +267,7 @@
   ;; move to window when splitting
   (setq evil-split-window-below t)
   (setq evil-vsplit-window-right t)
+  (setq-local evil-scroll-count 0)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
@@ -260,9 +275,9 @@
   ;; Use visual line motions even outside of visual-line-mode buffers
   ;; (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   ;; (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-
   (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal))
+  (evil-set-initial-state 'dashboard-mode 'normal)
+  )
 
 (use-package evil-collection
   :after evil
@@ -296,6 +311,7 @@
   (setq doom-modeline-buffer-encoding nil)
   (setq doom-modeline-env-enable-python nil)
   (setq doom-modeline-height 15)
+  (setq doom-modeline-project-detection 'projectile)
   :config
   (doom-modeline-mode 1))
 
@@ -347,7 +363,7 @@
         modus-themes-headings  ; Read further below in the manual for this one
         '((1 . line)
           (t . rainbow-line-no-bold))
-        modus-themes-variable-pitch-headings t
+        modus-themes-variable-pitch-headings nil
         modus-themes-scale-headings t
         modus-themes-scale-1 1.1
         modus-themes-scale-2 1.15
@@ -386,8 +402,8 @@
 (use-package centaur-tabs
   :hook (emacs-startup . centaur-tabs-mode)
   :general
-  (general-nvmap "gt" 'centaur-tabs-forward)
-  (general-nvmap "gT" 'centaur-tabs-backward)
+  (general-nmap "gt" 'centaur-tabs-forward
+    "gT" 'centaur-tabs-backward)
   :init
   (setq centaur-tabs-set-icons t)
   (setq ccentaur-tabs-set-modified-marker t
@@ -441,6 +457,7 @@
   (setq olivetti-recall-visual-line-mode-entry-state t))
 
 (use-package selectrum
+  :after embark
   :demand
   :general
   (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
@@ -471,11 +488,10 @@
   :config (marginalia-mode t))
 
 (use-package embark
-  :after selectrum
   :demand
   :general
-  (general-nmap "C-e" #'embark-act)
-  ;; (selectrum-minibuffer-map "C-o" #'embark-act)
+  (general-nmap "C-l" 'embark-act)
+  (selectrum-minibuffer-map "C-l" #'embark-act)
   :config
   ;; For Selectrum users:
   (defun current-candidate+category ()
@@ -495,7 +511,8 @@
   (add-hook 'embark-candidate-collectors #'current-candidates+category)
 
   ;; No unnecessary computation delay after injection.
-  (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate))
+  (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
+  )
 
 (use-package consult
   :general
@@ -533,7 +550,7 @@
     (setq projectile-project-search-path '("~/git")))
   (setq projectile-completion-system 'default)
   (setq projectile-switch-project-action #'projectile-find-file)
-  (setq projectile-project-root-files '("Dockerfile" "pyproject.toml" "project.clj" "deps.edn"))
+  (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
   ;; (add-to-list 'projectile-globally-ignored-directories "straight") ;; TODO
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
@@ -576,7 +593,7 @@
 
 (use-package diff-hl
   :hook
-  (((text-mode org-mode prog-mode) . diff-hl-mode)
+  (((org-mode prog-mode) . diff-hl-mode)
    (magit-pre-refresh . diff-hl-magit-pre-refresh)
    (magit-post-refresh . diff-hl-magit-post-refresh))
   :init
@@ -628,21 +645,13 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package hydra)
 
-;; use common convention for indentation by default
-(setq-default indent-tabs-mode t)
-(setq-default tab-width 2)
-
-;; use a reasonable line length
-(setq-default fill-column 120)
-
-
 ;; add a visual intent guide
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
-  ;; :custom
-  ;; (highlight-indent-guides-method 'character)
-  ;; (highlight-indent-guides-character ?|)
-  ;; (highlight-indent-guides-responsive 'stack)
+  :init
+  (setq highlight-indent-guides-method 'column)
+  ;; (setq highlight-indent-guides-character ?|)
+  (setq highlight-indent-guides-responsive 'stack)
   )
 
 (use-package rainbow-delimiters
@@ -769,6 +778,12 @@ Current pattern: %`evil-mc-pattern
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
+(use-package restart-emacs
+  :general
+  (my/leader-keys
+    "R" '(restart-emacs :wk "restart"))
+  )
+
 (use-package org
   :hook ((org-mode . my/org-mode-setup)
          (org-mode . prettify-symbols-mode)
@@ -875,7 +890,8 @@ Current pattern: %`evil-mc-pattern
     (visual-line-mode 1))
   (defun my/org-babel-tangle-config ()
     (when (string-equal (file-name-directory (buffer-file-name))
-                        (expand-file-name user-emacs-directory))
+                        ;; file-truename resolves symlinks
+                        (file-truename (expand-file-name user-emacs-directory)))
       ;; Dynamic scoping to the rescue
       (let ((org-confirm-babel-evaluate nil))
         (org-babel-tangle))))
@@ -1058,7 +1074,7 @@ Current pattern: %`evil-mc-pattern
     :keymaps '(evil-org-mode-map org-mode-map )
     "<C-return>"      #'+org/insert-item-below
     "<C-S-return>"    #'+org/insert-item-above
-    "RET"   #'+org/dwim-at-point)
+    "<return>"   #'+org/dwim-at-point)
   :init
   (defun +org--insert-item (direction)
     (let ((context (org-element-lineage
@@ -1136,21 +1152,21 @@ Current pattern: %`evil-mc-pattern
 
   (defun +org/dwim-at-point (&optional arg)
     "Do-what-I-mean at point.
-If on a:
-- checkbox list item or todo heading: toggle it.
-- clock: update its time.
-- headline: cycle ARCHIVE subtrees, toggle latex fragments and inline images in
-  subtree; update statistics cookies/checkboxes and ToCs.
-- footnote reference: jump to the footnote's definition
-- footnote definition: jump to the first reference of this footnote
-- table-row or a TBLFM: recalculate the table's formulas
-- table-cell: clear it and go into insert mode. If this is a formula cell,
-  recaluclate it instead.
-- babel-call: execute the source block
-- statistics-cookie: update it.
-- latex fragment: toggle it.
-- link: follow it
-- otherwise, refresh all inline images in current tree."
+  If on a:
+  - checkbox list item or todo heading: toggle it.
+  - clock: update its time.
+  - headline: cycle ARCHIVE subtrees, toggle latex fragments and inline images in
+    subtree; update statistics cookies/checkboxes and ToCs.
+  - footnote reference: jump to the footnote's definition
+  - footnote definition: jump to the first reference of this footnote
+  - table-row or a TBLFM: recalculate the table's formulas
+  - table-cell: clear it and go into insert mode. If this is a formula cell,
+    recaluclate it instead.
+  - babel-call: execute the source block
+  - statistics-cookie: update it.
+  - latex fragment: toggle it.
+  - link: follow it
+  - otherwise, refresh all inline images in current tree."
     (interactive "P")
     (let* ((context (org-element-context))
            (type (org-element-type context)))
@@ -1266,6 +1282,19 @@ If on a:
   (add-hook 'evil-org-mode-hook #'evil-normalize-keymaps)
   )
 
+(use-package org-html-themify
+  :straight
+  (org-html-themify
+   :type git
+   :host github
+   :repo "DogLooksGood/org-html-themify"
+   :files ("*.el" "*.js" "*.css"))
+  :hook (org-mode . org-html-themify-mode)
+  :init
+  (setq org-html-themify-themes
+   '((dark . modus-vivendi)
+     (light . modus-operandi))))
+
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
   :hook (lsp-mode . (lambda ()
@@ -1329,10 +1358,10 @@ If on a:
   ;; configure windows
   (require 'dap-ui)
   (setq dap-ui-buffer-configurations
-        `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.30)))
+        `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.50)))
           ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
           ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
-          (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.30)))))
+          (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.50)))))
   (dap-ui-mode 1)
   ;; python virtualenv
   (require 'dap-python)
@@ -1400,7 +1429,7 @@ If on a:
 
 (use-package lsp-pyright
   :init
-  (setq lsp-pyright-typechecking-mode "off") ;; too much noise in "real" projects
+  (setq lsp-pyright-typechecking-mode "basic") ;; too much noise in "real" projects
   :hook (python-mode . (lambda ()
                          (require 'lsp-pyright)
                          (lsp-deferred))))
@@ -1491,12 +1520,12 @@ If on a:
   :straight (:type built-in)
   :general
   (my/local-leader-keys
-    :keymaps '(org-mode-map emacs-lisp-mode-map)
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
     "e l" '(eval-last-sexp :wk "last sexp")
     ;; "e" '(eval-last-sexp :states 'visual :wk "sexp")
     )
   (my/local-leader-keys
-    :keymaps '(org-mode-map emacs-lisp-mode-map)
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
     :states 'visual
     "e" '(eval-last-sexp :wk "sexp"))
   )
