@@ -393,10 +393,11 @@
   (setq dashboard-projects-backend 'projectile)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
-  (setq dashboard-items '((recents  . 5)
-                          (bookmarks . 5)
-                          (projects . 5)
-                          ;; (agenda . 5)
+  (setq dashboard-org-agenda-categories '("work"))
+  (setq dashboard-items '((agenda . 5)
+                          (recents  . 5)
+                          ;; (bookmarks . 5)
+                          ;; (projects . 5)
                           ))
   ;; (setq dashboard-startup-banner [VALUE])
   :config
@@ -442,8 +443,8 @@
 (use-package transpose-frame
   :general
   (my/leader-keys
-    "w t" '(transpose-frame "transpose")
-    "w f" '(rotate-frame "flip")))
+    "w t" '(transpose-frame :wk "transpose")
+    "w f" '(rotate-frame :wk "flip")))
 
 (use-package persistent-scratch
 :demand
@@ -796,20 +797,36 @@ Current pattern: %`evil-mc-pattern
          (org-mode . (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config))))
   :general
   (my/leader-keys
-    "o c" '(org-capture :wk "capture")
     "o a" '(org-agenda-list :wk "agenda")
-    "o t" '(org-todo-list :wk "todo list"))
+    "o C" '(org-capture :wk "capture")
+    "o l" '(org-todo-list :wk "todo list")
+    "o c" '((lambda () (interactive) (find-file
+                                      (concat user-emacs-directory "readme.org")))
+            :wk "open config"))
   (my/local-leader-keys
     :keymaps 'org-mode-map
-    "e" '(org-export-dispatch :wk "export")
+    "A" '(org-archive-subtree :wk "archive subtree")
+    "E" '(org-export-dispatch :wk "export")
     "l" '(:ignore true :wk "link")
     "l l" '(org-insert-link :wk "insert link")
     "l s" '(org-store-link :wk "store link")
+    "r" '(org-refile :wk "refile")
     "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
-    "t" '(org-todo :wk "heading todo"))
+    "s" '(org-sort :wk "sort")
+    "t" '(:ignore true :wk "todo")
+    "t t" '(org-todo :wk "heading todo")
+    "t s" '(org-schedule :wk "schedule")
+    "t d" '(org-deadline :wk "deadline"))
   (org-mode-map
    :states '(normal)
    "z i" '(org-toggle-inline-images :wk "inline images"))
+  ;; org agenda
+  (org-agenda-mode-map
+   "C-j" 'org-agenda-next-line
+   "C-k" 'org-agenda-previous-line)
+  (org-agenda-keymap
+   "C-j" 'org-agenda-next-line
+   "C-k" 'org-agenda-previous-line)
   :init
   ;; general settings
   (setq org-directory "~/Dropbox/org"
@@ -845,22 +862,22 @@ Current pattern: %`evil-mc-pattern
                     "%i%?"))
           ("d" "New Diary Entry" entry(file+olp+datetree"~/Dropbox/org/personal/diary.org" "Daily Logs")
            "* %^{thought for the day}
-             :PROPERTIES:
-             :CATEGORY: %^{category}
-             :SUBJECT:  %^{subject}
-             :MOOD:     %^{mood}
-             :END:
-             :RESOURCES:
-             :END:
+               :PROPERTIES:
+               :CATEGORY: %^{category}
+               :SUBJECT:  %^{subject}
+               :MOOD:     %^{mood}
+               :END:
+               :RESOURCES:
+               :END:
 
-             \*What was one good thing you learned today?*:
-             - %^{whatilearnedtoday}
+               \*What was one good thing you learned today?*:
+               - %^{whatilearnedtoday}
 
-             \*List one thing you could have done better*:
-             - %^{onethingdobetter}
+               \*List one thing you could have done better*:
+               - %^{onethingdobetter}
 
-             \*Describe in your own words how your day was*:
-             - %?")
+               \*Describe in your own words how your day was*:
+               - %?")
           ("i" "Inbox" entry
            (file+headline "personal/tasks/todo.org" "Inbox")
            ,(concat "* %^{Title}\n"
@@ -1085,10 +1102,12 @@ Current pattern: %`evil-mc-pattern
   :hook (org-mode . evil-org-mode)
   :general
   (general-nmap
-    :keymaps '(evil-org-mode-map org-mode-map )
+    :keymaps 'org-mode-map
     "<C-return>"      #'+org/insert-item-below
     "<C-S-return>"    #'+org/insert-item-above
-    "<return>"   #'+org/dwim-at-point)
+    "<return>"   #'+org/dwim-at-point
+    "> >" #'org-do-demote
+    "< <" #'org-do-promote)
   :init
   (defun +org--insert-item (direction)
     (let ((context (org-element-lineage
