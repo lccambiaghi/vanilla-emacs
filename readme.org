@@ -164,6 +164,7 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("consult" . "7a2f751421f4a1601811fa59571bd64baf7ec900")
  ("dap-mode" . "612388d0b85e77972a9c28391bac6224a63408c7")
  ("dash.el" . "8879c41d30211ae2e72298e354fdffef627a3836")
+ ("diff-hl" . "89aeb2fc8b24b6c4de4394f85041c5dd5fa60dad")
  ("dired-single" . "98c2102429fcac6fbfdba9198c126eb1b3dcc4e5")
  ("doom-modeline" . "49816da1a6c05e6215ec3c8aac6c5eabeb47e74c")
  ("eldoc" . "b906386cf04029e01228fde239c3a2e3e5b53603")
@@ -172,6 +173,7 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("emacs-bind-map" . "bf4181e3a41463684adfffc6c5c305b30480e30f")
  ("emacs-dashboard" . "2b1ef13392be2f07d2a52636edf578b89512d501")
  ("emacs-hide-mode-line" . "88888825b5b27b300683e662fa3be88d954b1cea")
+ ("emacs-htmlize" . "49205105898ba8993b5253beec55d8bddd820a70")
  ("emacs-jupyter" . "360cae2c70ab28c7a7848c0c56473d984f0243e5")
  ("emacs-libvterm" . "6f95a1b2949f60539fd92e3a63011801a7e765fd")
  ("emacs-memoize" . "51b075935ca7070f62fae1d69fe0ff7d8fa56fdd")
@@ -187,25 +189,24 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("embark" . "f78ad7e1dfc0864b8def91888d1866dd47d69ed3")
  ("envrc" . "18caf5154f61d7f78cd4719d999e0fa6ef52345f")
  ("epl" . "78ab7a85c08222cd15582a298a364774e3282ce6")
- ("evil" . "d6cf6680ec52733ea78dc530ed75fadc5171c758")
+ ("evil" . "cc9d6886b418389752a0591b9fcb270e83234cf9")
  ("evil-cleverparens" . "8c45879d49bfa6d4e414b6c1df700a4a51cbb869")
  ("evil-collection" . "f53ef08224f709c732740d45b373ef3617f6d759")
  ("evil-goggles" . "08a22058fd6a167f9f1b684c649008caef571459")
  ("evil-lisp-state" . "3c65fecd9917a41eaf6460f22187e2323821f3ce")
  ("evil-mc" . "7dfb2ca5ac00c249cb2f55cd6fa91fb2bfb1117e")
  ("evil-nerd-commenter" . "563cdc154b1f29d181b883563dd37be7eafafdee")
+ ("evil-org-mode" . "a9706da260c45b98601bcd72b1d2c0a24a017700")
  ("evil-surround" . "346d4d85fcf1f9517e9c4991c1efe68b4130f93a")
  ("exec-path-from-shell" . "d14d6d2966efe5a1409f84a6b9d998268f74761d")
  ("f.el" . "1814209e2ff43cf2e6d38c4cd476218915f550fb")
- ("fringe-helper.el" . "ef4a9c023bae18ec1ddd7265f1f2d6d2e775efdd")
  ("gcmh" . "0089f9c3a6d4e9a310d0791cf6fa8f35642ecfd9")
  ("general.el" . "a0b17d207badf462311b2eef7c065b884462cb7c")
- ("git-gutter" . "34ae23dfed4f2afb06286c120cbc7793cf4c5bc1")
- ("git-gutter-fringe" . "4f19866494fa1debfa319382913e39a153431634")
  ("git-timemachine" . "8d675750e921a047707fcdc36d84f8439b19a907")
  ("gnu-elpa-mirror" . "fcb3cf5ba5f16885f7851885c954222aee6f03ab")
  ("goto-chg" . "2af612153bc9f5bed135d25abe62f46ddaa9027f")
  ("helpful" . "584ecc887bb92133119f93a6716cdf7af0b51dca")
+ ("hexrgb" . "90e5f07f14bdb9966648977965094c75072691d4")
  ("highlight-indent-guides" . "cf352c85cd15dd18aa096ba9d9ab9b7ab493e8f6")
  ("hl-todo" . "9661a462d86b22293caaa4c3d94f971a15dbf1d5")
  ("ht.el" . "2850301d19176b8d3bb6cc8d95af6ab7e529bd56")
@@ -218,10 +219,14 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("marginalia" . "d38a27867bcec0bafa43e8d1bd3fd96a32b15d31")
  ("markdown-mode" . "e250a8465f805644d372c264eb0572f569d7f2a1")
  ("melpa" . "ea7b38971ea1ac02d1de128d3526f9b7b9f601f9")
- ("modus-themes" . "2a7228e09402f2f69aabf4fd8f367e5f6e8248b3")
+ ("modus-themes" . "bd8b9165ba3625c821ae36864c9be0e8a9704d67")
  ("nix-mode" . "53ea839a52335d089699d3530bae8ea5914cdbb6")
+ ("no-littering" . "6e8950ad296c0f57d80d034eb0b7adf538c02906")
  ("ob-async" . "de1cd6c93242a4cb8773bbe115b7be3d4dd6b97e")
+ ("olivetti" . "b76a020aedb57a6a7d0ae61cde13434f5c802a44")
  ("org" . "94d1753ec8b171442f0e789ca38beee2415198b0")
+ ("org-html-themify" . "dd5fea084c1ac9e868c356c59d5355b313aeb90d")
+ ("org-re-reveal" . "d404eb13d9e34354c081870ebdd69711937682b3")
  ("org-reverse-datetree" . "be24274dd62cd3c586cbea99c8f73db251bf319d")
  ("org-superstar-mode" . "7f83636db215bf5a10edbfdf11d12a132864a914")
  ("org-tree-slide" . "d6e8e91433dfe4968f1343b483f2680f45a77d52")
@@ -240,13 +245,16 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("powerline" . "b293abf83c0a2b2988af19dd0ef0426c3b1d1501")
  ("prescient.el" . "42adc802d3ba6c747bed7ea1f6e3ffbbdfc7192d")
  ("projectile" . "c31bd41c0b9d6fba8837ebfd3a31dec0b3cd73c6")
+ ("pyimport" . "a6f63cf7ed93f0c0f7c207e6595813966f8852b9")
  ("python-mode" . "41b123b4d4906cce7591900a952bb75a38c5296c")
  ("queue" . "52206c0f78afc0dfb9a287cb928c1e725103336d")
  ("rainbow-delimiters" . "f43d48a24602be3ec899345a3326ed0247b960c6")
+ ("restart-emacs" . "1607da2bc657fe05ae01f7fdf26f716eafead02c")
  ("s.el" . "43ba8b563bee3426cead0e6d4ddc09398e1a349d")
  ("selectrum" . "87ec4296f4fc9baf05dbaff0b9e63b2b4afd5bb6")
  ("sesman" . "edee869c209c016e5f0c5cbb8abb9f3ccd2d1e05")
  ("shrink-path.el" . "c14882c8599aec79a6e8ef2d06454254bb3e1e41")
+ ("shut-up" . "081d6b01e3ba0e60326558e545c4019219e046ce")
  ("smartparens" . "63695c64233d215a92bf08e762f643cdb595bdd9")
  ("spinner" . "61f59fab44d22cd5add61a1baf3f0b88a5d829d7")
  ("straight.el" . "2d407bccd9378f1d5218f8ba2ae85c6be73fbaf1")
@@ -272,98 +280,115 @@ Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathan
 When the package is not to be found on ~melpa~, we need to set ~:straight nil~ and ~:ensure nil~ to instruct ~straight~ not to download it.
 We do the same for ~dired~.
 #+BEGIN_SRC emacs-lisp
-  (use-package emacs
-    :init
-    (setq inhibit-startup-screen t
-          default-fill-column 80
-          initial-scratch-message nil
-          sentence-end-double-space nil
-          ring-bell-function 'ignore
-          frame-resize-pixelwise t)
+(use-package emacs
+  :init
+  (setq inhibit-startup-screen t
+        default-fill-column 80
+        initial-scratch-message nil
+        sentence-end-double-space nil
+        ring-bell-function 'ignore
+        frame-resize-pixelwise t)
 
-    (setq user-full-name "Luca Cambiaghi"
-          user-mail-address "luca.cambiaghi@me.com")
+  (setq user-full-name "Luca Cambiaghi"
+        user-mail-address "luca.cambiaghi@me.com")
 
-    (setq read-process-output-max (* 1024 1024))
+  (setq read-process-output-max (* 1024 1024))
 
-    ;; always allow 'y' instead of 'yes'.
-    (defalias 'yes-or-no-p 'y-or-n-p)
+  ;; always allow 'y' instead of 'yes'.
+  (defalias 'yes-or-no-p 'y-or-n-p)
 
-    ;; default to utf-8 for all the things
-    (set-charset-priority 'unicode)
-    (setq locale-coding-system 'utf-8
-          coding-system-for-read 'utf-8
-          coding-system-for-write 'utf-8)
-    (set-terminal-coding-system 'utf-8)
-    (set-keyboard-coding-system 'utf-8)
-    (set-selection-coding-system 'utf-8)
-    (prefer-coding-system 'utf-8)
-    (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+  ;; default to utf-8 for all the things
+  (set-charset-priority 'unicode)
+  (setq locale-coding-system 'utf-8
+        coding-system-for-read 'utf-8
+        coding-system-for-write 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
-    ;; write over selected text on input... like all modern editors do
-    (delete-selection-mode t)
+  ;; write over selected text on input... like all modern editors do
+  (delete-selection-mode t)
 
-    ;; start server for emacsclient
-    (unless (and (fboundp 'server-running-p)
-                 (server-running-p))
-      (server-start))
+  ;; enable recent files mode.
+  (recentf-mode t)
 
-    ;; enable recent files mode.
-    (recentf-mode t)
+  ;; don't want ESC as a modifier
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-    ;; auto-close parentheses
-    (electric-pair-mode +1)
-    ;; disable auto pairing for <
-    (add-function :before-until electric-pair-inhibit-predicate
-                  (lambda (c) (eq c ?<)))
+  ;; Don't persist a custom file, this bites me more than it helps
+  (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
+  (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
+  (setq enable-local-variables :all)     ; fix =defvar= warnings
 
-    ;; don't want ESC as a modifier
-    (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  ;; stop emacs from littering the file system with backup files
+  (setq make-backup-files nil
+        auto-save-default nil
+        create-lockfiles nil)
 
-    ;; Don't persist a custom file, this bites me more than it helps
-    (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
-    (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
-    (setq enable-local-variables :all)     ; fix =defvar= warnings
+  ;; follow symlinks 
+  (setq vc-follow-symlinks t)
 
-    ;; stop emacs from littering the file system with backup files
-    (setq make-backup-files nil
-          auto-save-default nil
-          create-lockfiles nil)
+  ;; don't show any extra window chrome
+  (when (window-system)
+    (tool-bar-mode -1)
+    (toggle-scroll-bar -1))
 
-    ;; follow symlinks 
-    (setq vc-follow-symlinks t)
+  ;; enable winner mode globally for undo/redo window layout changes
+  (winner-mode t)
 
-    ;; don't show any extra window chrome
-    (when (window-system)
-      (tool-bar-mode -1)
-      (toggle-scroll-bar -1))
+  ;; less noise when compiling elisp
+  (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
 
-    ;; Main typeface
-    ;; point size * 10, so 18*10 =180
-    (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
-    ;; Set the fixed pitch face
-    (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
-    ;; Set the variable pitch face
-    (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 180 :weight 'regular)
+  ;; clean up the mode line
+  (display-time-mode -1)
+  (setq column-number-mode t)
+	
+  ;; use common convention for indentation by default
+  (setq-default indent-tabs-mode t)
+  (setq-default tab-width 2)
 
-    ;; enable winner mode globally for undo/redo window layout changes
-    (winner-mode t)
-
-    ;; less noise when compiling elisp
-    (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
-
-    ;; clean up the mode line
-    (display-time-mode -1)
-    (setq column-number-mode t)
-
-    ;; use common convention for indentation by default
-    (setq-default indent-tabs-mode t)
-    (setq-default tab-width 2)
-
-    ;; use a reasonable line length
-    (setq-default fill-column 120)
-    )
+  ;; use a reasonable line length
+  (setq-default fill-column 120)
+  )
 #+END_SRC
+
+** Auto-pair parenthesis
+#+begin_src emacs-lisp
+(use-package emacs
+	:init
+  ;; auto-close parentheses
+  (electric-pair-mode +1)
+  ;; disable auto pairing for <
+  (add-function :before-until electric-pair-inhibit-predicate
+                (lambda (c) (eq c ?<))))
+#+end_src
+
+** Start server
+#+begin_src emacs-lisp
+(use-package emacs
+	:init
+  ;; start server for emacsclient
+  (unless (and (fboundp 'server-running-p)
+               (server-running-p))
+    (server-start))
+	)
+#+end_src
+
+** Font
+#+begin_src emacs-lisp
+(use-package emacs
+	:init
+  ;; Main typeface
+  ;; point size * 10, so 18*10 =180
+  (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 180 :weight 'regular)
+	)
+#+end_src
 
 ** macOS
 #+BEGIN_SRC emacs-lisp
@@ -419,7 +444,8 @@ Used by DOOM to manage garbage collection
 
 ** no littering
 #+begin_src emacs-lisp
-(use-package no-littering)
+(use-package no-littering
+	:demand)
 #+end_src
 
 * Keybindings
@@ -667,7 +693,8 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
   (setq dashboard-set-file-icons t)
   ;; (org-map-entries '(org-todo "UPCOMING")
   ;;                "+TOMORROW" 'file 'archive 'comment)
-  (setq dashboard-match-agenda-entry (not '("+private")))
+  ;; (setq dashboard-match-agenda-entry "-private")
+  (setq dashboard-match-agenda-entry "work|life")
   (setq dashboard-items '((recents  . 5)
                           (agenda . 5)
                           ;; (bookmarks . 5)
@@ -1480,7 +1507,7 @@ If you use + in lists it will show up as below
       )
 #+END_SRC
 
-** todo highlight
+** highlight todo
 #+begin_src emacs-lisp
   (use-package hl-todo
     :hook (prog-mode . hl-todo-mode)
@@ -1590,16 +1617,6 @@ Note:
       (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
 #+end_src
 
-** exporters
-#+BEGIN_SRC emacs-lisp
-  (use-package ox-gfm
-    :after org)
-
-  (use-package ox-ipynb
-    :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
-    :after org)
-#+END_SRC
-
 ** org-tree-slide
 #+begin_src emacs-lisp
   (use-package org-tree-slide
@@ -1664,6 +1681,7 @@ Taken from DOOM:
   :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
   :hook ((org-mode . evil-org-mode)
          (org-mode . (lambda () 
+											 (require 'evil-org)
 											 (evil-normalize-keymaps)
 											 (evil-org-set-key-theme '(textobjects))
                        (require 'evil-org-agenda)
@@ -1901,6 +1919,29 @@ Taken from DOOM:
      (light . modus-operandi))))
 #+end_src
 
+** exporters
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-gfm
+    :after org)
+
+  (use-package ox-ipynb
+    :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
+    :after org)
+#+END_SRC
+
+** ox-reveal
+#+begin_src emacs-lisp
+(use-package org-re-reveal
+  :after org
+  :init
+  ;; (setq org-re-reveal-root (expand-file-name "../../" (locate-library "dist/reveal.js" t))
+  ;;       org-re-reveal-revealjs-version "4")
+  (setq org-re-reveal-root "./reveal.js"
+        org-re-reveal-revealjs-version "3.8"
+        org-re-reveal-external-plugins  '((progress . "{ src: '%s/plugin/toc-progress/toc-progress.js', async: true, callback: function() { toc_progress.initialize(); toc_progress.create();} }"))
+        ))
+#+end_src
+
 * Programming languages
 ** lsp mode
 #+BEGIN_SRC emacs-lisp
@@ -1947,7 +1988,7 @@ Taken from DOOM:
       "d d" '(dap-debug :wk "debug")
       "d b" '(dap-breakpoint-toggle :wk "breakpoint")
       "d c" '(dap-continue :wk "continue")
-    "d n" '(dap-next :wk "next")
+      "d n" '(dap-next :wk "next")
       "d e" '(dap-eval-thing-at-point :wk "eval")
       "d i" '(dap-step-in :wk "step in")
       "d q" '(dap-disconnect :wk "quit")
@@ -2294,19 +2335,6 @@ For example, you can mark the outer form with =v a d=.
 https://beorgapp.com/learning/emacs-encryption/
 *** select a src block
 ** Half done
-*** TODO ox-reveal
-#+begin_src emacs-lisp :tangle no
-(use-package! org-re-reveal
-  :after ox
-  :config
-  ;; (setq org-re-reveal-root (expand-file-name "../../" (locate-library "dist/reveal.js" t))
-  ;;       org-re-reveal-revealjs-version "4")
-  (setq org-re-reveal-root "./reveal.js"
-        org-re-reveal-revealjs-version "3.8"
-        org-re-reveal-external-plugins  '((progress . "{ src: '%s/plugin/toc-progress/toc-progress.js', async: true, callback: function() { toc_progress.initialize(); toc_progress.create();} }"))
-        ))
-#+end_src
-
 *** TODO scimax utilities for ob-jupyter
 Found at https://github.com/nnicandro/emacs-jupyter/issues/160
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -2355,9 +2383,7 @@ Found at https://github.com/nnicandro/emacs-jupyter/issues/160
 
 ** To fix
 *** ~evil-scroll-down~ throwing error when ~centaur-tabs-mode~ is active
-*** ~lsp-find-definition~ not being bound to ~gd~
 *** ~org-ellipsis~ not shown in heading when ~git-gutter-fringe-mode~ is active
-*** ~em~ not working
 *** ~helpful-variable~ sometimes throws syntax error
 *** ~switch-to-prev-buffer~ twice in a row should behave like ~cmd+tab~
 * Local variables

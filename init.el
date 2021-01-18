@@ -54,97 +54,105 @@
 
 (setq use-package-compute-statistics t)
 
-  (use-package emacs
-    :init
-    (setq inhibit-startup-screen t
-          default-fill-column 80
-          initial-scratch-message nil
-          sentence-end-double-space nil
-          ring-bell-function 'ignore
-          frame-resize-pixelwise t)
+(use-package emacs
+  :init
+  (setq inhibit-startup-screen t
+        default-fill-column 80
+        initial-scratch-message nil
+        sentence-end-double-space nil
+        ring-bell-function 'ignore
+        frame-resize-pixelwise t)
 
-    (setq user-full-name "Luca Cambiaghi"
-          user-mail-address "luca.cambiaghi@me.com")
+  (setq user-full-name "Luca Cambiaghi"
+        user-mail-address "luca.cambiaghi@me.com")
 
-    (setq read-process-output-max (* 1024 1024))
+  (setq read-process-output-max (* 1024 1024))
 
-    ;; always allow 'y' instead of 'yes'.
-    (defalias 'yes-or-no-p 'y-or-n-p)
+  ;; always allow 'y' instead of 'yes'.
+  (defalias 'yes-or-no-p 'y-or-n-p)
 
-    ;; default to utf-8 for all the things
-    (set-charset-priority 'unicode)
-    (setq locale-coding-system 'utf-8
-          coding-system-for-read 'utf-8
-          coding-system-for-write 'utf-8)
-    (set-terminal-coding-system 'utf-8)
-    (set-keyboard-coding-system 'utf-8)
-    (set-selection-coding-system 'utf-8)
-    (prefer-coding-system 'utf-8)
-    (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+  ;; default to utf-8 for all the things
+  (set-charset-priority 'unicode)
+  (setq locale-coding-system 'utf-8
+        coding-system-for-read 'utf-8
+        coding-system-for-write 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
-    ;; write over selected text on input... like all modern editors do
-    (delete-selection-mode t)
+  ;; write over selected text on input... like all modern editors do
+  (delete-selection-mode t)
 
-    ;; start server for emacsclient
-    (unless (and (fboundp 'server-running-p)
-                 (server-running-p))
-      (server-start))
+  ;; enable recent files mode.
+  (recentf-mode t)
 
-    ;; enable recent files mode.
-    (recentf-mode t)
+  ;; don't want ESC as a modifier
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-    ;; auto-close parentheses
-    (electric-pair-mode +1)
-    ;; disable auto pairing for <
-    (add-function :before-until electric-pair-inhibit-predicate
-                  (lambda (c) (eq c ?<)))
+  ;; Don't persist a custom file, this bites me more than it helps
+  (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
+  (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
+  (setq enable-local-variables :all)     ; fix =defvar= warnings
 
-    ;; don't want ESC as a modifier
-    (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  ;; stop emacs from littering the file system with backup files
+  (setq make-backup-files nil
+        auto-save-default nil
+        create-lockfiles nil)
 
-    ;; Don't persist a custom file, this bites me more than it helps
-    (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
-    (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
-    (setq enable-local-variables :all)     ; fix =defvar= warnings
+  ;; follow symlinks 
+  (setq vc-follow-symlinks t)
 
-    ;; stop emacs from littering the file system with backup files
-    (setq make-backup-files nil
-          auto-save-default nil
-          create-lockfiles nil)
+  ;; don't show any extra window chrome
+  (when (window-system)
+    (tool-bar-mode -1)
+    (toggle-scroll-bar -1))
 
-    ;; follow symlinks 
-    (setq vc-follow-symlinks t)
+  ;; enable winner mode globally for undo/redo window layout changes
+  (winner-mode t)
 
-    ;; don't show any extra window chrome
-    (when (window-system)
-      (tool-bar-mode -1)
-      (toggle-scroll-bar -1))
+  ;; less noise when compiling elisp
+  (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
 
-    ;; Main typeface
-    ;; point size * 10, so 18*10 =180
-    (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
-    ;; Set the fixed pitch face
-    (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
-    ;; Set the variable pitch face
-    (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 180 :weight 'regular)
+  ;; clean up the mode line
+  (display-time-mode -1)
+  (setq column-number-mode t)
+	
+  ;; use common convention for indentation by default
+  (setq-default indent-tabs-mode t)
+  (setq-default tab-width 2)
 
-    ;; enable winner mode globally for undo/redo window layout changes
-    (winner-mode t)
+  ;; use a reasonable line length
+  (setq-default fill-column 120)
+  )
 
-    ;; less noise when compiling elisp
-    (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+(use-package emacs
+	:init
+  ;; auto-close parentheses
+  (electric-pair-mode +1)
+  ;; disable auto pairing for <
+  (add-function :before-until electric-pair-inhibit-predicate
+                (lambda (c) (eq c ?<))))
 
-    ;; clean up the mode line
-    (display-time-mode -1)
-    (setq column-number-mode t)
+(use-package emacs
+	:init
+  ;; start server for emacsclient
+  (unless (and (fboundp 'server-running-p)
+               (server-running-p))
+    (server-start))
+	)
 
-    ;; use common convention for indentation by default
-    (setq-default indent-tabs-mode t)
-    (setq-default tab-width 2)
-
-    ;; use a reasonable line length
-    (setq-default fill-column 120)
-    )
+(use-package emacs
+	:init
+  ;; Main typeface
+  ;; point size * 10, so 18*10 =180
+  (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 180 :weight 'regular)
+	)
 
 (when (eq system-type 'darwin)
   (setq mac-command-modifier 'super)     ; command as super
@@ -182,7 +190,8 @@
     ;;    "JAVA_HOME"))
     )
 
-(use-package no-littering)
+(use-package no-littering
+	:demand)
 
   (use-package general
     :demand t
@@ -400,7 +409,8 @@
   (setq dashboard-set-file-icons t)
   ;; (org-map-entries '(org-todo "UPCOMING")
   ;;                "+TOMORROW" 'file 'archive 'comment)
-  (setq dashboard-match-agenda-entry (not '("+private")))
+  ;; (setq dashboard-match-agenda-entry "-private")
+  (setq dashboard-match-agenda-entry "work|life")
   (setq dashboard-items '((recents  . 5)
                           (agenda . 5)
                           ;; (bookmarks . 5)
@@ -1067,13 +1077,6 @@
       (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
       (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
 
-  (use-package ox-gfm
-    :after org)
-
-  (use-package ox-ipynb
-    :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
-    :after org)
-
   (use-package org-tree-slide
     :after org
     :hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
@@ -1126,6 +1129,7 @@
   :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
   :hook ((org-mode . evil-org-mode)
          (org-mode . (lambda () 
+											 (require 'evil-org)
 											 (evil-normalize-keymaps)
 											 (evil-org-set-key-theme '(textobjects))
                        (require 'evil-org-agenda)
@@ -1359,6 +1363,23 @@
    '((dark . modus-vivendi)
      (light . modus-operandi))))
 
+  (use-package ox-gfm
+    :after org)
+
+  (use-package ox-ipynb
+    :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
+    :after org)
+
+(use-package org-re-reveal
+  :after org
+  :init
+  ;; (setq org-re-reveal-root (expand-file-name "../../" (locate-library "dist/reveal.js" t))
+  ;;       org-re-reveal-revealjs-version "4")
+  (setq org-re-reveal-root "./reveal.js"
+        org-re-reveal-revealjs-version "3.8"
+        org-re-reveal-external-plugins  '((progress . "{ src: '%s/plugin/toc-progress/toc-progress.js', async: true, callback: function() { toc_progress.initialize(); toc_progress.create();} }"))
+        ))
+
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
   :hook (lsp-mode . (lambda ()
@@ -1399,7 +1420,7 @@
       "d d" '(dap-debug :wk "debug")
       "d b" '(dap-breakpoint-toggle :wk "breakpoint")
       "d c" '(dap-continue :wk "continue")
-    "d n" '(dap-next :wk "next")
+      "d n" '(dap-next :wk "next")
       "d e" '(dap-eval-thing-at-point :wk "eval")
       "d i" '(dap-step-in :wk "step in")
       "d q" '(dap-disconnect :wk "quit")
