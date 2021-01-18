@@ -304,7 +304,9 @@ We do the same for ~dired~.
     (delete-selection-mode t)
 
     ;; start server for emacsclient
-    (unless (server-running-p) (server-start))
+    (unless (and (fboundp 'server-running-p)
+                 (server-running-p))
+      (server-start))
 
     ;; enable recent files mode.
     (recentf-mode t)
@@ -654,24 +656,26 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 
 ** dashboard
 #+BEGIN_SRC emacs-lisp
-  (use-package dashboard
-    :after projectile
-    :demand
-    :init
-    (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-    (setq dashboard-center-content t)
-    (setq dashboard-projects-backend 'projectile)
-    (setq dashboard-set-heading-icons t)
-    (setq dashboard-set-file-icons t)
-    (setq dashboard-org-agenda-categories '("work"))
-    (setq dashboard-items '((agenda . 5)
-                            (recents  . 5)
-                            ;; (bookmarks . 5)
-                            ;; (projects . 5)
-                            ))
-    ;; (setq dashboard-startup-banner [VALUE])
-    :config
-    (dashboard-setup-startup-hook))
+(use-package dashboard
+  :after projectile
+  :demand
+  :init
+  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+  (setq dashboard-center-content t)
+  (setq dashboard-projects-backend 'projectile)
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  ;; (org-map-entries '(org-todo "UPCOMING")
+  ;;                "+TOMORROW" 'file 'archive 'comment)
+  (setq dashboard-match-agenda-entry (not '("+private")))
+  (setq dashboard-items '((recents  . 5)
+                          (agenda . 5)
+                          ;; (bookmarks . 5)
+                          ;; (projects . 5)
+                          ))
+  ;; (setq dashboard-startup-banner [VALUE])
+  :config
+  (dashboard-setup-startup-hook))
 #+END_SRC
 
 ** centaur tabs
@@ -756,9 +760,9 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 (use-package winum
 :general
 (my/leader-keys
-"1" '(winum-select-window-1)
-"2" '(winum-select-window-2)
-"3" '(winum-select-window-3))
+"1" '(winum-select-window-1 :wk "win 1")
+"2" '(winum-select-window-2 :wk "win 2")
+"3" '(winum-select-window-3 :wk "win 3"))
 :config
 (winum-mode))
 #+end_src
@@ -931,6 +935,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 *** perspective
 #+BEGIN_SRC emacs-lisp
   (use-package perspective
+    :commands (persp-new persp-switch)
     :general
     (my/leader-keys
       "<tab>" '(:ignore true :wk "tab")
@@ -938,7 +943,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
       "<tab> `" 'persp-switch-last
       "<tab> d" 'persp-kill
       "<tab> D" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
-      "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "all")
+      "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
       "<tab> n" '(my/new-tab :wk "new"))
     :init
     (defun my/new-tab ()
@@ -995,15 +1000,19 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
      "q" 'git-timemachine-quit))
 #+end_src
 
-*** git-gutter
+*** diff-hl
 #+begin_src emacs-lisp
   (use-package diff-hl
+    :demand
     :hook
-    (((org-mode prog-mode) . diff-hl-mode)
-     (magit-pre-refresh . diff-hl-magit-pre-refresh)
+    ((magit-pre-refresh . diff-hl-magit-pre-refresh)
      (magit-post-refresh . diff-hl-magit-post-refresh))
     :init
     (setq diff-hl-draw-borders nil)
+    (setq diff-hl-fringe-bmp-function 'diff-hl-fringe-bmp-from-type)
+    ;; (setq diff-hl-global-modes (not '(image-mode org-mode)))
+    :config
+    (global-diff-hl-mode)
     )
 #+end_src
 
@@ -1074,8 +1083,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
     :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
-           (clojure-mode . rainbow-delimiters-mode)
-           (org-mode . rainbow-delimiters-mode)))
+           (clojure-mode . rainbow-delimiters-mode)))
 #+END_SRC
 
 ** syntax highlighting
@@ -1097,8 +1105,12 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     :demand
     :general
     (company-active-map
-     "TAB"       nil    ;; interferes with yasnippet
-     [tab]       nil)
+     :states 'insert
+     "TAB" (if (and (bound-and-true-p yas-minor-mode) (yas-maybe-expand-abbrev-key-filter 'yas-expand))
+               nil ;; if snippet found, unbind
+             #'company-complete-common)
+     "RET" #'company-complete-selection
+     [ret] #'company-complete-selection)
     :init
     (setq company-backends '((company-capf :with company-yasnippet)
                              (company-keywords company-files)))
@@ -1302,19 +1314,24 @@ The prefix is =g r=, inspect the commands with ~which-key~
 
 * Org mode
 ** org mode configuration
+If you use + in lists it will show up as below
++ 
+
 #+BEGIN_SRC emacs-lisp
   (use-package org
     :hook ((org-mode . my/org-mode-setup)
-           (org-mode . prettify-symbols-mode)
-           (org-mode . (lambda () (add-hook 'after-save-hook #'my/org-babel-tangle-config))))
+           (org-mode . prettify-symbols-mode))
     :general
     (my/leader-keys
       "o a" '(org-agenda-list :wk "agenda")
       "o C" '(org-capture :wk "capture")
       "o l" '(org-todo-list :wk "todo list")
-      "o c" '((lambda () (interactive) (find-file
-                                        (concat user-emacs-directory "readme.org")))
-              :wk "open config"))
+      "o c" '((lambda () (interactive)
+                (find-file (concat user-emacs-directory "readme.org")))
+              :wk "open config")
+      "o t" '((lambda () (interactive)
+                (find-file (concat org-directory "/personal/tasks/todo.org")))
+              :wk "open todos"))
     (my/local-leader-keys
       :keymaps 'org-mode-map
       "A" '(org-archive-subtree :wk "archive subtree")
@@ -1332,13 +1349,6 @@ The prefix is =g r=, inspect the commands with ~which-key~
     (org-mode-map
      :states '(normal)
      "z i" '(org-toggle-inline-images :wk "inline images"))
-    ;; org agenda
-    (org-agenda-mode-map
-     "C-j" 'org-agenda-next-line
-     "C-k" 'org-agenda-previous-line)
-    (org-agenda-keymap
-     "C-j" 'org-agenda-next-line
-     "C-k" 'org-agenda-previous-line)
     :init
     ;; general settings
     (setq org-directory "~/Dropbox/org"
@@ -1348,6 +1358,7 @@ The prefix is =g r=, inspect the commands with ~which-key~
           org-id-locations-file "~/Dropbox/org/.orgids"
           org-agenda-files '("~/dropbox/org/personal/tasks/birthdays.org" "~/dropbox/org/personal/tasks/todo.org" "~/dropbox/Notes/Test.inbox.org")
           ;; org-export-in-background t
+          org-src-preserve-indentation t ;; do not put two spaces on the left
           org-catch-invisible-edits 'smart)
     ;; disable modules for faster startup
     (setq org-modules
@@ -1428,13 +1439,6 @@ The prefix is =g r=, inspect the commands with ~which-key~
       (org-indent-mode)
       (variable-pitch-mode 1)
       (visual-line-mode 1))
-    (defun my/org-babel-tangle-config ()
-      (when (string-equal (file-name-directory (buffer-file-name))
-                          ;; file-truename resolves symlinks
-                          (file-truename (expand-file-name user-emacs-directory)))
-        ;; Dynamic scoping to the rescue
-        (let ((org-confirm-babel-evaluate nil))
-          (org-babel-tangle))))
     :config
     ;; visual
     (org-indent-mode)
@@ -1496,7 +1500,8 @@ The prefix is =g r=, inspect the commands with ~which-key~
     (my/local-leader-keys
       :keymaps 'org-mode-map
       "," '(org-edit-special :wk "edit")
-      "-" '(org-babel-demarcate-block :wk "split block"))
+      "-" '(org-babel-demarcate-block :wk "split block")
+      "z" '(org-babel-hide-result-toggle :wk "fold result"))
     (my/local-leader-keys
       :keymaps 'org-src-mode-map
       "," '(org-edit-src-exit :wk "exit")) ;;FIXME
@@ -1530,6 +1535,14 @@ Note:
 #+begin_src emacs-lisp
   (use-package jupyter
     :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+    :general
+    (my/local-leader-keys
+      :keymaps 'org-mode-map
+      "=" '((lambda () (interactive) (jupyter-org-insert-src-block t nil)) :wk "block below")
+      "m" '(jupyter-org-merge-blocks :wk "merge")
+      "+" '(jupyter-org-insert-src-block :wk "block above")
+      "?" '(jupyter-inspect-at-point :wk "inspect")
+      "x" '(jupyter-org-kill-block-and-results :wk "kill block"))
     :hook ((envrc-mode . my/load-ob-jupyter)
            (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
                                              (when (derived-mode-p 'org-mode)
@@ -1568,13 +1581,13 @@ Note:
         ;; converting to their string representation by
         ;; `org-element-interpret-data' so insert one in these cases.
         (insert "\n")))
-  :config
-  ;;Remove text/html since it's not human readable
-  ;; (delete :text/html jupyter-org-mime-types)
-  ;; (require 'tramp)
-  (with-eval-after-load 'org-src
-    (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
-    (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
+    :config
+    ;;Remove text/html since it's not human readable
+    ;; (delete :text/html jupyter-org-mime-types)
+    ;; (require 'tramp)
+    (with-eval-after-load 'org-src
+      (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+      (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
 #+end_src
 
 ** exporters
@@ -1639,225 +1652,237 @@ Note:
 #+end_src
 
 ** evil-org-mode
-Taken from DOOM, mostly for the nice ~+org/insert-item-below~ and ~+org/dwim-at-point~ functions.
+Taken from DOOM:
+- nice ~+org/insert-item-below~ and ~+org/dwim-at-point~ functions
+- ~evil~ bindings for ~org-agenda~
+- text objects:
+  - use ~vie~ to select everything inside a src block
+  - use ~vir~ to select everything inside a heading
+
 #+begin_src emacs-lisp
-  (use-package evil-org-mode
-    :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
-    :hook (org-mode . evil-org-mode)
-    :general
-    (general-nmap
-      :keymaps 'org-mode-map
-      "<C-return>"      #'+org/insert-item-below
-      "<C-S-return>"    #'+org/insert-item-above
-      "<return>"   #'+org/dwim-at-point
-      "> >" #'org-do-demote
-      "< <" #'org-do-promote)
-    :init
-    (defun +org--insert-item (direction)
-      (let ((context (org-element-lineage
-                      (org-element-context)
-                      '(table table-row headline inlinetask item plain-list)
-                      t)))
-        (pcase (org-element-type context)
-          ;; Add a new list item (carrying over checkboxes if necessary)
-          ((or `item `plain-list)
-           ;; Position determines where org-insert-todo-heading and org-insert-item
-           ;; insert the new list item.
-           (if (eq direction 'above)
-               (org-beginning-of-item)
-             (org-end-of-item)
-             (backward-char))
-           (org-insert-item (org-element-property :checkbox context))
-           ;; Handle edge case where current item is empty and bottom of list is
-           ;; flush against a new heading.
-           (when (and (eq direction 'below)
-                      (eq (org-element-property :contents-begin context)
-                          (org-element-property :contents-end context)))
-             (org-end-of-item)
-             (org-end-of-line)))
+(use-package evil-org-mode
+  :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
+  :hook ((org-mode . evil-org-mode)
+         (org-mode . (lambda () 
+											 (evil-normalize-keymaps)
+											 (evil-org-set-key-theme '(textobjects))
+                       (require 'evil-org-agenda)
+                       (evil-org-agenda-set-keys))))
+  :general
+	(my/local-leader-keys
+    :keymaps 'org-mode-map
+    "> l" '(org-indent-item :wk "indent item")
+    "< l" '(org-outdent-item-tree :wk "dedent item")
+    "> h" '(org-do-demote :wk "indent heading")
+    "< h" '(org-do-promote :wk "dedent heading"))
+  (general-nmap
+    :keymaps 'org-mode-map
+		:states 'normal
+    "<C-return>"      #'+org/insert-item-below
+    "<C-S-return>"    #'+org/insert-item-above
+    "RET"   #'+org/dwim-at-point)
+  :init
+  (defun +org--insert-item (direction)
+    (let ((context (org-element-lineage
+                    (org-element-context)
+                    '(table table-row headline inlinetask item plain-list)
+                    t)))
+      (pcase (org-element-type context)
+        ;; Add a new list item (carrying over checkboxes if necessary)
+        ((or `item `plain-list)
+         ;; Position determines where org-insert-todo-heading and org-insert-item
+         ;; insert the new list item.
+         (if (eq direction 'above)
+             (org-beginning-of-item)
+           (org-end-of-item)
+           (backward-char))
+         (org-insert-item (org-element-property :checkbox context))
+         ;; Handle edge case where current item is empty and bottom of list is
+         ;; flush against a new heading.
+         (when (and (eq direction 'below)
+                    (eq (org-element-property :contents-begin context)
+                        (org-element-property :contents-end context)))
+           (org-end-of-item)
+           (org-end-of-line)))
 
-          ;; Add a new table row
-          ((or `table `table-row)
+        ;; Add a new table row
+        ((or `table `table-row)
+         (pcase direction
+           ('below (save-excursion (org-table-insert-row t))
+                   (org-table-next-row))
+           ('above (save-excursion (org-shiftmetadown))
+                   (+org/table-previous-row))))
+
+        ;; Otherwise, add a new heading, carrying over any todo state, if
+        ;; necessary.
+        (_
+         (let ((level (or (org-current-level) 1)))
+           ;; I intentionally avoid `org-insert-heading' and the like because they
+           ;; impose unpredictable whitespace rules depending on the cursor
+           ;; position. It's simpler to express this command's responsibility at a
+           ;; lower level than work around all the quirks in org's API.
            (pcase direction
-             ('below (save-excursion (org-table-insert-row t))
-                     (org-table-next-row))
-             ('above (save-excursion (org-shiftmetadown))
-                     (+org/table-previous-row))))
+             (`below
+              (let (org-insert-heading-respect-content)
+                (goto-char (line-end-position))
+                (org-end-of-subtree)
+                (insert "\n" (make-string level ?*) " ")))
+             (`above
+              (org-back-to-heading)
+              (insert (make-string level ?*) " ")
+              (save-excursion (insert "\n"))))
+           (when-let* ((todo-keyword (org-element-property :todo-keyword context))
+                       (todo-type    (org-element-property :todo-type context)))
+             (org-todo
+              (cond ((eq todo-type 'done)
+                     ;; Doesn't make sense to create more "DONE" headings
+                     (car (+org-get-todo-keywords-for todo-keyword)))
+                    (todo-keyword)
+                    ('todo)))))))
 
-          ;; Otherwise, add a new heading, carrying over any todo state, if
-          ;; necessary.
-          (_
-           (let ((level (or (org-current-level) 1)))
-             ;; I intentionally avoid `org-insert-heading' and the like because they
-             ;; impose unpredictable whitespace rules depending on the cursor
-             ;; position. It's simpler to express this command's responsibility at a
-             ;; lower level than work around all the quirks in org's API.
-             (pcase direction
-               (`below
-                (let (org-insert-heading-respect-content)
-                  (goto-char (line-end-position))
-                  (org-end-of-subtree)
-                  (insert "\n" (make-string level ?*) " ")))
-               (`above
-                (org-back-to-heading)
-                (insert (make-string level ?*) " ")
-                (save-excursion (insert "\n"))))
-             (when-let* ((todo-keyword (org-element-property :todo-keyword context))
-                         (todo-type    (org-element-property :todo-type context)))
-               (org-todo
-                (cond ((eq todo-type 'done)
-                       ;; Doesn't make sense to create more "DONE" headings
-                       (car (+org-get-todo-keywords-for todo-keyword)))
-                      (todo-keyword)
-                      ('todo)))))))
+      (when (org-invisible-p)
+        (org-show-hidden-entry))
+      (when (and (bound-and-true-p evil-local-mode)
+                 (not (evil-emacs-state-p)))
+        (evil-insert 1))))
 
-        (when (org-invisible-p)
-          (org-show-hidden-entry))
-        (when (and (bound-and-true-p evil-local-mode)
-                   (not (evil-emacs-state-p)))
-          (evil-insert 1))))
+  (defun +org/insert-item-below (count)
+    "Inserts a new heading, table cell or item below the current one."
+    (interactive "p")
+    (dotimes (_ count) (+org--insert-item 'below)))
 
-    (defun +org/insert-item-below (count)
-      "Inserts a new heading, table cell or item below the current one."
-      (interactive "p")
-      (dotimes (_ count) (+org--insert-item 'below)))
+  (defun +org/insert-item-above (count)
+    "Inserts a new heading, table cell or item above the current one."
+    (interactive "p")
+    (dotimes (_ count) (+org--insert-item 'above)))
 
-    (defun +org/insert-item-above (count)
-      "Inserts a new heading, table cell or item above the current one."
-      (interactive "p")
-      (dotimes (_ count) (+org--insert-item 'above)))
+  (defun +org/dwim-at-point (&optional arg)
+    "Do-what-I-mean at point.
+      If on a:
+      - checkbox list item or todo heading: toggle it.
+      - clock: update its time.
+      - headline: cycle ARCHIVE subtrees, toggle latex fragments and inline images in
+        subtree; update statistics cookies/checkboxes and ToCs.
+      - footnote reference: jump to the footnote's definition
+      - footnote definition: jump to the first reference of this footnote
+      - table-row or a TBLFM: recalculate the table's formulas
+      - table-cell: clear it and go into insert mode. If this is a formula cell,
+        recaluclate it instead.
+      - babel-call: execute the source block
+      - statistics-cookie: update it.
+      - latex fragment: toggle it.
+      - link: follow it
+      - otherwise, refresh all inline images in current tree."
+    (interactive "P")
+    (let* ((context (org-element-context))
+           (type (org-element-type context)))
+      ;; skip over unimportant contexts
+      (while (and context (memq type '(verbatim code bold italic underline strike-through subscript superscript)))
+        (setq context (org-element-property :parent context)
+              type (org-element-type context)))
+      (pcase type
+        (`headline
+         (cond ((memq (bound-and-true-p org-goto-map)
+                      (current-active-maps))
+                (org-goto-ret))
+               ((and (fboundp 'toc-org-insert-toc)
+                     (member "TOC" (org-get-tags)))
+                (toc-org-insert-toc)
+                (message "Updating table of contents"))
+               ((string= "ARCHIVE" (car-safe (org-get-tags)))
+                (org-force-cycle-archived))
+               ((or (org-element-property :todo-type context)
+                    (org-element-property :scheduled context))
+                (org-todo
+                 (if (eq (org-element-property :todo-type context) 'done)
+                     (or (car (+org-get-todo-keywords-for (org-element-property :todo-keyword context)))
+                         'todo)
+                   'done))))
+         ;; Update any metadata or inline previews in this subtree
+         (org-update-checkbox-count)
+         (org-update-parent-todo-statistics)
+         (when (and (fboundp 'toc-org-insert-toc)
+                    (member "TOC" (org-get-tags)))
+           (toc-org-insert-toc)
+           (message "Updating table of contents"))
+         (let* ((beg (if (org-before-first-heading-p)
+                         (line-beginning-position)
+                       (save-excursion (org-back-to-heading) (point))))
+                (end (if (org-before-first-heading-p)
+                         (line-end-position)
+                       (save-excursion (org-end-of-subtree) (point))))
+                (overlays (ignore-errors (overlays-in beg end)))
+                (latex-overlays
+                 (cl-find-if (lambda (o) (eq (overlay-get o 'org-overlay-type) 'org-latex-overlay))
+                             overlays))
+                (image-overlays
+                 (cl-find-if (lambda (o) (overlay-get o 'org-image-overlay))
+                             overlays)))
+           (+org--toggle-inline-images-in-subtree beg end)
+           (if (or image-overlays latex-overlays)
+               (org-clear-latex-preview beg end)
+             (org--latex-preview-region beg end))))
 
-    (defun +org/dwim-at-point (&optional arg)
-      "Do-what-I-mean at point.
-    If on a:
-    - checkbox list item or todo heading: toggle it.
-    - clock: update its time.
-    - headline: cycle ARCHIVE subtrees, toggle latex fragments and inline images in
-      subtree; update statistics cookies/checkboxes and ToCs.
-    - footnote reference: jump to the footnote's definition
-    - footnote definition: jump to the first reference of this footnote
-    - table-row or a TBLFM: recalculate the table's formulas
-    - table-cell: clear it and go into insert mode. If this is a formula cell,
-      recaluclate it instead.
-    - babel-call: execute the source block
-    - statistics-cookie: update it.
-    - latex fragment: toggle it.
-    - link: follow it
-    - otherwise, refresh all inline images in current tree."
-      (interactive "P")
-      (let* ((context (org-element-context))
-             (type (org-element-type context)))
-        ;; skip over unimportant contexts
-        (while (and context (memq type '(verbatim code bold italic underline strike-through subscript superscript)))
-          (setq context (org-element-property :parent context)
-                type (org-element-type context)))
-        (pcase type
-          (`headline
-           (cond ((memq (bound-and-true-p org-goto-map)
-                        (current-active-maps))
-                  (org-goto-ret))
-                 ((and (fboundp 'toc-org-insert-toc)
-                       (member "TOC" (org-get-tags)))
-                  (toc-org-insert-toc)
-                  (message "Updating table of contents"))
-                 ((string= "ARCHIVE" (car-safe (org-get-tags)))
-                  (org-force-cycle-archived))
-                 ((or (org-element-property :todo-type context)
-                      (org-element-property :scheduled context))
-                  (org-todo
-                   (if (eq (org-element-property :todo-type context) 'done)
-                       (or (car (+org-get-todo-keywords-for (org-element-property :todo-keyword context)))
-                           'todo)
-                     'done))))
-           ;; Update any metadata or inline previews in this subtree
-           (org-update-checkbox-count)
-           (org-update-parent-todo-statistics)
-           (when (and (fboundp 'toc-org-insert-toc)
-                      (member "TOC" (org-get-tags)))
-             (toc-org-insert-toc)
-             (message "Updating table of contents"))
-           (let* ((beg (if (org-before-first-heading-p)
-                           (line-beginning-position)
-                         (save-excursion (org-back-to-heading) (point))))
-                  (end (if (org-before-first-heading-p)
-                           (line-end-position)
-                         (save-excursion (org-end-of-subtree) (point))))
-                  (overlays (ignore-errors (overlays-in beg end)))
-                  (latex-overlays
-                   (cl-find-if (lambda (o) (eq (overlay-get o 'org-overlay-type) 'org-latex-overlay))
-                               overlays))
-                  (image-overlays
-                   (cl-find-if (lambda (o) (overlay-get o 'org-image-overlay))
-                               overlays)))
-             (+org--toggle-inline-images-in-subtree beg end)
-             (if (or image-overlays latex-overlays)
-                 (org-clear-latex-preview beg end)
-               (org--latex-preview-region beg end))))
+        (`clock (org-clock-update-time-maybe))
 
-          (`clock (org-clock-update-time-maybe))
+        (`footnote-reference
+         (org-footnote-goto-definition (org-element-property :label context)))
 
-          (`footnote-reference
-           (org-footnote-goto-definition (org-element-property :label context)))
+        (`footnote-definition
+         (org-footnote-goto-previous-reference (org-element-property :label context)))
 
-          (`footnote-definition
-           (org-footnote-goto-previous-reference (org-element-property :label context)))
+        ((or `planning `timestamp)
+         (org-follow-timestamp-link))
 
-          ((or `planning `timestamp)
-           (org-follow-timestamp-link))
+        ((or `table `table-row)
+         (if (org-at-TBLFM-p)
+             (org-table-calc-current-TBLFM)
+           (ignore-errors
+             (save-excursion
+               (goto-char (org-element-property :contents-begin context))
+               (org-call-with-arg 'org-table-recalculate (or arg t))))))
 
-          ((or `table `table-row)
-           (if (org-at-TBLFM-p)
-               (org-table-calc-current-TBLFM)
-             (ignore-errors
-               (save-excursion
-                 (goto-char (org-element-property :contents-begin context))
-                 (org-call-with-arg 'org-table-recalculate (or arg t))))))
+        (`table-cell
+         (org-table-blank-field)
+         (org-table-recalculate arg)
+         (when (and (string-empty-p (string-trim (org-table-get-field)))
+                    (bound-and-true-p evil-local-mode))
+           (evil-change-state 'insert)))
 
-          (`table-cell
-           (org-table-blank-field)
-           (org-table-recalculate arg)
-           (when (and (string-empty-p (string-trim (org-table-get-field)))
-                      (bound-and-true-p evil-local-mode))
-             (evil-change-state 'insert)))
+        (`babel-call
+         (org-babel-lob-execute-maybe))
 
-          (`babel-call
-           (org-babel-lob-execute-maybe))
+        (`statistics-cookie
+         (save-excursion (org-update-statistics-cookies arg)))
 
-          (`statistics-cookie
-           (save-excursion (org-update-statistics-cookies arg)))
+        ((or `src-block `inline-src-block)
+         (org-babel-execute-src-block arg))
 
-          ((or `src-block `inline-src-block)
-           (org-babel-execute-src-block arg))
+        ((or `latex-fragment `latex-environment)
+         (org-latex-preview arg))
 
-          ((or `latex-fragment `latex-environment)
-           (org-latex-preview arg))
+        (`link
+         (let* ((lineage (org-element-lineage context '(link) t))
+                (path (org-element-property :path lineage)))
+           (if (or (equal (org-element-property :type lineage) "img")
+                   (and path (image-type-from-file-name path)))
+               (+org--toggle-inline-images-in-subtree
+                (org-element-property :begin lineage)
+                (org-element-property :end lineage))
+             (org-open-at-point arg))))
 
-          (`link
-           (let* ((lineage (org-element-lineage context '(link) t))
-                  (path (org-element-property :path lineage)))
-             (if (or (equal (org-element-property :type lineage) "img")
-                     (and path (image-type-from-file-name path)))
-                 (+org--toggle-inline-images-in-subtree
-                  (org-element-property :begin lineage)
-                  (org-element-property :end lineage))
-               (org-open-at-point arg))))
+        ((guard (org-element-property :checkbox (org-element-lineage context '(item) t)))
+         (let ((match (and (org-at-item-checkbox-p) (match-string 1))))
+           (org-toggle-checkbox (if (equal match "[ ]") '(16)))))
 
-          ((guard (org-element-property :checkbox (org-element-lineage context '(item) t)))
-           (let ((match (and (org-at-item-checkbox-p) (match-string 1))))
-             (org-toggle-checkbox (if (equal match "[ ]") '(16)))))
-
-          (_
-           (if (or (org-in-regexp org-ts-regexp-both nil t)
-                   (org-in-regexp org-tsr-regexp-both nil  t)
-                   (org-in-regexp org-link-any-re nil t))
-               (call-interactively #'org-open-at-point)
-             (+org--toggle-inline-images-in-subtree
-              (org-element-property :begin context)
-              (org-element-property :end context)))))))
-
-    :config
-    (add-hook 'evil-org-mode-hook #'evil-normalize-keymaps)
-    )
+        (_
+         (if (or (org-in-regexp org-ts-regexp-both nil t)
+                 (org-in-regexp org-tsr-regexp-both nil  t)
+                 (org-in-regexp org-link-any-re nil t))
+             (call-interactively #'org-open-at-point)
+           (+org--toggle-inline-images-in-subtree
+            (org-element-property :begin context)
+            (org-element-property :end context))))))))
 #+end_src
 
 ** org-html-themify
@@ -1879,36 +1904,36 @@ Taken from DOOM, mostly for the nice ~+org/insert-item-below~ and ~+org/dwim-at-
 * Programming languages
 ** lsp mode
 #+BEGIN_SRC emacs-lisp
-  (use-package lsp-mode
-    :commands (lsp lsp-deferred)
-    :hook (lsp-mode . (lambda ()
-                        (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
-    :general
-    (my/leader-keys
-      "c" '(:keymap lsp-command-map))
-    (my/local-leader-keys
-      :keymaps 'lsp-mode-map
-      "r" '(lsp-rename :wk "rename")
-      "i" '(:ignore t :which-key "import")
-      "i o" '(lsp-rename :wk "optimize"))
-    (lsp-mode-map
-     :states '(normal)
-     "gd" 'lsp-find-definition
-     "gD" 'lsp-find-references)
-    :init
-    (setq lsp-restart 'ignore)
-    (setq lsp-eldoc-enable-hover nil)
-    (setq lsp-enable-file-watchers nil)
-    (setq lsp-signature-auto-activate nil)
-    :config
-    (lsp-enable-which-key-integration t))
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :hook (lsp-mode . (lambda ()
+                      (setq-local evil-lookup-func #'lsp-describe-thing-at-point)
+											(setq-local evil-goto-definition-functions
+																	'(lambda (&rest args) (lsp-find-definition)))))
+  :general
+  (my/leader-keys
+    "c" '(:keymap lsp-command-map))
+  (my/local-leader-keys
+    :keymaps 'lsp-mode-map
+    "r" '(lsp-rename :wk "rename")
+    "i" '(:ignore t :which-key "import")
+    "i o" '(lsp-rename :wk "optimize"))
+  (lsp-mode-map
+   :states 'normal "gD" 'lsp-find-references)
+  :init
+  (setq lsp-restart 'ignore)
+  (setq lsp-eldoc-enable-hover nil)
+  (setq lsp-enable-file-watchers nil)
+  (setq lsp-signature-auto-activate nil)
+  :config
+  (lsp-enable-which-key-integration t))
 
-  (use-package lsp-ui
-    :hook ((lsp-mode . lsp-ui-mode))
-    :init
-    (setq lsp-ui-doc-show-with-cursor nil)
-    (setq lsp-ui-doc-show-with-mouse nil)
-    )
+(use-package lsp-ui
+  :hook ((lsp-mode . lsp-ui-mode))
+  :init
+  (setq lsp-ui-doc-show-with-cursor nil)
+  (setq lsp-ui-doc-show-with-mouse nil)
+  )
 #+END_SRC
 
 ** dap-mode
@@ -1922,6 +1947,7 @@ Taken from DOOM, mostly for the nice ~+org/insert-item-below~ and ~+org/dwim-at-
       "d d" '(dap-debug :wk "debug")
       "d b" '(dap-breakpoint-toggle :wk "breakpoint")
       "d c" '(dap-continue :wk "continue")
+    "d n" '(dap-next :wk "next")
       "d e" '(dap-eval-thing-at-point :wk "eval")
       "d i" '(dap-step-in :wk "step in")
       "d q" '(dap-disconnect :wk "quit")
@@ -2007,6 +2033,12 @@ Taken from DOOM, mostly for the nice ~+org/insert-item-below~ and ~+org/dwim-at-
     :hook (envrc-mode . (lambda ()
                           (when (executable-find "ipython")
                             (setq python-shell-interpreter (executable-find "ipython")))))
+		:general
+		(general-nmap
+			:keymaps 'python-mode-map
+			"gz" nil)
+		:init
+		(setq python-indent-offset 0)
     :config
     (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
           python-shell-interpreter-args "-i --simple-prompt --no-color-info"
@@ -2074,8 +2106,14 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
       "e e" '(jupyter-eval-line-or-region :wk "line")
       "e d" '(jupyter-eval-defun :wk "defun")
       "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
+		(my/local-leader-keys
+      :keymaps 'python-mode-map
+			:states 'visual
+      "e" '(jupyter-eval-line-or-region))
     (my/local-leader-keys
       :keymaps 'jupyter-repl-interaction-mode-map
+			"k" '(:ignore true :wk "kernel")
+      "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
       "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
     :init
     (setq jupyter-repl-prompt-margin-width 4)
@@ -2153,9 +2191,9 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     :after evil
     :demand
     :init
-    ;; (setq evil-lisp-state-enter-lisp-state-on-command nil)
-    (setq evil-lisp-state-global t)
-    (setq evil-lisp-state-major-modes '(emacs-lisp-mode clojure-mode))
+    (setq evil-lisp-state-enter-lisp-state-on-command nil)
+    ;; (setq evil-lisp-state-global t)
+    (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode))
     :config
     (evil-lisp-state-leader "SPC l")
     )
@@ -2254,6 +2292,7 @@ For example, you can mark the outer form with =v a d=.
 *** Make different font configurations (toggle big font)
 *** org-encrypt
 https://beorgapp.com/learning/emacs-encryption/
+*** select a src block
 ** Half done
 *** TODO ox-reveal
 #+begin_src emacs-lisp :tangle no
@@ -2321,4 +2360,7 @@ Found at https://github.com/nnicandro/emacs-jupyter/issues/160
 *** ~em~ not working
 *** ~helpful-variable~ sometimes throws syntax error
 *** ~switch-to-prev-buffer~ twice in a row should behave like ~cmd+tab~
-
+* Local variables
+# Local Variables:
+# eval: (add-hook 'after-save-hook (lambda ()(org-babel-tangle)) nil t)
+# End:
