@@ -193,123 +193,123 @@
 (use-package no-littering
 	:demand)
 
-  (use-package general
-    :demand t
-    :config
-    (general-evil-setup)
+(use-package general
+  :demand t
+  :config
+  (general-evil-setup)
 
-    (general-create-definer my/leader-keys
-      :states '(normal insert visual emacs)
-      :keymaps 'override
-      :prefix "SPC"
-      :global-prefix "C-SPC")
+  (general-create-definer my/leader-keys
+    :states '(normal insert visual emacs)
+    :keymaps 'override
+    :prefix "SPC"
+    :global-prefix "C-SPC")
 
-    (general-create-definer my/local-leader-keys
-      :states '(normal visual)
-      :keymaps 'override
-      :prefix ","
-      :global-prefix "SPC m")
+  (general-create-definer my/local-leader-keys
+    :states '(normal visual)
+    :keymaps 'override
+    :prefix ","
+    :global-prefix "SPC m")
 
-    (my/leader-keys
-      "SPC" '(execute-extended-command :which-key "execute command")
-      "`" '(switch-to-prev-buffer :which-key "prev buffer")
-      ";" '(eval-expression :which-key "eval sexp")
+  (my/leader-keys
+    "SPC" '(execute-extended-command :which-key "execute command")
+    "`" '((lambda () (interactive) (switch-to-buffer (other-buffer (current-buffer) 1))) :which-key "prev buffer")
+		
+    ";" '(eval-expression :which-key "eval sexp")
 
-      "b" '(:ignore t :which-key "buffer")
-      "br"  'revert-buffer
-      "bd"  'kill-current-buffer
-      "bD" 'kill-buffer-and-window
-      "bs" '((lambda () (interactive) (pop-to-buffer "*scratch*")) :wk "scratch")
+    "b" '(:ignore t :which-key "buffer")
+    "br"  'revert-buffer
+    "bd"  'kill-current-buffer
+    "bD" 'kill-buffer-and-window
+    "bs" '((lambda () (interactive) (pop-to-buffer "*scratch*")) :wk "scratch")
 
-      "c" '(:ignore t :which-key "code")
+    "c" '(:ignore t :which-key "code")
 
-      "f" '(:ignore t :which-key "file")
-      "fD" '(delete-file :wk "delete")
-      "ff"  'find-file
-      "fs" 'save-buffer
-      "fr" 'recentf-open-files
+    "f" '(:ignore t :which-key "file")
+    "fD" '(delete-file :wk "delete")
+    "ff"  'find-file
+    "fs" 'save-buffer
+    "fr" 'recentf-open-files
 
-      "g" '(:ignore t :which-key "git")
+    "g" '(:ignore t :which-key "git")
 
-      "h" '(:ignore t :which-key "describe")
-      "hv" 'describe-variable
-      "he" 'view-echo-area-messages
-      "hp" 'describe-package
-      "hf" 'describe-function
-      "hF" 'describe-face
-      "hk" 'describe-key
+    "h" '(:ignore t :which-key "describe")
+    "he" 'view-echo-area-messages
+    "hf" 'describe-function
+    "hF" 'describe-face
+    "hk" 'describe-key
+    "hK" 'describe-keymap
+    "hp" 'describe-package
+    "hv" 'describe-variable
 
-      "o" '(:ignore t :which-key "org")
+    "o" '(:ignore t :which-key "org")
 
-      "p" '(:ignore t :which-key "project")
+    "p" '(:ignore t :which-key "project")
 
-      "s" '(:ignore t :which-key "search")
+    "s" '(:ignore t :which-key "search")
 
-      "t"  '(:ignore t :which-key "toggle")
-      "t d"  '(toggle-debug-on-error :which-key "debug on error")
-      "t v" '((lambda () (interactive) (visual-line-mode 'toggle)) :wk "visual line")
+    "t"  '(:ignore t :which-key "toggle")
+    "t d"  '(toggle-debug-on-error :which-key "debug on error")
+    "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
 
-      "w" '(:ignore t :which-key "window")
-      "wl"  'windmove-right
-      "wh"  'windmove-left
-      "wk"  'windmove-up
-      "wj"  'windmove-down
-      "wr" 'winner-redo
-      "wd"  'delete-window
-      "wD" 'kill-buffer-and-window
-      "wu" 'winner-undo
-      "wr" 'winner-redo
-      "wm"  '(delete-other-windows :wk "maximize")
-      )
+    "w" '(:ignore t :which-key "window")
+    "wl"  'windmove-right
+    "wh"  'windmove-left
+    "wk"  'windmove-up
+    "wj"  'windmove-down
+    "wr" 'winner-redo
+    "wd"  'delete-window
+    "wD" 'kill-buffer-and-window
+    "wu" 'winner-undo
+    "wr" 'winner-redo
+    "wm"  '(delete-other-windows :wk "maximize"))
 
-    (my/local-leader-keys
-      "d" '(:ignore t :which-key "debug")
-      "e" '(:ignore t :which-key "eval")
-      "t" '(:ignore t :which-key "test")
-      )
+  (my/local-leader-keys
+    "d" '(:ignore t :which-key "debug")
+    "e" '(:ignore t :which-key "eval")
+    "t" '(:ignore t :which-key "test")
     )
+  )
 
-  (use-package evil
-    :demand t
-    :general
-    (my/leader-keys
-      "wv" 'evil-window-vsplit
-      "ws" 'evil-window-split)
-    :init
-    (setq evil-want-integration t)
-    (setq evil-want-keybinding nil)
-    (setq evil-want-C-u-scroll t)
-    (setq evil-want-C-i-jump nil)
-    (setq evil-want-Y-yank-to-eol t)
-    ;; move to window when splitting
-    (setq evil-split-window-below t)
-    (setq evil-vsplit-window-right t)
-    (setq-local evil-scroll-count 0)
-    :config
-    (evil-mode 1)
-    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-    (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
-    ;; Use visual line motions even outside of visual-line-mode buffers
-    ;; (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-    ;; (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-    (evil-set-initial-state 'messages-buffer-mode 'normal)
-    (evil-set-initial-state 'dashboard-mode 'normal)
-    )
+(use-package evil
+  :demand t
+  :general
+  (my/leader-keys
+    "wv" 'evil-window-vsplit
+    "ws" 'evil-window-split)
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
+  (setq evil-want-Y-yank-to-eol t)
+  ;; move to window when splitting
+  (setq evil-split-window-below t)
+  (setq evil-vsplit-window-right t)
+  (setq-local evil-scroll-count 0)
+  :config
+  (evil-mode 1)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal)
+	;; don't move cursor after ==
+	(defun my/evil-dont-move-cursor (orig-fn &rest args)
+    (save-excursion (apply orig-fn args)))
+	(advice-add 'evil-indent :around #'my/evil-dont-move-cursor))
 
-  (use-package evil-collection
-    :after evil
-    :demand
-    :config
-    (evil-collection-init))
+(use-package evil-collection
+  :after evil
+  :demand
+  :config
+  (evil-collection-init))
 
-  (use-package evil-goggles
-    :after evil
-    :demand
-    :init
-    (setq evil-goggles-duration 0.05)
-    :config
-    (evil-goggles-mode)
-    (evil-goggles-use-diff-faces))
+(use-package evil-goggles
+  :after evil
+  :demand
+  :init
+  (setq evil-goggles-duration 0.05)
+  :config
+  (evil-goggles-mode)
+  (evil-goggles-use-diff-faces))
 
 (use-package which-key
   :demand t
@@ -337,66 +337,67 @@
 (setq ns-use-proxy-icon  nil)
 (setq frame-title-format nil)
 
-  (use-package modus-themes
-    :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
-    :hook (emacs-startup . my/load-modus-theme)
-    :init
-    (setq modus-themes-operandi-color-overrides
-          '((bg-main . "#fefcf4")
-            (bg-dim . "#faf6ef")
-            (bg-alt . "#f7efe5")
-            (bg-hl-line . "#f4f0e3")
-            (bg-active . "#e8dfd1")
-            (bg-inactive . "#f6ece5")
-            (bg-region . "#c6bab1")
-            (bg-header . "#ede3e0")
-            (bg-tab-bar . "#dcd3d3")
-            (bg-tab-active . "#fdf6eb")
-            (bg-tab-inactive . "#c8bab8")
-            (fg-unfocused ."#55556f")))
-
-    (setq modus-themes-vivendi-color-overrides
-          '((bg-main . "#100b17")
-            (bg-dim . "#161129")
-            (bg-alt . "#181732")
-            (bg-hl-line . "#191628")
-            (bg-active . "#282e46")
-            (bg-inactive . "#1a1e39")
-            (bg-region . "#393a53")
-            (bg-header . "#202037")
-            (bg-tab-bar . "#262b41")
-            (bg-tab-active . "#120f18")
-            (bg-tab-inactive . "#3a3a5a")
-            (fg-unfocused . "#9a9aab")))
-    (setq modus-themes-slanted-constructs t
-          modus-themes-bold-constructs t
-          modus-themes-fringes 'nil ; {nil,'subtle,'intense}
-          modus-themes-mode-line '3d ; {nil,'3d,'moody}
-          modus-themes-intense-hl-line nil
-          modus-themes-prompts nil ; {nil,'subtle,'intense}
-          modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
-          modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-          modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-          modus-themes-headings  ; Read further below in the manual for this one
-          '((1 . line)
-            (t . rainbow-line-no-bold))
-          modus-themes-variable-pitch-headings nil
-          modus-themes-scale-headings t
-          modus-themes-scale-1 1.1
-          modus-themes-scale-2 1.15
-          modus-themes-scale-3 1.21
-          modus-themes-scale-4 1.27
-          modus-themes-scale-5 1.33)
-    (defun my/load-modus-theme ()
-      ;;Light for the day
-      (run-at-time "07:00" (* 60 60 24)
-                   (lambda () (modus-themes-load-operandi)))
-      ;; Dark for the night
-      (run-at-time "00:00" (* 60 60 24)
-                   (lambda () (modus-themes-load-vivendi)))
-      (run-at-time "15:00" (* 60 60 24)
-                   (lambda () (modus-themes-load-vivendi)))
-      ))
+(use-package modus-themes
+  :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+  :hook (emacs-startup . my/load-modus-theme)
+	:general
+  (my/leader-keys
+	 "t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
+  :init
+  (setq modus-themes-operandi-color-overrides
+        '((bg-main . "#fefcf4")
+          (bg-dim . "#faf6ef")
+          (bg-alt . "#f7efe5")
+          (bg-hl-line . "#f4f0e3")
+          (bg-active . "#e8dfd1")
+          (bg-inactive . "#f6ece5")
+          (bg-region . "#c6bab1")
+          (bg-header . "#ede3e0")
+          (bg-tab-bar . "#dcd3d3")
+          (bg-tab-active . "#fdf6eb")
+          (bg-tab-inactive . "#c8bab8")
+          (fg-unfocused ."#55556f")))
+  (setq modus-themes-vivendi-color-overrides
+        '((bg-main . "#100b17")
+          (bg-dim . "#161129")
+          (bg-alt . "#181732")
+          (bg-hl-line . "#191628")
+          (bg-active . "#282e46")
+          (bg-inactive . "#1a1e39")
+          (bg-region . "#393a53")
+          (bg-header . "#202037")
+          (bg-tab-bar . "#262b41")
+          (bg-tab-active . "#120f18")
+          (bg-tab-inactive . "#3a3a5a")
+          (fg-unfocused . "#9a9aab")))
+  (setq modus-themes-slanted-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-fringes 'nil ; {nil,'subtle,'intense}
+        modus-themes-mode-line '3d ; {nil,'3d,'moody}
+        modus-themes-intense-hl-line nil
+        modus-themes-prompts nil ; {nil,'subtle,'intense}
+        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+        modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
+        modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+        modus-themes-headings  ; Read further below in the manual for this one
+        '((1 . line)
+          (t . rainbow-line-no-bold))
+        modus-themes-variable-pitch-headings nil
+        modus-themes-scale-headings t
+        modus-themes-scale-1 1.1
+        modus-themes-scale-2 1.15
+        modus-themes-scale-3 1.21
+        modus-themes-scale-4 1.27
+        modus-themes-scale-5 1.33)
+  (defun my/load-modus-theme ()
+    ;;Light for the day
+    (run-at-time "07:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-operandi)))
+    ;; Dark for the night
+    (run-at-time "00:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-vivendi)))
+    (run-at-time "15:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-vivendi)))))
 
 (use-package dashboard
   :after projectile
@@ -546,7 +547,6 @@
       "f r" 'consult-recent-file
       "s !" '(consult-flymake :wk "flymake")
       "s p" '(consult-ripgrep :wk "ripgrep")
-      "t t" '(consult-theme :wk "theme")
       )
     ;; :init
     ;; (setq consult-preview-key "C-l")
@@ -608,15 +608,28 @@
     (my/leader-keys
       "p p" 'projectile-persp-switch-project))
 
-  (use-package magit
-    :general
-    (my/leader-keys
-      "g g" 'magit-status
-      "g G" 'magit-status-here
-      "g l" '(magit-log :wk "log"))
-    :init
-    (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-    (setq magit-log-arguments '("--graph" "--decorate" "--color")))
+(use-package magit
+  :general
+  (my/leader-keys
+    "g g" 'magit-status
+    "g G" 'magit-status-here
+    "g l" '(magit-log :wk "log"))
+	(general-nmap
+		:keymaps '(magit-status-mode-map
+     magit-stash-mode-map
+     magit-revision-mode-map
+     magit-process-mode-map
+     magit-diff-mode-map)
+		 "<tab>" #'magit-section-toggle)
+  :init
+  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  (setq magit-log-arguments '("--graph" "--decorate" "--color"))
+	:config
+	  (evil-define-key* 'normal magit-status-mode-map [escape] nil)
+
+	(evil-define-key* '(normal visual) magit-mode-map
+    "zz" #'evil-scroll-line-to-center)
+  )
 
   (use-package git-timemachine
     :hook (git-time-machine-mode . evil-normalize-keymaps)
@@ -635,7 +648,7 @@
      (magit-post-refresh . diff-hl-magit-post-refresh))
     :init
     (setq diff-hl-draw-borders nil)
-    (setq diff-hl-fringe-bmp-function 'diff-hl-fringe-bmp-from-type)
+    ;; (setq diff-hl-fringe-bmp-function 'diff-hl-fringe-bmp-from-type)
     ;; (setq diff-hl-global-modes (not '(image-mode org-mode)))
     :config
     (global-diff-hl-mode)
@@ -686,14 +699,21 @@
 
   (use-package hydra)
 
-  ;; add a visual intent guide
-  (use-package highlight-indent-guides
-    :hook (prog-mode . highlight-indent-guides-mode)
-    :init
-    (setq highlight-indent-guides-method 'column)
-    ;; (setq highlight-indent-guides-character ?|)
-    (setq highlight-indent-guides-responsive 'stack)
-    )
+;; add a visual intent guide
+(use-package highlight-indent-guides
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :init
+  ;; (setq highlight-indent-guides-method 'column)
+  (setq highlight-indent-guides-method 'character)
+  ;; (setq highlight-indent-guides-character ?|)
+  ;; (setq highlight-indent-guides-character ?❚)
+  (setq highlight-indent-guides-character ?‖)
+  (setq highlight-indent-guides-responsive 'stack)
+	;; (setq highlight-indent-guides-auto-enabled nil)
+	;; (set-face-background 'highlight-indent-guides-odd-face "darkgray")
+  ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
+  ;; (set-face-foreground 'highlight-indent-guides-character-face "dimgray")
+  )
 
   (use-package rainbow-delimiters
     :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
@@ -709,28 +729,69 @@
   (use-package tree-sitter-langs
     :after tree-sitter)
 
-  (use-package company
-    :demand
-    :general
-    (company-active-map
-     :states 'insert
-     "TAB" (if (and (bound-and-true-p yas-minor-mode) (yas-maybe-expand-abbrev-key-filter 'yas-expand))
-               nil ;; if snippet found, unbind
-             #'company-complete-common)
-     "RET" #'company-complete-selection
-     [ret] #'company-complete-selection)
-    :init
-    (setq company-backends '((company-capf :with company-yasnippet)
-                             (company-keywords company-files)))
-    (setq company-minimum-prefix-length 1)
-    (setq company-idle-delay 0.0)
-    ;; always show candidates in overlay tooltip
-    (setq company-frontends '(company-pseudo-tooltip-frontend))
-    ;; don't fill the only candidate
-    (setq company-auto-complete nil
-          company-auto-complete-chars nil)
+(use-package company
+  :demand
+  :init
+  ;; (setq company-backends '((company-capf :with company-yasnippet)
+  ;;                          (company-keywords company-files)))
+  (setq company-backends '((:separate company-yasnippet company-capf)
+													 (company-keywords company-files)))
+  (setq company-minimum-prefix-length 1)
+  (setq company-tooltip-align-annotations t)
+	(setq company-idle-delay 0.0)
+	;; always show candidates in overlay tooltip
+	(setq company-frontends '(company-pseudo-tooltip-frontend))
+	;; don't fill the only candidate
+	(setq company-auto-complete nil
+				company-auto-complete-chars nil)
+	:config
+	(global-company-mode)
+  (with-eval-after-load 'evil
+    (add-hook 'company-mode-hook #'evil-normalize-keymaps)))
+
+  (use-package company-box
+    :hook (company-mode . company-box-mode)
     :config
-    (global-company-mode)
+    (setq company-box-show-single-candidate t
+          company-box-backends-colors nil
+          company-box-max-candidates 50
+          company-box-icons-alist 'company-box-icons-all-the-icons
+          company-box-icons-all-the-icons
+          (let ((all-the-icons-scale-factor 0.8))
+            `((Unknown       . ,(all-the-icons-material "find_in_page"             :face 'all-the-icons-purple))
+              (Text          . ,(all-the-icons-material "text_fields"              :face 'all-the-icons-green))
+              (Method        . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Function      . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Constructor   . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Field         . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Variable      . ,(all-the-icons-material "adjust"                   :face 'all-the-icons-blue))
+              (Class         . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+              (Interface     . ,(all-the-icons-material "settings_input_component" :face 'all-the-icons-red))
+              (Module        . ,(all-the-icons-material "view_module"              :face 'all-the-icons-red))
+              (Property      . ,(all-the-icons-material "settings"                 :face 'all-the-icons-red))
+              (Unit          . ,(all-the-icons-material "straighten"               :face 'all-the-icons-red))
+              (Value         . ,(all-the-icons-material "filter_1"                 :face 'all-the-icons-red))
+              (Enum          . ,(all-the-icons-material "plus_one"                 :face 'all-the-icons-red))
+              (Keyword       . ,(all-the-icons-material "filter_center_focus"      :face 'all-the-icons-red))
+              (Snippet       . ,(all-the-icons-material "short_text"               :face 'all-the-icons-red))
+              (Color         . ,(all-the-icons-material "color_lens"               :face 'all-the-icons-red))
+              (File          . ,(all-the-icons-material "insert_drive_file"        :face 'all-the-icons-red))
+              (Reference     . ,(all-the-icons-material "collections_bookmark"     :face 'all-the-icons-red))
+              (Folder        . ,(all-the-icons-material "folder"                   :face 'all-the-icons-red))
+              (EnumMember    . ,(all-the-icons-material "people"                   :face 'all-the-icons-red))
+              (Constant      . ,(all-the-icons-material "pause_circle_filled"      :face 'all-the-icons-red))
+              (Struct        . ,(all-the-icons-material "streetview"               :face 'all-the-icons-red))
+              (Event         . ,(all-the-icons-material "event"                    :face 'all-the-icons-red))
+              (Operator      . ,(all-the-icons-material "control_point"            :face 'all-the-icons-red))
+              (TypeParameter . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+              (Template      . ,(all-the-icons-material "short_text"               :face 'all-the-icons-green))
+              (ElispFunction . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (ElispVariable . ,(all-the-icons-material "check_circle"             :face 'all-the-icons-blue))
+              (ElispFeature  . ,(all-the-icons-material "stars"                    :face 'all-the-icons-orange))
+              (ElispFace     . ,(all-the-icons-material "format_paint"             :face 'all-the-icons-pink)))))
+
+    ;; Disable tab-bar in company-box child frames
+    (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
     )
 
     (use-package envrc
