@@ -32,6 +32,7 @@
 
   (setq straight-use-package-by-default t)
   (setq straight-vc-git-default-clone-depth 1)
+(setq straight-check-for-modifications '(check-on-save find-when-checking))
   (setq use-package-always-defer t)
   (defvar bootstrap-version)
   (let* ((straight-repo-dir
@@ -137,14 +138,6 @@
 
 (use-package emacs
 	:init
-  ;; start server for emacsclient
-  (unless (and (fboundp 'server-running-p)
-               (server-running-p))
-    (server-start))
-	)
-
-(use-package emacs
-	:init
   ;; Main typeface
   ;; point size * 10, so 18*10 =180
   (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
@@ -191,7 +184,12 @@
     )
 
 (use-package no-littering
-	:demand)
+	:demand
+	:config
+  (with-eval-after-load 'recentf
+    (add-to-list 'recentf-exclude no-littering-var-directory)
+    (add-to-list 'recentf-exclude no-littering-etc-directory))
+	)
 
 (use-package general
   :demand t
@@ -225,10 +223,11 @@
     "c" '(:ignore t :which-key "code")
 
     "f" '(:ignore t :which-key "file")
-    "fD" '(delete-file :wk "delete")
+    "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
     "ff"  'find-file
     "fs" 'save-buffer
     "fr" 'recentf-open-files
+    "fR" '((lambda () (interactive) (rename-file (buffer-file-name))) :wk "move/rename")
 
     "g" '(:ignore t :which-key "git")
 
@@ -412,6 +411,17 @@
   ;;                "+TOMORROW" 'file 'archive 'comment)
   ;; (setq dashboard-match-agenda-entry "-private")
   (setq dashboard-match-agenda-entry "work|life")
+	;; exclude work items after 17 and on weekends
+  (run-at-time "00:00" (* 60 60 24)
+   (lambda ()
+		 (when (or (-> (nth 3 (split-string (current-time-string) " ")) ; time of the day e.g. 18
+									 (substring 0 2)
+									 (string-to-number)
+									 (> 16))
+							 (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
+									 (member  '("Sat" "Sun"))))
+			 (setq dashboard-match-agenda-entry "life"))))
+	
   (setq dashboard-items '((recents  . 5)
                           (agenda . 5)
                           ;; (bookmarks . 5)
@@ -559,24 +569,57 @@
     :after selectrum
     :demand)
 
-  (use-package projectile
-    :demand
-    :general
-    (my/leader-keys
-      "p" '(:keymap projectile-command-map :which-key "projectile")
-      "p a" 'projectile-add-known-project
-      "p t" 'projectile-run-vterm)
-    :init
-    (when (file-directory-p "~/git")
-      (setq projectile-project-search-path '("~/git")))
-    (setq projectile-completion-system 'default)
-    (setq projectile-switch-project-action #'projectile-find-file)
-    (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
-    ;; (add-to-list 'projectile-globally-ignored-directories "straight") ;; TODO
-    :config
-    (defadvice projectile-project-root (around ignore-remote first activate)
-      (unless (file-remote-p default-directory) ad-do-it))
-    (projectile-mode))
+(use-package projectile
+  :demand
+  :general
+  (my/leader-keys
+    "p" '(:keymap projectile-command-map :which-key "project")
+    "p a" '(projectile-add-known-project :wk "add known")
+    "p t" '(projectile-run-vterm :wk "term")
+    "p s" '(projectile-ripgrep :wk "ripgrep"))
+  :init
+  (when (file-directory-p "~/git")
+    (setq projectile-project-search-path '("~/git")))
+  (setq projectile-completion-system 'default)
+  (setq projectile-switch-project-action #'projectile-find-file)
+  (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
+  ;; (add-to-list 'projectile-globally-ignored-directories "straight") ;; TODO
+	(setq projectile-switch-project-action 'projectile-commander)
+  :config
+  (defadvice projectile-project-root (around ignore-remote first activate)
+    (unless (file-remote-p default-directory) ad-do-it))
+  (projectile-mode)
+	;; projectile commander methods
+	(setq projectile-commander-methods nil)
+	(def-projectile-commander-method ?? "Commander help buffer."
+		(ignore-errors (kill-buffer projectile-commander-help-buffer))
+		(with-current-buffer (get-buffer-create projectile-commander-help-buffer)
+			(insert "Projectile Commander Methods:\n\n")
+			(dolist (met projectile-commander-methods)
+				(insert (format "%c:\t%s\n" (car met) (cadr met))))
+			(goto-char (point-min))
+      (help-mode)
+      (display-buffer (current-buffer) t))
+    (projectile-commander))
+	(def-projectile-commander-method ?t
+    "Open a *shell* buffer for the project."
+    (projectile-run-vterm))
+	(def-projectile-commander-method ?\C-? ;; backspace
+		"Go back to project selection."
+		(projectile-switch-project))
+	(def-projectile-commander-method ?d
+    "Open project root in dired."
+    (projectile-dired))
+	(def-projectile-commander-method ?f
+    "Find file in project."
+    (projectile-find-file))
+	(def-projectile-commander-method ?s
+    "Ripgrep in project."
+    (projectile-find-file))
+	(def-projectile-commander-method ?g
+    "Git status in project."
+    (projectile-vc))
+  )
 
   (use-package perspective
     :commands (persp-new persp-switch)
@@ -603,10 +646,19 @@
     :config
     (persp-mode))
 
-  (use-package persp-projectile
-    :general
-    (my/leader-keys
-      "p p" 'projectile-persp-switch-project))
+(use-package persp-projectile
+  :general
+
+  (my/leader-keys
+    "p p" 'projectile-persp-switch-project
+		;; "<tab> o"	'((lambda () (interactive) (projectile-persp-switch-project "org")) :wk "org")
+    ;; "p P" '((lambda ()
+    ;;           (setq projectile-switch-project-action 'projectile-commander)
+    ;;           (setq projectile-switch-project-action 'projectile-find-file)
+		;; 					(interactive)
+    ;;           (projectile-persp-switch-project))
+    ;;         :wk "project commander" )
+    ))
 
 (use-package magit
   :general
@@ -869,7 +921,9 @@
     :general
     (my/leader-keys
       "f d" 'dired
-      "f j" 'dired-jump))
+      "f j" 'dired-jump)
+		:init
+		(setq dired-dwim-target t))
 
   (use-package dired-single
     :after dired
@@ -889,73 +943,75 @@
       "R" '(restart-emacs :wk "restart"))
     )
 
-  (use-package org
-    :hook ((org-mode . my/org-mode-setup)
-           (org-mode . prettify-symbols-mode))
-    :general
-    (my/leader-keys
-      "o a" '(org-agenda-list :wk "agenda")
-      "o C" '(org-capture :wk "capture")
-      "o l" '(org-todo-list :wk "todo list")
-      "o c" '((lambda () (interactive)
-                (find-file (concat user-emacs-directory "readme.org")))
-              :wk "open config")
-      "o t" '((lambda () (interactive)
-                (find-file (concat org-directory "/personal/tasks/todo.org")))
-              :wk "open todos"))
-    (my/local-leader-keys
-      :keymaps 'org-mode-map
-      "A" '(org-archive-subtree :wk "archive subtree")
-      "E" '(org-export-dispatch :wk "export")
-      "l" '(:ignore true :wk "link")
-      "l l" '(org-insert-link :wk "insert link")
-      "l s" '(org-store-link :wk "store link")
-      "r" '(org-refile :wk "refile")
-      "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
-      "s" '(org-sort :wk "sort")
-      "t" '(:ignore true :wk "todo")
-      "t t" '(org-todo :wk "heading todo")
-      "t s" '(org-schedule :wk "schedule")
-      "t d" '(org-deadline :wk "deadline"))
-    (org-mode-map
-     :states '(normal)
-     "z i" '(org-toggle-inline-images :wk "inline images"))
-    :init
-    ;; general settings
-    (setq org-directory "~/Dropbox/org"
-          org-image-actual-width nil
-          +org-export-directory "~/Dropbox/org/export"
-          org-default-notes-file "~/Dropbox/org/personal/tasks/todo.org"
-          org-id-locations-file "~/Dropbox/org/.orgids"
-          org-agenda-files '("~/dropbox/org/personal/tasks/birthdays.org" "~/dropbox/org/personal/tasks/todo.org" "~/dropbox/Notes/Test.inbox.org")
-          ;; org-export-in-background t
-          org-src-preserve-indentation t ;; do not put two spaces on the left
-          org-catch-invisible-edits 'smart)
-    ;; disable modules for faster startup
-    (setq org-modules
-          '(;; ol-w3m
-            ;; ol-bbdb
-            ;; ol-bibtex
-            ol-docview
-            ;; ol-gnus
-            ;; ol-info
-            ;; ol-irc
-            ;; ol-mhe
-            ;; ol-rmail
-            ;; ol-eww
-            ))
-    (setq org-todo-keywords
-          '((sequence "TODO(t)" "PROJ(p)" "|" "DONE(d)")))
-    (setq org-capture-templates
-          `(("b" "Blog" entry
-             (file+headline "personal/tasks/todo.org" "Blog")
-             ,(concat "* WRITE %^{Title} %^g\n"
-                      "SCHEDULED: %^t\n"
-                      ":PROPERTIES:\n"
-                      ":CAPTURED: %U\n:END:\n\n"
-                      "%i%?"))
-            ("d" "New Diary Entry" entry(file+olp+datetree"~/Dropbox/org/personal/diary.org" "Daily Logs")
-             "* %^{thought for the day}
+(use-package org
+  :hook ((org-mode . my/org-mode-setup)
+         (org-mode . prettify-symbols-mode))
+  :general
+  (my/leader-keys
+    "o a" '(org-agenda-list :wk "agenda")
+    "o A" '(org-agenda :wk "agenda")
+    "o C" '(org-capture :wk "capture")
+    "o l" '(org-todo-list :wk "todo list")
+    "o c" '((lambda () (interactive)
+              (find-file (concat user-emacs-directory "readme.org")))
+            :wk "open config")
+    "o t" '((lambda () (interactive)
+              (find-file (concat org-directory "/personal/todo.org")))
+            :wk "open todos"))
+  (my/local-leader-keys
+    :keymaps 'org-mode-map
+    "A" '(org-archive-subtree :wk "archive subtree")
+    "E" '(org-export-dispatch :wk "export")
+    "l" '(:ignore true :wk "link")
+    "l l" '(org-insert-link :wk "insert link")
+    "l s" '(org-store-link :wk "store link")
+    "r" '(org-refile :wk "refile")
+    "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
+		"p" '(org-priority :wk "priority")
+    "s" '(org-sort :wk "sort")
+    "t" '(:ignore true :wk "todo")
+    "t t" '(org-todo :wk "heading todo")
+    "t s" '(org-schedule :wk "schedule")
+    "t d" '(org-deadline :wk "deadline"))
+  (org-mode-map
+   :states '(normal)
+   "z i" '(org-toggle-inline-images :wk "inline images"))
+  :init
+  ;; general settings
+  (setq org-directory "~/Dropbox/org"
+        org-image-actual-width nil
+        +org-export-directory "~/Dropbox/org/export"
+        org-default-notes-file "~/Dropbox/org/personal/todo.org"
+        org-id-locations-file "~/Dropbox/org/.orgids"
+        org-agenda-files '("~/dropbox/org/personal/birthdays.org" "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
+        ;; org-export-in-background t
+        org-src-preserve-indentation t ;; do not put two spaces on the left
+        org-catch-invisible-edits 'smart)
+  ;; disable modules for faster startup
+  (setq org-modules
+        '(;; ol-w3m
+          ;; ol-bbdb
+          ;; ol-bibtex
+          ol-docview
+          ;; ol-gnus
+          ;; ol-info
+          ;; ol-irc
+          ;; ol-mhe
+          ;; ol-rmail
+          ;; ol-eww
+          ))
+  (setq org-todo-keywords
+        '((sequence "NEXT(n)" "TODO(t)" "|" "PROG(n)" "|" "DONE(d)" "HOLD(h)")))
+  (setq org-capture-templates
+        `(("b" "Blog" entry
+           (file+headline "personal/todo.org" "Blog")
+           ,(concat "* WRITE %^{Title} %^g\n"
+                    "SCHEDULED: %^t\n"
+                    ":PROPERTIES:\n"
+                    ":CAPTURED: %U\n:END:\n\n"
+                    "%i%?"))
+          ("d" "New Diary Entry" entry(file+olp+datetree"~/Dropbox/org/personal/diary.org" "Daily Logs")
+           "* %^{thought for the day}
                  :PROPERTIES:
                  :CATEGORY: %^{category}
                  :SUBJECT:  %^{subject}
@@ -972,63 +1028,81 @@
 
                  \*Describe in your own words how your day was*:
                  - %?")
-            ("i" "Inbox" entry
-             (file+headline "personal/tasks/todo.org" "Inbox")
-             ,(concat "* %^{Title}\n"
-                      ":PROPERTIES:\n"
-                      ":CAPTURED: %U\n"
-                      ":END:\n\n"
-                      "%i%l"))
-            ("u" "New URL Entry" entry
-             (file+function "~/Dropbox/org/personal/dailies.org" org-reverse-datetree-goto-date-in-file)
-             "* [[%^{URL}][%^{Description}]] %^g %?")
-            ("w" "Work" entry
-             (file+headline "personal/tasks/todo.org" "Work")
-             ,(concat "* TODO [#A] %^{Title} :@work:\n"
-                      "SCHEDULED: %^t\n"
-                      ":PROPERTIES:\n:CAPTURED: %U\n:END:\n\n"
-                      "%i%?"))
-
-            ))
-    (setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
-                                           ("#+END_SRC" . "«")
-                                           ("#+begin_src" . "»")
-                                           ("#+end_src" . "«")))
-    (setq prettify-symbols-unprettify-at-point 'right-edge)
-    ;; (setq org-agenda-custom-commands
-    ;;         '(("d" "Dashboard"
-    ;;            ((agenda "" ((org-deadline-warning-days 7)))
-    ;;             (todo "NEXT"
-    ;;                   ((org-agenda-overriding-header "Next Tasks")))
-    ;;             (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-    ;;           ("n" "Next Tasks"
-    ;;            ((todo "NEXT"
-    ;;                   ((org-agenda-overriding-header "Next Tasks")))))
-    ;;           ("W" "Work Tasks" tags-todo "+work-email")
-    ;;           ))
-    (defun my/org-mode-setup ()
-      (org-indent-mode)
-      (variable-pitch-mode 1)
-      (visual-line-mode 1))
-    :config
-    ;; visual
+          ("i" "Inbox" entry
+           (file+headline "personal/todo.org" "Inbox")
+           ,(concat "* %^{Title}\n"
+                    ":PROPERTIES:\n"
+                    ":CAPTURED: %U\n"
+                    ":END:\n\n"
+                    "%i%l"))
+          ("u" "New URL Entry" entry
+           (file+function "~/Dropbox/org/personal/dailies.org" org-reverse-datetree-goto-date-in-file)
+           "* [[%^{URL}][%^{Description}]] %^g %?")
+          ("w" "Work" entry
+           (file+headline "personal/todo.org" "Work")
+           ,(concat "* TODO [#A] %^{Title} :@work:\n"
+                    "SCHEDULED: %^t\n"
+                    ":PROPERTIES:\n:CAPTURED: %U\n:END:\n\n"
+                    "%i%?"))))
+  (setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
+                                         ("#+END_SRC" . "«")
+                                         ("#+begin_src" . "»")
+                                         ("#+end_src" . "«")))
+  (setq prettify-symbols-unprettify-at-point 'right-edge)
+  (setq org-agenda-custom-commands
+        '(("d" "Dashboard"
+           ((agenda "" ((org-deadline-warning-days 7)))
+            (todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))
+            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+          ("n" "Next Tasks"
+           ((todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))))
+          ("w" "Work Tasks" tags-todo "+work")))
+  (defun my/org-mode-setup ()
     (org-indent-mode)
     (variable-pitch-mode 1)
-    (visual-line-mode 1)
-    ;; org habit
-    (require 'org-habit)
-    (add-to-list 'org-modules 'org-habit)
-    ;; (efs/org-font-setup)
-    (require 'org-tempo)
-    (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-    (add-to-list 'org-structure-template-alist '("py" . "src python"))
-    (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
-    (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
-    ;; latex
-    (setq org-latex-compiler "xelatex")
-    (add-to-list 'org-export-backends 'beamer)
-    )
+    (visual-line-mode 1))
+  (defun org-toc ()
+    (interactive)
+    (let ((headings (delq nil (cl-loop for f in (f-entries "." (lambda (f) (f-ext? f "org")) t)
+																			 append
+																			 (with-current-buffer (find-file-noselect f)
+																				 (org-map-entries
+																					(lambda ()
+																						(when (> 2 (car (org-heading-components)))
+																							(cons f (nth 4 (org-heading-components)))))))))))
+			(switch-to-buffer (get-buffer-create "*toc*"))
+			(erase-buffer)
+			(org-mode)
+			(cl-loop for (file . file-headings) in (seq-group-by #'car headings) 
+							 do
+							 (insert (format "* %s \n" file))
+							 (cl-loop for (file . heading) in file-headings 
+												do
+												(insert (format "** [[%s::*%s][%s]]\n" file heading heading))))))
+	:config
+  ;; visual
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1)
+  ;; org habit
+  (require 'org-habit)
+  (add-to-list 'org-modules 'org-habit)
+  ;; (efs/org-font-setup)
+  (require 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
+  (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
+	(add-to-list 'org-structure-template-alist '("ha" . "#+PROPERTY: header-args :session "))
+  ;; latex
+  ;; (setq org-latex-compiler "xelatex")
+	;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
+	(setq org-latex-pdf-process '("tectonic %f"))
+  (add-to-list 'org-export-backends 'beamer)
+  )
 
 (use-package org-reverse-datetree
 :after org)
@@ -1045,15 +1119,20 @@
             )
       )
 
-  (use-package hl-todo
-    :hook (prog-mode . hl-todo-mode)
-    :init
-    (setq hl-todo-keyword-faces
-          '(("TODO"   . "#FF4500")
-            ("FIXME"  . "#FF0000")
-            ("STRT"  . "#A020F0")
-            ("PROJ"   . "#1E90FF")))
-    )
+(use-package hl-todo
+	:hook ((prog-mode org-mode) . my/hl-todo-init)
+	:init
+	(defun my/hl-todo-init ()
+    (setq-local hl-todo-keyword-faces '(("HOLD" . "#cfdf30")
+                                        ("TODO" . "#ff9977")
+                                        ("NEXT" . "#b6a0ff")
+																				("PROG" . "#00d3d0")
+																				("FIXME" . "#ff9977")
+																				("DONE" . "#44bc44")
+																				("REVIEW" . "#6ae4b9")
+																				("DEPRECATED" . "#bfd9ff")))
+		(hl-todo-mode))
+  )
 
   (use-package org
     :general
@@ -1153,19 +1232,16 @@
     (setq org-tree-slide-activate-message "Presentation mode ON")
     (setq org-tree-slide-deactivate-message "Presentation mode OFF")
     (setq org-tree-slide-indicator nil)
+    ;; TODO maybe also enable olivetti mode?
     (defun +remap-faces-at-start-present ()
-      ;; (setq-local face-remapping-alist '((default (:height 1.50) variable-pitch)
-      ;;                                    (org-verbatim (:height 1.35) org-verbatim)
-      ;;                                    (org-block (:height 1.25) org-block)))
+      (setq-local face-remapping-alist '((default (:height 1.50) variable-pitch)
+																				 (fixed-pitch (:height 1.2) fixed-pitch)
+                                         ;; (org-verbatim (:height 1.2) org-verbatim)
+                                         ;; (org-block (:height 1.2) org-block)
+																				 ))
       (hide-mode-line-mode 1)
       (diff-hl-mode 0)
       (centaur-tabs-mode 0))
-    ;; TODO maybe also enable olivetti mode?
-    (defun +remap-faces-at-start-present-term ()
-      (interactive)
-      (setq-local face-remapping-alist '((default (:height 1.50) variable-pitch)
-                                         (org-verbatim (:height 1.35) org-verbatim)
-                                         (org-block (:height 1.25) org-block))))
     (defun +remap-faces-at-stop-present ()
       (setq-local face-remapping-alist '((default variable-pitch default)))
       (hide-mode-line-mode 0)
@@ -1553,20 +1629,11 @@
     )
 
   (use-package python-mode
-    ;; :init
-    ;; (defun my/ipython-use-venv (orig-fun &rest args)
-    ;;   (when (getenv "VIRTUAL_ENV")
-    ;;     (when-let ((python-shell-interpreter (executable-find "ipython")))
-    ;;       (apply orig-fun args)))
-    ;;   (apply orig-fun args))
-    ;; (advice-add 'run-python :around #'my/ipython-use-venv)
     :hook (envrc-mode . (lambda ()
                           (when (executable-find "ipython")
                             (setq python-shell-interpreter (executable-find "ipython")))))
 		:general
-		(general-nmap
-			:keymaps 'python-mode-map
-			"gz" nil)
+		(python-mode-map :states 'normal "gz" nil)
 		:init
 		(setq python-indent-offset 0)
     :config
@@ -1695,7 +1762,7 @@
     :init
     (setq evil-lisp-state-enter-lisp-state-on-command nil)
     ;; (setq evil-lisp-state-global t)
-    (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode))
+    (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode clojurescript-mode))
     :config
     (evil-lisp-state-leader "SPC l")
     )
@@ -1715,7 +1782,10 @@
     :general
     (my/local-leader-keys
       :keymaps 'clojure-mode-map
-      "'" '(cider-jack-in :wk "jack in")
+      "c" '(cider-connect-clj :wk "connect")
+      "C" '(cider-connect-cljs :wk "connect (cljs)")
+      "j" '(cider-jack-in :wk "jack in")
+      "J" '(cider-jack-in-cljs :wk "jack in (cljs)")
       "e l" 'cider-eval-last-sexp
       "e E" 'cider-pprint-eval-last-sexp-to-comment
       "e d" '(cider-eval-defun-at-point :wk "defun")
