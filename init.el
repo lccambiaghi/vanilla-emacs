@@ -1,34 +1,28 @@
-  ;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
-  ;; repeating here in case early-init.el is not loaded with chemacs
+;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
 
-  (setq gc-cons-threshold most-positive-fixnum
-        gc-cons-percentage 0.6)
-  (setq package-enable-at-startup nil)
-  (setq comp-deferred-compilation nil)
-
-  ;; `file-name-handler-alist' is consulted on every `require', `load' and various
-  ;; path/io functions. You get a minor speed up by nooping this. However, this
-  ;; may cause problems on builds of Emacs where its site lisp files aren't
-  ;; byte-compiled and we're forced to load the *.el.gz files (e.g. on Alpine)
-  (unless (daemonp)
-    (defvar doom--initial-file-name-handler-alist file-name-handler-alist)
-    (setq file-name-handler-alist nil)
-    ;; Restore `file-name-handler-alist' later, because it is needed for handling
-    ;; encrypted or compressed files, among other things.
-    (defun doom-reset-file-handler-alist-h ()
-      ;; Re-add rather than `setq', because changes to `file-name-handler-alist'
-      ;; since startup ought to be preserved.
-      (dolist (handler file-name-handler-alist)
-        (add-to-list 'doom--initial-file-name-handler-alist handler))
-      (setq file-name-handler-alist doom--initial-file-name-handler-alist))
-    (add-hook 'emacs-startup-hook #'doom-reset-file-handler-alist-h)
-    (add-hook 'after-init-hook #'(lambda ()
-                                   ;; restore after startup
-                                   (setq gc-cons-threshold 16777216
-                                         gc-cons-percentage 0.1)))
-    )
-  ;; Ensure Doom is running out of this file's directory
-  (setq user-emacs-directory (file-name-directory load-file-name))
+;; `file-name-handler-alist' is consulted on every `require', `load' and various
+;; path/io functions. You get a minor speed up by nooping this. However, this
+;; may cause problems on builds of Emacs where its site lisp files aren't
+;; byte-compiled and we're forced to load the *.el.gz files (e.g. on Alpine)
+(unless (daemonp)
+  (defvar doom--initial-file-name-handler-alist file-name-handler-alist)
+  (setq file-name-handler-alist nil)
+  ;; Restore `file-name-handler-alist' later, because it is needed for handling
+  ;; encrypted or compressed files, among other things.
+  (defun doom-reset-file-handler-alist-h ()
+    ;; Re-add rather than `setq', because changes to `file-name-handler-alist'
+    ;; since startup ought to be preserved.
+    (dolist (handler file-name-handler-alist)
+      (add-to-list 'doom--initial-file-name-handler-alist handler))
+    (setq file-name-handler-alist doom--initial-file-name-handler-alist))
+  (add-hook 'emacs-startup-hook #'doom-reset-file-handler-alist-h)
+  (add-hook 'after-init-hook '(lambda ()
+                                 ;; restore after startup
+                                 (setq gc-cons-threshold 16777216
+                                       gc-cons-percentage 0.1)))
+  )
+;; Ensure Doom is running out of this file's directory
+(setq user-emacs-directory (file-truename (file-name-directory load-file-name)))
 
   (setq straight-use-package-by-default t)
   (setq straight-vc-git-default-clone-depth 1)
@@ -88,6 +82,10 @@
 
   ;; enable recent files mode.
   (recentf-mode t)
+	(setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
+                     ,(expand-file-name "eln-cache/" user-emacs-directory)
+                     ,(expand-file-name "etc/" user-emacs-directory)
+                     ,(expand-file-name "var/" user-emacs-directory)))
 
   ;; don't want ESC as a modifier
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -138,8 +136,35 @@
 
 (use-package emacs
 	:init
-  ;; Main typeface
+	(defconst my/default-font-family "Fira Code Retina" )
+	(defconst my/variable-pitch-font-family "Cantarell")
+	
+	;; my/default-font-size is calculated on start according to the primary screen
+	;; size. if screen-size is bigger than 16 inch: 9 else 11.
+	(defconst my/default-font-size
+		(let* ((command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
+					 (screen-size (string-to-number (shell-command-to-string command))))
+      (if (> screen-size 16) 90 110)))
+
   ;; point size * 10, so 18*10 =180
+	(defconst my/variable-pitch-font-size
+		(let* ((command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
+					 (screen-size (string-to-number (shell-command-to-string command))))
+      (if (> screen-size 16) 90 110)))
+
+	;; (set-face-attribute 'default nil
+	;; 										:family my/default-font-family
+	;; 										:height my/default-font-size)
+
+	;; (set-face-attribute 'variable-pitch nil
+	;; 										:family my/variable-pitch-font-family
+	;; 										:height my/variable-pitch-font-size
+	;; 										:weight 'regular)
+
+	;; (set-face-attribute 'fixed-pitch nil
+  ;;                     :family my/default-font-family
+  ;;                     :height my/default-font-size)
+  ;; Main typeface
   (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
   ;; Set the fixed pitch face
   (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
@@ -217,7 +242,7 @@
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
     "bd"  'kill-current-buffer
-    "bD" 'kill-buffer-and-window
+    "bx" '((lambda () (interactive) (let ((kill-buffer-query-functions nil)) (kill-buffer-and-window))) :wk "kill")
     "bs" '((lambda () (interactive) (pop-to-buffer "*scratch*")) :wk "scratch")
 
     "c" '(:ignore t :which-key "code")
@@ -309,6 +334,72 @@
   :config
   (evil-goggles-mode)
   (evil-goggles-use-diff-faces))
+
+(use-package evil-snipe
+	:after evil
+	:demand
+	:config
+	(evil-snipe-mode +1)
+  (evil-snipe-override-mode +1))
+
+  (use-package evil-mc
+    :general
+    (general-nmap "gz" #'mc-hydra/body)
+    :config
+    (defhydra mc-hydra (:color pink :hint nil
+                               :pre (evil-mc-pause-cursors))
+      "
+  ^Match^            ^Line-wise^           ^Manual^
+  ^^^^^^----------------------------------------------------
+  _Z_: match all     _J_: make & go down   _R_: remove all
+  _m_: make & next   _K_: make & go up     
+  _M_: make & prev   ^ ^                   
+  _n_: skip & next   ^ ^                   
+  _N_: skip & prev
+
+  Current pattern: %`evil-mc-pattern
+
+  "
+      ("Z" #'evil-mc-make-all-cursors)
+      ("m" #'evil-mc-make-and-goto-next-match)
+      ("M" #'evil-mc-make-and-goto-prev-match)
+      ("n" #'evil-mc-skip-and-goto-next-match)
+      ("N" #'evil-mc-skip-and-goto-prev-match)
+      ("J" #'evil-mc-make-cursor-move-next-line)
+      ("K" #'evil-mc-make-cursor-move-prev-line)
+      ("R" #'evil-mc-undo-all-cursors)
+      ("q" #'evil-mc-resume-cursors "quit" :color blue)
+      ("<escape>" #'evil-mc-resume-cursors "quit" :color blue))
+    (global-evil-mc-mode +1)
+    )
+
+(use-package evil-nerd-commenter
+  :general
+  (general-nvmap
+    "gc" 'evilnc-comment-operator
+    "gC" 'evilnc-copy-and-comment-operator)
+  )
+
+(use-package evil-surround
+  :general
+  (:states 'operator
+   "s" 'evil-surround-edit
+   "S" 'evil-Surround-edit)
+  (:states 'visual
+   "S" 'evil-surround-region
+   "gS" 'evil-Surround-region))
+
+(use-package evil-indent-plus
+	:after evil
+	:demand
+  :config
+  (define-key evil-inner-text-objects-map "i" 'evil-indent-plus-i-indent)
+  (define-key evil-outer-text-objects-map "i" 'evil-indent-plus-a-indent)
+	(define-key evil-inner-text-objects-map "k" 'evil-indent-plus-i-indent-up)
+	(define-key evil-outer-text-objects-map "k" 'evil-indent-plus-a-indent-up)
+	(define-key evil-inner-text-objects-map "j" 'evil-indent-plus-i-indent-up-down)
+	(define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down)
+	)
 
 (use-package which-key
   :demand t
@@ -407,20 +498,17 @@
   (setq dashboard-projects-backend 'projectile)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
-  ;; (org-map-entries '(org-todo "UPCOMING")
-  ;;                "+TOMORROW" 'file 'archive 'comment)
-  ;; (setq dashboard-match-agenda-entry "-private")
   (setq dashboard-match-agenda-entry "work|life")
 	;; exclude work items after 17 and on weekends
   (run-at-time "00:00" (* 60 60 24)
-   (lambda ()
-		 (when (or (-> (nth 3 (split-string (current-time-string) " ")) ; time of the day e.g. 18
-									 (substring 0 2)
-									 (string-to-number)
-									 (> 16))
-							 (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
-									 (member  '("Sat" "Sun"))))
-			 (setq dashboard-match-agenda-entry "life"))))
+							 (lambda ()
+								 (when (or (-> (nth 3 (split-string (current-time-string) " ")) ; time of the day e.g. 18
+															 (substring 0 2)
+															 (string-to-number)
+															 (> 16))
+													 (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
+															 (member  '("Sat" "Sun"))))
+									 (setq dashboard-match-agenda-entry "life"))))
 	
   (setq dashboard-items '((recents  . 5)
                           (agenda . 5)
@@ -428,8 +516,26 @@
                           ;; (projects . 5)
                           ))
   ;; (setq dashboard-startup-banner [VALUE])
+	;; (setq dashboard-navigator-buttons
+  ;;  `((;; Github
+  ;;     (,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+  ;;      "Github"
+  ;;      "Browse github"
+  ;;      (lambda (&rest _) (browse-url "https://github.com/")))
+  ;;     ;; Codebase
+  ;;     ;; (,(all-the-icons-faicon "briefcase" :height 1.1 :v-adjust -0.1)
+  ;;     ;;  "Codebase"
+  ;;     ;;  "My assigned tickets"
+  ;;     ;;  (lambda (&rest _) (browse-url "https://hipo.codebasehq.com/tickets")))
+  ;;     ;; Perspective
+  ;;     (,(all-the-icons-octicon "history" :height 1.1 :v-adjust 0.0)
+  ;;      "Reload last session"
+  ;;      "Reload last session"
+  ;;      (lambda (&rest _) (persp-state-load persp-state-default-file))))))
   :config
-  (dashboard-setup-startup-hook))
+  (dashboard-setup-startup-hook)
+  (add-hook 'dashboard-mode-hook '(lambda () (setq-local cursor-type nil)))
+	)
 
   (use-package centaur-tabs
     :hook (emacs-startup . centaur-tabs-mode)
@@ -546,28 +652,29 @@
     (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
     )
 
-  (use-package consult
-    :general
+(use-package consult
+  :general
+  (my/leader-keys
+    "s o" '(consult-outline :which-key "outline")
+    "s s" 'consult-line
+    "y" '(consult-yank-pop :which-key "yank")
+    "b b" 'consult-buffer
+    ;; TODO consult mark
+    "f r" 'consult-recent-file
+    "s !" '(consult-flymake :wk "flymake"))
+	(with-eval-after-load 'projectile
     (my/leader-keys
-      "s o" '(consult-outline :which-key "outline")
-      "s s" 'consult-line
-      "y" '(consult-yank-pop :which-key "yank")
-      "b b" 'consult-buffer
-      ;; TODO consult mark
-      "f r" 'consult-recent-file
-      "s !" '(consult-flymake :wk "flymake")
-      "s p" '(consult-ripgrep :wk "ripgrep")
-      )
-    ;; :init
-    ;; (setq consult-preview-key "C-l")
-    ;; (setq consult-narrow-key ">")
-    :config
-    (consult-preview-mode)
-    )
+      "s p" '((lambda () (interactive) (consult-ripgrep (projectile-project-root))) :wk "ripgrep")))
+  ;; :init
+  ;; (setq consult-preview-key "C-l")
+  ;; (setq consult-narrow-key ">")
+  :config
+  (consult-preview-mode)
+  )
 
-  (use-package consult-selectrum
-    :after selectrum
-    :demand)
+(use-package consult-selectrum
+  :after selectrum
+  :demand)
 
 (use-package projectile
   :demand
@@ -575,16 +682,18 @@
   (my/leader-keys
     "p" '(:keymap projectile-command-map :which-key "project")
     "p a" '(projectile-add-known-project :wk "add known")
-    "p t" '(projectile-run-vterm :wk "term")
-    "p s" '(projectile-ripgrep :wk "ripgrep"))
+    "p t" '(projectile-run-vterm :wk "term"))
   :init
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
   (setq projectile-completion-system 'default)
   (setq projectile-switch-project-action #'projectile-find-file)
   (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
-  ;; (add-to-list 'projectile-globally-ignored-directories "straight") ;; TODO
 	(setq projectile-switch-project-action 'projectile-commander)
+	;; Do not include straight repos (emacs packages) to project list
+	(setq projectile-ignored-project-function
+   (lambda (project-root)
+     (string-prefix-p (expand-file-name "straight/" user-emacs-directory) project-root)))
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
     (unless (file-remote-p default-directory) ad-do-it))
@@ -629,7 +738,7 @@
       "<tab> <tab>" 'persp-switch
       "<tab> `" 'persp-switch-last
       "<tab> d" 'persp-kill
-      "<tab> D" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
+      "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
       "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
       "<tab> n" '(my/new-tab :wk "new"))
     :init
@@ -693,26 +802,34 @@
      "C-j" 'git-timemachine-show-next-revision
      "q" 'git-timemachine-quit))
 
-  (use-package diff-hl
-    :demand
-    :hook
-    ((magit-pre-refresh . diff-hl-magit-pre-refresh)
-     (magit-post-refresh . diff-hl-magit-post-refresh))
-    :init
-    (setq diff-hl-draw-borders nil)
-    ;; (setq diff-hl-fringe-bmp-function 'diff-hl-fringe-bmp-from-type)
-    ;; (setq diff-hl-global-modes (not '(image-mode org-mode)))
-    :config
-    (global-diff-hl-mode)
-    )
+(use-package diff-hl
+  :demand
+	:general
+	(my/leader-keys
+    "g n" '(diff-hl-next-hunk :wk "next hunk")
+    "g p" '(diff-hl-previous-hunk :wk "prev hunk"))
+  :hook
+  ((magit-pre-refresh . diff-hl-magit-pre-refresh)
+   (magit-post-refresh . diff-hl-magit-post-refresh))
+  :init
+  (setq diff-hl-draw-borders nil)
+  ;; (setq diff-hl-fringe-bmp-function 'diff-hl-fringe-bmp-from-type)
+  ;; (setq diff-hl-global-modes (not '(image-mode org-mode)))
+  :config
+  (global-diff-hl-mode)
+  )
 
   (use-package smerge-mode
     :straight (:type built-in)
     :after hydra
     :general
     (my/leader-keys "g m" 'hydra-smerge)
+		:hook
+		(magit-diff-visit-file . (lambda ()
+                             (when smerge-mode
+                               (smerge-hydra/body))))
     :init
-    (defhydra hydra-smerge (:hint nil
+    (defhydra smerge-hydra (:hint nil
                                   :pre (smerge-mode 1)
                                   ;; Disable `smerge-mode' when quitting hydra if
                                   ;; no merge conflicts remain.
@@ -783,6 +900,12 @@
 
 (use-package company
   :demand
+	:general
+	(company-active-map
+	 "RET" nil
+	 [return] nil
+   "TAB" 'company-complete-selection
+   "<tab>" 'company-complete-selection)
   :init
   ;; (setq company-backends '((company-capf :with company-yasnippet)
   ;;                          (company-keywords company-files)))
@@ -846,61 +969,20 @@
     (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
     )
 
-    (use-package envrc
-      :hook ((python-mode . envrc-mode)
-             (org-mode . envrc-mode)))
+(use-package envrc
+  :hook ((python-mode . envrc-mode)
+         (org-mode . (lambda ()
+                       (with-current-buffer (buffer-name)
+                         (goto-char (point-min))
+                         (when (re-search-forward "begin_src jupyter-python" 10000 t)
+                           (envrc-mode))))))
+  )
 
     (use-package yasnippet
       :hook
       ((text-mode . yas-minor-mode)
        (prog-mode . yas-minor-mode)
        (org-mode . yas-minor-mode)))
-
-  (use-package evil-mc
-    :general
-    (general-nmap "gz" #'mc-hydra/body)
-    :config
-    (defhydra mc-hydra (:color pink :hint nil
-                               :pre (evil-mc-pause-cursors))
-      "
-  ^Match^            ^Line-wise^           ^Manual^
-  ^^^^^^----------------------------------------------------
-  _Z_: match all     _J_: make & go down   _R_: remove all
-  _m_: make & next   _K_: make & go up     
-  _M_: make & prev   ^ ^                   
-  _n_: skip & next   ^ ^                   
-  _N_: skip & prev
-
-  Current pattern: %`evil-mc-pattern
-
-  "
-      ("Z" #'evil-mc-make-all-cursors)
-      ("m" #'evil-mc-make-and-goto-next-match)
-      ("M" #'evil-mc-make-and-goto-prev-match)
-      ("n" #'evil-mc-skip-and-goto-next-match)
-      ("N" #'evil-mc-skip-and-goto-prev-match)
-      ("J" #'evil-mc-make-cursor-move-next-line)
-      ("K" #'evil-mc-make-cursor-move-prev-line)
-      ("R" #'evil-mc-undo-all-cursors)
-      ("q" #'evil-mc-resume-cursors "quit" :color blue)
-      ("<escape>" #'evil-mc-resume-cursors "quit" :color blue))
-    (global-evil-mc-mode +1)
-    )
-
-  (use-package evil-nerd-commenter
-    :general
-    (general-nmap "gcc" 'evilnc-comment-or-uncomment-lines)
-    (general-vmap "gc" 'evilnc-comment-or-uncomment-lines)
-    )
-
-(use-package evil-surround
-  :general
-  (:states 'operator
-   "s" 'evil-surround-edit
-   "S" 'evil-Surround-edit)
-  (:states 'visual
-   "S" 'evil-surround-region
-   "gS" 'evil-Surround-region))
 
   (use-package undo-fu
     :general
@@ -909,15 +991,19 @@
              "\C-r" 'undo-fu-only-redo))
 
   (use-package vterm
-    :general
-    (my/leader-keys
-      "'" 'vterm-other-window)
     :config
     (setq vterm-shell (executable-find "fish")
           vterm-max-scrollback 10000))
 
+(use-package vterm-toggle
+  :general
+  (my/leader-keys
+    "'" 'vterm-toggle))
+
   (use-package dired
     :straight (:type built-in)
+		:hook
+		(dired-mode . dired-hide-details-mode)
     :general
     (my/leader-keys
       "f d" 'dired
@@ -986,6 +1072,9 @@
         org-agenda-files '("~/dropbox/org/personal/birthdays.org" "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
         ;; org-export-in-background t
         org-src-preserve-indentation t ;; do not put two spaces on the left
+				org-startup-indented t
+				org-startup-with-inline-images t
+				org-hide-emphasis-markers t
         org-catch-invisible-edits 'smart)
   ;; disable modules for faster startup
   (setq org-modules
@@ -1047,7 +1136,10 @@
   (setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
                                          ("#+END_SRC" . "«")
                                          ("#+begin_src" . "»")
-                                         ("#+end_src" . "«")))
+                                         ("#+end_src" . "«")
+																				 ("lambda"  . "λ")
+                                         ("->" . "→")
+                                         ("->>" . "↠")))
   (setq prettify-symbols-unprettify-at-point 'right-edge)
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
@@ -1060,7 +1152,6 @@
                   ((org-agenda-overriding-header "Next Tasks")))))
           ("w" "Work Tasks" tags-todo "+work")))
   (defun my/org-mode-setup ()
-    (org-indent-mode)
     (variable-pitch-mode 1)
     (visual-line-mode 1))
   (defun org-toc ()
@@ -1082,11 +1173,6 @@
 												do
 												(insert (format "** [[%s::*%s][%s]]\n" file heading heading))))))
 	:config
-  ;; visual
-  (org-indent-mode)
-  (variable-pitch-mode 1)
-  (visual-line-mode 1)
-  ;; org habit
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
   ;; (efs/org-font-setup)
@@ -1101,6 +1187,7 @@
   ;; (setq org-latex-compiler "xelatex")
 	;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
 	(setq org-latex-pdf-process '("tectonic %f"))
+	(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
   (add-to-list 'org-export-backends 'beamer)
   )
 
@@ -1217,50 +1304,64 @@
       (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
       (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
 
-  (use-package org-tree-slide
-    :after org
-    :hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
-           (org-tree-slide-stop . (lambda () (+remap-faces-at-stop-present))))
-    :general
-    (my/leader-keys
-      "t p" '(org-tree-slide-mode :wk "present"))
-    (general-nmap
-      :keymaps '(org-tree-slide-mode-map org-mode-map)
-      "C-j" 'org-tree-slide-move-next-tree
-      "C-k" 'org-tree-slide-move-previous-tree)
-    :init
-    (setq org-tree-slide-activate-message "Presentation mode ON")
-    (setq org-tree-slide-deactivate-message "Presentation mode OFF")
-    (setq org-tree-slide-indicator nil)
-    ;; TODO maybe also enable olivetti mode?
-    (defun +remap-faces-at-start-present ()
-      (setq-local face-remapping-alist '((default (:height 1.50) variable-pitch)
-																				 (fixed-pitch (:height 1.2) fixed-pitch)
-                                         ;; (org-verbatim (:height 1.2) org-verbatim)
-                                         ;; (org-block (:height 1.2) org-block)
-																				 ))
-      (hide-mode-line-mode 1)
-      (diff-hl-mode 0)
-      (centaur-tabs-mode 0))
-    (defun +remap-faces-at-stop-present ()
-      (setq-local face-remapping-alist '((default variable-pitch default)))
-      (hide-mode-line-mode 0)
-      (diff-hl-mode 1)
-      (centaur-tabs-mode 1))
-    (setq org-tree-slide-breadcrumbs nil)
-    (setq org-tree-slide-header nil)
-    (setq org-tree-slide-slide-in-effect nil)
-    (setq org-tree-slide-heading-emphasis nil)
-    (setq org-tree-slide-cursor-init t)
-    (setq org-tree-slide-modeline-display nil)
-    (setq org-tree-slide-skip-done nil)
-    (setq org-tree-slide-skip-comments t)
-    (setq org-tree-slide-fold-subtrees-skipped t)
-    (setq org-tree-slide-skip-outline-level 8) ;; or 0?
-    (setq org-tree-slide-never-touch-face t)
-    ;; :config
-    ;; (org-tree-slide-presentation-profile)
-    )
+(use-package org-tree-slide
+  :after org
+  :hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
+         (org-tree-slide-stop . (lambda () (+remap-faces-at-stop-present))))
+  :general
+  (my/leader-keys
+    "t p" '(org-tree-slide-mode :wk "present"))
+  (general-nmap
+    :keymaps '(org-tree-slide-mode-map org-mode-map)
+    "C-j" 'org-tree-slide-move-next-tree
+    "C-k" 'org-tree-slide-move-previous-tree)
+  :init
+  (setq org-tree-slide-activate-message "Presentation mode ON")
+  (setq org-tree-slide-deactivate-message "Presentation mode OFF")
+  (setq org-tree-slide-indicator nil)
+	(setq org-tree-slide-breadcrumbs "    >    ")
+	(setq org-tree-slide-heading-emphasis t)
+  (setq org-tree-slide-slide-in-waiting 0.025)
+  (setq org-tree-slide-content-margin-top 4)
+  ;; TODO maybe also enable olivetti mode?
+  (defun +remap-faces-at-start-present ()
+    (setq-local face-remapping-alist '((default (:height 1.50) variable-pitch)
+																			 (fixed-pitch (:height 1.2) fixed-pitch)
+                                       ;; (org-verbatim (:height 1.2) org-verbatim)
+                                       ;; (org-block (:height 1.2) org-block)
+																			 ))
+    ;; (setq-local olivetti-body-width 95)
+		(olivetti-mode 1)
+    (hide-mode-line-mode 1)
+    (diff-hl-mode 0)
+    (centaur-tabs-mode 0))
+  (defun +remap-faces-at-stop-present ()
+    (setq-local face-remapping-alist '((default variable-pitch default)))
+		;; (setq-local olivetti-body-width 120)
+		(olivetti-mode 0)
+    (hide-mode-line-mode 0)
+    (doom-modeline-mode 1)
+    (diff-hl-mode 1)
+    (centaur-tabs-mode 1))
+  (setq org-tree-slide-breadcrumbs nil)
+  (setq org-tree-slide-header nil)
+  (setq org-tree-slide-slide-in-effect nil)
+  (setq org-tree-slide-heading-emphasis nil)
+  (setq org-tree-slide-cursor-init t)
+  (setq org-tree-slide-modeline-display nil)
+  (setq org-tree-slide-skip-done nil)
+  (setq org-tree-slide-skip-comments t)
+  (setq org-tree-slide-fold-subtrees-skipped t)
+  (setq org-tree-slide-skip-outline-level 8) ;; or 0?
+  (setq org-tree-slide-never-touch-face t)
+  ;; :config
+  ;; (org-tree-slide-presentation-profile)
+	;; :custom-face
+  ;; (org-tree-slide-heading-level-1 ((t (:height 1.8 :weight bold))))
+  ;; (org-tree-slide-heading-level-2 ((t (:height 1.5 :weight bold))))
+  ;; (org-tree-slide-heading-level-3 ((t (:height 1.5 :weight bold))))
+  ;; (org-tree-slide-heading-level-4 ((t (:height 1.5 :weight bold))))
+  )
 
 (use-package evil-org-mode
   :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
@@ -1517,12 +1618,23 @@
         org-re-reveal-external-plugins  '((progress . "{ src: '%s/plugin/toc-progress/toc-progress.js', async: true, callback: function() { toc_progress.initialize(); toc_progress.create();} }"))
         ))
 
+(use-package org-appear
+  :straight (org-appear :type git :host github :repo "awth13/org-appear")
+	:hook (org-mode . org-appear-mode)
+  :init
+  (setq org-appear-autoemphasis  t)
+  (setq org-appear-autolinks t)
+  (setq org-appear-autosubmarkers t)
+	)
+
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
-  :hook (lsp-mode . (lambda ()
+  :hook
+	(lsp-mode . (lambda ()
                       (setq-local evil-lookup-func #'lsp-describe-thing-at-point)
 											(setq-local evil-goto-definition-functions
 																	'(lambda (&rest args) (lsp-find-definition)))))
+	(lsp-mode . lsp-enable-which-key-integration)
   :general
   (my/leader-keys
     "c" '(:keymap lsp-command-map))
@@ -1531,21 +1643,29 @@
     "r" '(lsp-rename :wk "rename")
     "i" '(:ignore t :which-key "import")
     "i o" '(lsp-rename :wk "optimize"))
-  (lsp-mode-map
-   :states 'normal "gD" 'lsp-find-references)
+  ;; (lsp-mode-map
+  ;;  :states 'normal "gD" 'lsp-find-references)
   :init
   (setq lsp-restart 'ignore)
   (setq lsp-eldoc-enable-hover nil)
   (setq lsp-enable-file-watchers nil)
   (setq lsp-signature-auto-activate nil)
-  :config
-  (lsp-enable-which-key-integration t))
+	(setq lsp-modeline-diagnostics-enable nil)
+  (setq lsp-keep-workspace-alive nil)
+  (setq lsp-auto-execute-action nil)
+  (setq lsp-before-save-edits nil)
+  )
 
 (use-package lsp-ui
   :hook ((lsp-mode . lsp-ui-mode))
+	:general
+	(lsp-mode-map
+   :states 'normal "gD" 'lsp-ui-peek-find-references)
   :init
   (setq lsp-ui-doc-show-with-cursor nil)
   (setq lsp-ui-doc-show-with-mouse nil)
+	(setq lsp-ui-peek-always-show t)
+  (setq lsp-ui-peek-fontify 'always)
   )
 
   (use-package dap-mode
@@ -1725,6 +1845,13 @@
       :keymaps 'python-mode-map
       "i i" '(pyimport-insert-missing :wk "autoimport")))
 
+(use-package blacken
+	:general
+	(my/local-leader-keys
+      :keymaps 'python-mode-map
+      "=" '(blacken-buffer :wk "format"))
+	)
+
     (use-package ess
     :init
   (setq ess-eval-visibly 'nowait)
@@ -1762,7 +1889,7 @@
     :init
     (setq evil-lisp-state-enter-lisp-state-on-command nil)
     ;; (setq evil-lisp-state-global t)
-    (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode clojurescript-mode))
+    (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode clojurescript-mode lisp-interaction-mode))
     :config
     (evil-lisp-state-leader "SPC l")
     )
