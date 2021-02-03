@@ -246,7 +246,6 @@
     "br"  'revert-buffer
     "bd"  'kill-current-buffer
     "bx" '((lambda () (interactive) (let ((kill-buffer-query-functions nil)) (kill-buffer-and-window))) :wk "kill")
-    "bs" '((lambda () (interactive) (pop-to-buffer "*scratch*")) :wk "scratch")
 
     "c" '(:ignore t :which-key "code")
 
@@ -1172,11 +1171,24 @@
       "w f" '(rotate-frame :wk "flip")))
 
 (use-package persistent-scratch
-:demand
-:init
-(setq persistent-scratch-autosave-interval 60)
-:config
-(persistent-scratch-setup-default))
+	:hook
+  (org-mode . (lambda ()
+                "only set initial-major-mode after loading org"
+                (setq initial-major-mode 'org-mode)))
+	:general
+	(my/leader-keys
+    "bs" '((lambda ()
+             "Load persistent-scratch if not already loaded"
+						 (interactive)
+						 (progn 
+               (unless (boundp 'persistent-scratch-mode)
+                 (require 'persistent-scratch))
+               (pop-to-buffer "*scratch*")))
+           :wk "scratch"))
+  :init
+  (setq persistent-scratch-autosave-interval 60)
+  :config
+	(persistent-scratch-setup-default))
 
   (use-package olivetti
     :general
