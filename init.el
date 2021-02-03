@@ -124,6 +124,9 @@
 
   ;; use a reasonable line length
   (setq-default fill-column 120)
+	
+  ;; Increase the amount of data read from processes
+	(setq read-process-output-max (* 1024 1024)) ; 1mb.
   )
 
 (use-package emacs
@@ -318,11 +321,14 @@
 	;; don't move cursor after ==
 	(defun my/evil-dont-move-cursor (orig-fn &rest args)
     (save-excursion (apply orig-fn args)))
-	(advice-add 'evil-indent :around #'my/evil-dont-move-cursor))
+	(advice-add 'evil-indent :around #'my/evil-dont-move-cursor)
+	)
 
 (use-package evil-collection
   :after evil
   :demand
+	:init
+	(setq evil-collection-magit-use-z-for-folds nil)
   :config
   (evil-collection-init))
 
@@ -341,37 +347,6 @@
 	:config
 	(evil-snipe-mode +1)
   (evil-snipe-override-mode +1))
-
-  (use-package evil-mc
-    :general
-    (general-nmap "gz" #'mc-hydra/body)
-    :config
-    (defhydra mc-hydra (:color pink :hint nil
-                               :pre (evil-mc-pause-cursors))
-      "
-  ^Match^            ^Line-wise^           ^Manual^
-  ^^^^^^----------------------------------------------------
-  _Z_: match all     _J_: make & go down   _R_: remove all
-  _m_: make & next   _K_: make & go up     
-  _M_: make & prev   ^ ^                   
-  _n_: skip & next   ^ ^                   
-  _N_: skip & prev
-
-  Current pattern: %`evil-mc-pattern
-
-  "
-      ("Z" #'evil-mc-make-all-cursors)
-      ("m" #'evil-mc-make-and-goto-next-match)
-      ("M" #'evil-mc-make-and-goto-prev-match)
-      ("n" #'evil-mc-skip-and-goto-next-match)
-      ("N" #'evil-mc-skip-and-goto-prev-match)
-      ("J" #'evil-mc-make-cursor-move-next-line)
-      ("K" #'evil-mc-make-cursor-move-prev-line)
-      ("R" #'evil-mc-undo-all-cursors)
-      ("q" #'evil-mc-resume-cursors "quit" :color blue)
-      ("<escape>" #'evil-mc-resume-cursors "quit" :color blue))
-    (global-evil-mc-mode +1)
-    )
 
 (use-package evil-nerd-commenter
   :general
@@ -401,6 +376,12 @@
 	(define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down)
 	)
 
+(use-package evil-iedit-state
+  :general
+  (my/leader-keys
+		"s e" '(evil-iedit-state/iedit-mode :wk "iedit"))
+	)
+
 (use-package which-key
   :demand t
   :init
@@ -409,625 +390,6 @@
   ;; (setq which-key-idle-delay 0.5)
   :config
   (which-key-mode))
-
-  (use-package all-the-icons)
-
-  (use-package doom-modeline
-    :demand
-    :init
-    (setq doom-modeline-buffer-encoding nil)
-    (setq doom-modeline-env-enable-python nil)
-    (setq doom-modeline-height 15)
-    (setq doom-modeline-project-detection 'projectile)
-    :config
-    (doom-modeline-mode 1))
-
-(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-(add-to-list 'default-frame-alist '(ns-appearance . dark))
-(setq ns-use-proxy-icon  nil)
-(setq frame-title-format nil)
-
-(use-package modus-themes
-  :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
-  :hook (emacs-startup . my/load-modus-theme)
-	:general
-  (my/leader-keys
-	 "t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
-  :init
-  (setq modus-themes-operandi-color-overrides
-        '((bg-main . "#fefcf4")
-          (bg-dim . "#faf6ef")
-          (bg-alt . "#f7efe5")
-          (bg-hl-line . "#f4f0e3")
-          (bg-active . "#e8dfd1")
-          (bg-inactive . "#f6ece5")
-          (bg-region . "#c6bab1")
-          (bg-header . "#ede3e0")
-          (bg-tab-bar . "#dcd3d3")
-          (bg-tab-active . "#fdf6eb")
-          (bg-tab-inactive . "#c8bab8")
-          (fg-unfocused ."#55556f")))
-  (setq modus-themes-vivendi-color-overrides
-        '((bg-main . "#100b17")
-          (bg-dim . "#161129")
-          (bg-alt . "#181732")
-          (bg-hl-line . "#191628")
-          (bg-active . "#282e46")
-          (bg-inactive . "#1a1e39")
-          (bg-region . "#393a53")
-          (bg-header . "#202037")
-          (bg-tab-bar . "#262b41")
-          (bg-tab-active . "#120f18")
-          (bg-tab-inactive . "#3a3a5a")
-          (fg-unfocused . "#9a9aab")))
-  (setq modus-themes-slanted-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-fringes 'nil ; {nil,'subtle,'intense}
-        modus-themes-mode-line '3d ; {nil,'3d,'moody}
-        modus-themes-intense-hl-line nil
-        modus-themes-prompts nil ; {nil,'subtle,'intense}
-        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
-        modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-        modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-        modus-themes-headings  ; Read further below in the manual for this one
-        '((1 . line)
-          (t . rainbow-line-no-bold))
-        modus-themes-variable-pitch-headings nil
-        modus-themes-scale-headings t
-        modus-themes-scale-1 1.1
-        modus-themes-scale-2 1.15
-        modus-themes-scale-3 1.21
-        modus-themes-scale-4 1.27
-        modus-themes-scale-5 1.33)
-  (defun my/load-modus-theme ()
-    ;;Light for the day
-    (run-at-time "07:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-operandi)))
-    ;; Dark for the night
-    (run-at-time "00:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))
-    (run-at-time "15:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))))
-
-(use-package dashboard
-  :after projectile
-  :demand
-  :init
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-  (setq dashboard-center-content t)
-  (setq dashboard-projects-backend 'projectile)
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  (setq dashboard-match-agenda-entry "work|life")
-	;; exclude work items after 17 and on weekends
-  (run-at-time "00:00" (* 60 60 24)
-							 (lambda ()
-								 (when (or (-> (nth 3 (split-string (current-time-string) " ")) ; time of the day e.g. 18
-															 (substring 0 2)
-															 (string-to-number)
-															 (> 16))
-													 (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
-															 (member  '("Sat" "Sun"))))
-									 (setq dashboard-match-agenda-entry "life"))))
-	
-  (setq dashboard-items '((recents  . 5)
-                          (agenda . 5)
-                          ;; (bookmarks . 5)
-                          ;; (projects . 5)
-                          ))
-  ;; (setq dashboard-startup-banner [VALUE])
-	;; (setq dashboard-navigator-buttons
-  ;;  `((;; Github
-  ;;     (,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
-  ;;      "Github"
-  ;;      "Browse github"
-  ;;      (lambda (&rest _) (browse-url "https://github.com/")))
-  ;;     ;; Codebase
-  ;;     ;; (,(all-the-icons-faicon "briefcase" :height 1.1 :v-adjust -0.1)
-  ;;     ;;  "Codebase"
-  ;;     ;;  "My assigned tickets"
-  ;;     ;;  (lambda (&rest _) (browse-url "https://hipo.codebasehq.com/tickets")))
-  ;;     ;; Perspective
-  ;;     (,(all-the-icons-octicon "history" :height 1.1 :v-adjust 0.0)
-  ;;      "Reload last session"
-  ;;      "Reload last session"
-  ;;      (lambda (&rest _) (persp-state-load persp-state-default-file))))))
-  :config
-  (dashboard-setup-startup-hook)
-  (add-hook 'dashboard-mode-hook '(lambda () (setq-local cursor-type nil)))
-	)
-
-  (use-package centaur-tabs
-    :hook (emacs-startup . centaur-tabs-mode)
-    :general
-    (general-nmap "gt" 'centaur-tabs-forward
-      "gT" 'centaur-tabs-backward)
-    :init
-    (setq centaur-tabs-set-icons t)
-    (setq ccentaur-tabs-set-modified-marker t
-          centaur-tabs-modified-marker "M"
-          centaur-tabs-cycle-scope 'tabs)
-    (setq centaur-tabs-set-close-button nil)
-    :config
-    (centaur-tabs-mode t)
-    (centaur-tabs-group-by-projectile-project)
-    )
-
-  (use-package centered-cursor-mode
-    :general (my/leader-keys "t -" (lambda () (interactive) (centered-cursor-mode 'toggle))))
-
-  (use-package hide-mode-line
-    :commands (hide-mode-line-mode))
-
-  (setq display-buffer-alist
-        `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
-           (display-buffer-reuse-mode-window display-buffer-below-selected)
-           (window-height . 0.33)
-           (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
-
-(use-package winum
-:general
-(my/leader-keys
-"1" '(winum-select-window-1 :wk "win 1")
-"2" '(winum-select-window-2 :wk "win 2")
-"3" '(winum-select-window-3 :wk "win 3"))
-:config
-(winum-mode))
-
-  (use-package transpose-frame
-    :general
-    (my/leader-keys
-      "w t" '(transpose-frame :wk "transpose")
-      "w f" '(rotate-frame :wk "flip")))
-
-(use-package persistent-scratch
-:demand
-:config
-(persistent-scratch-setup-default))
-
-  (use-package olivetti
-    :general
-    (my/leader-keys
-      "t o" '(olivetti-mode :wk "olivetti"))
-    :init
-    (setq olivetti-body-width 0.7)
-    (setq olivetti-minimum-body-width 80)
-    (setq olivetti-recall-visual-line-mode-entry-state t))
-
-  (use-package selectrum
-    :after embark
-    :demand
-    :general
-    (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
-                              "C-k" 'selectrum-previous-candidate)
-    :config
-    (selectrum-mode t)
-    )
-
-  (use-package selectrum-prescient
-    :after selectrum
-    :demand
-    :config
-    (prescient-persist-mode t)
-    (selectrum-prescient-mode t)
-    )
-
-  (use-package company-prescient
-    :after company
-    :demand
-    :config
-    (company-prescient-mode t))
-
-  (use-package marginalia
-    :after selectrum
-    :demand
-    :init
-    (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-    :config (marginalia-mode t))
-
-  (use-package embark
-    :demand
-    :general
-    (general-nmap "C-l" 'embark-act)
-    (selectrum-minibuffer-map "C-l" #'embark-act)
-    :config
-    ;; For Selectrum users:
-    (defun current-candidate+category ()
-      (when selectrum-active-p
-        (cons (selectrum--get-meta 'category)
-              (selectrum-get-current-candidate))))
-
-    (add-hook 'embark-target-finders #'current-candidate+category)
-
-    (defun current-candidates+category ()
-      (when selectrum-active-p
-        (cons (selectrum--get-meta 'category)
-              (selectrum-get-current-candidates
-               ;; Pass relative file names for dired.
-               minibuffer-completing-file-name))))
-
-    (add-hook 'embark-candidate-collectors #'current-candidates+category)
-
-    ;; No unnecessary computation delay after injection.
-    (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
-    )
-
-(use-package consult
-  :general
-  (my/leader-keys
-    "s o" '(consult-outline :which-key "outline")
-    "s s" 'consult-line
-    "y" '(consult-yank-pop :which-key "yank")
-    "b b" 'consult-buffer
-    ;; TODO consult mark
-    "f r" 'consult-recent-file
-    "s !" '(consult-flymake :wk "flymake"))
-	(with-eval-after-load 'projectile
-    (my/leader-keys
-      "s p" '((lambda () (interactive) (consult-ripgrep (projectile-project-root))) :wk "ripgrep")))
-  ;; :init
-  ;; (setq consult-preview-key "C-l")
-  ;; (setq consult-narrow-key ">")
-  :config
-  (consult-preview-mode)
-  )
-
-(use-package consult-selectrum
-  :after selectrum
-  :demand)
-
-(use-package projectile
-  :demand
-  :general
-  (my/leader-keys
-    "p" '(:keymap projectile-command-map :which-key "project")
-    "p a" '(projectile-add-known-project :wk "add known")
-    "p t" '(projectile-run-vterm :wk "term"))
-  :init
-  (when (file-directory-p "~/git")
-    (setq projectile-project-search-path '("~/git")))
-  (setq projectile-completion-system 'default)
-  (setq projectile-switch-project-action #'projectile-find-file)
-  (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
-	(setq projectile-switch-project-action 'projectile-commander)
-	;; Do not include straight repos (emacs packages) to project list
-	(setq projectile-ignored-project-function
-   (lambda (project-root)
-     (string-prefix-p (expand-file-name "straight/" user-emacs-directory) project-root)))
-  :config
-  (defadvice projectile-project-root (around ignore-remote first activate)
-    (unless (file-remote-p default-directory) ad-do-it))
-  (projectile-mode)
-	;; projectile commander methods
-	(setq projectile-commander-methods nil)
-	(def-projectile-commander-method ?? "Commander help buffer."
-		(ignore-errors (kill-buffer projectile-commander-help-buffer))
-		(with-current-buffer (get-buffer-create projectile-commander-help-buffer)
-			(insert "Projectile Commander Methods:\n\n")
-			(dolist (met projectile-commander-methods)
-				(insert (format "%c:\t%s\n" (car met) (cadr met))))
-			(goto-char (point-min))
-      (help-mode)
-      (display-buffer (current-buffer) t))
-    (projectile-commander))
-	(def-projectile-commander-method ?t
-    "Open a *shell* buffer for the project."
-    (projectile-run-vterm))
-	(def-projectile-commander-method ?\C-? ;; backspace
-		"Go back to project selection."
-		(projectile-switch-project))
-	(def-projectile-commander-method ?d
-    "Open project root in dired."
-    (projectile-dired))
-	(def-projectile-commander-method ?f
-    "Find file in project."
-    (projectile-find-file))
-	(def-projectile-commander-method ?s
-    "Ripgrep in project."
-    (projectile-find-file))
-	(def-projectile-commander-method ?g
-    "Git status in project."
-    (projectile-vc))
-  )
-
-  (use-package perspective
-    :commands (persp-new persp-switch)
-    :general
-    (my/leader-keys
-      "<tab>" '(:ignore true :wk "tab")
-      "<tab> <tab>" 'persp-switch
-      "<tab> `" 'persp-switch-last
-      "<tab> d" 'persp-kill
-      "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
-      "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
-      "<tab> n" '(my/new-tab :wk "new"))
-    :init
-    (defun my/new-tab ()
-      "Jump to the dashboard buffer, if doesn't exists create one."
-      (interactive)
-      ;; (persp-new (concat "tab " (+ 1 (int (length (persp-names))))))
-      (persp-new "main")
-      (persp-switch "main")
-      (switch-to-buffer dashboard-buffer-name)
-      (dashboard-mode)
-      (dashboard-insert-startupify-lists)
-      (dashboard-refresh-buffer))
-    :config
-    (persp-mode))
-
-(use-package persp-projectile
-  :general
-
-  (my/leader-keys
-    "p p" 'projectile-persp-switch-project
-		;; "<tab> o"	'((lambda () (interactive) (projectile-persp-switch-project "org")) :wk "org")
-    ;; "p P" '((lambda ()
-    ;;           (setq projectile-switch-project-action 'projectile-commander)
-    ;;           (setq projectile-switch-project-action 'projectile-find-file)
-		;; 					(interactive)
-    ;;           (projectile-persp-switch-project))
-    ;;         :wk "project commander" )
-    ))
-
-(use-package magit
-  :general
-  (my/leader-keys
-    "g g" 'magit-status
-    "g G" 'magit-status-here
-    "g l" '(magit-log :wk "log"))
-	(general-nmap
-		:keymaps '(magit-status-mode-map
-     magit-stash-mode-map
-     magit-revision-mode-map
-     magit-process-mode-map
-     magit-diff-mode-map)
-		 "<tab>" #'magit-section-toggle)
-  :init
-  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  (setq magit-log-arguments '("--graph" "--decorate" "--color"))
-	:config
-	  (evil-define-key* 'normal magit-status-mode-map [escape] nil)
-
-	(evil-define-key* '(normal visual) magit-mode-map
-    "zz" #'evil-scroll-line-to-center)
-  )
-
-  (use-package git-timemachine
-    :hook (git-time-machine-mode . evil-normalize-keymaps)
-    :init (setq git-timemachine-show-minibuffer-details t)
-    :general
-    (general-nmap "SPC g t" 'git-timemachine-toggle)
-    (git-timemachine-mode-map
-     "C-k" 'git-timemachine-show-previous-revision
-     "C-j" 'git-timemachine-show-next-revision
-     "q" 'git-timemachine-quit))
-
-(use-package diff-hl
-  :demand
-	:general
-	(my/leader-keys
-    "g n" '(diff-hl-next-hunk :wk "next hunk")
-    "g p" '(diff-hl-previous-hunk :wk "prev hunk"))
-  :hook
-  ((magit-pre-refresh . diff-hl-magit-pre-refresh)
-   (magit-post-refresh . diff-hl-magit-post-refresh))
-  :init
-  (setq diff-hl-draw-borders nil)
-  ;; (setq diff-hl-fringe-bmp-function 'diff-hl-fringe-bmp-from-type)
-  ;; (setq diff-hl-global-modes (not '(image-mode org-mode)))
-  :config
-  (global-diff-hl-mode)
-  )
-
-  (use-package smerge-mode
-    :straight (:type built-in)
-    :after hydra
-    :general
-    (my/leader-keys "g m" 'hydra-smerge)
-		:hook
-		(magit-diff-visit-file . (lambda ()
-                             (when smerge-mode
-                               (smerge-hydra/body))))
-    :init
-    (defhydra smerge-hydra (:hint nil
-                                  :pre (smerge-mode 1)
-                                  ;; Disable `smerge-mode' when quitting hydra if
-                                  ;; no merge conflicts remain.
-                                  :post (smerge-auto-leave))
-      "
-                                                    ╭────────┐
-  Movement   Keep           Diff              Other │ smerge │
-  ╭─────────────────────────────────────────────────┴────────╯
-     ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
-     ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
-     ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
-     ^_j_ ↓^     [_a_] all        [_H_] hightlight
-     ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
-     ^_G_^                                            │ [_q_] quit"
-      ("g" (progn (goto-char (point-min)) (smerge-next)))
-      ("G" (progn (goto-char (point-max)) (smerge-prev)))
-      ("C-j" smerge-next)
-      ("C-k" smerge-prev)
-      ("j" next-line)
-      ("k" previous-line)
-      ("b" smerge-keep-base)
-      ("u" smerge-keep-upper)
-      ("l" smerge-keep-lower)
-      ("a" smerge-keep-all)
-      ("RET" smerge-keep-current)
-      ("\C-m" smerge-keep-current)
-      ("<" smerge-diff-base-upper)
-      ("=" smerge-diff-upper-lower)
-      (">" smerge-diff-base-lower)
-      ("H" smerge-refine)
-      ("E" smerge-ediff)
-      ("C" smerge-combine-with-next)
-      ("r" smerge-resolve)
-      ("R" smerge-kill-current)
-      ("q" nil :color blue)))
-
-  (use-package hydra)
-
-;; add a visual intent guide
-(use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :init
-  ;; (setq highlight-indent-guides-method 'column)
-  (setq highlight-indent-guides-method 'character)
-  ;; (setq highlight-indent-guides-character ?|)
-  ;; (setq highlight-indent-guides-character ?❚)
-  (setq highlight-indent-guides-character ?‖)
-  (setq highlight-indent-guides-responsive 'stack)
-	;; (setq highlight-indent-guides-auto-enabled nil)
-	;; (set-face-background 'highlight-indent-guides-odd-face "darkgray")
-  ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
-  ;; (set-face-foreground 'highlight-indent-guides-character-face "dimgray")
-  )
-
-  (use-package rainbow-delimiters
-    :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
-           (clojure-mode . rainbow-delimiters-mode)))
-
-  (use-package tree-sitter
-    :hook (python-mode . (lambda ()
-                           (require 'tree-sitter)
-                           (require 'tree-sitter-langs)
-                           (require 'tree-sitter-hl)
-                           (tree-sitter-hl-mode))))
-
-  (use-package tree-sitter-langs
-    :after tree-sitter)
-
-(use-package company
-  :demand
-	:general
-	(company-active-map
-	 "RET" nil
-	 [return] nil
-   "TAB" 'company-complete-selection
-   "<tab>" 'company-complete-selection)
-  :init
-  ;; (setq company-backends '((company-capf :with company-yasnippet)
-  ;;                          (company-keywords company-files)))
-  (setq company-backends '((:separate company-yasnippet company-capf)
-													 (company-keywords company-files)))
-  (setq company-minimum-prefix-length 1)
-  (setq company-tooltip-align-annotations t)
-	(setq company-idle-delay 0.0)
-	;; always show candidates in overlay tooltip
-	(setq company-frontends '(company-pseudo-tooltip-frontend))
-	;; don't fill the only candidate
-	(setq company-auto-complete nil
-				company-auto-complete-chars nil)
-	:config
-	(global-company-mode)
-  (with-eval-after-load 'evil
-    (add-hook 'company-mode-hook #'evil-normalize-keymaps)))
-
-  (use-package company-box
-    :hook (company-mode . company-box-mode)
-    :config
-    (setq company-box-show-single-candidate t
-          company-box-backends-colors nil
-          company-box-max-candidates 50
-          company-box-icons-alist 'company-box-icons-all-the-icons
-          company-box-icons-all-the-icons
-          (let ((all-the-icons-scale-factor 0.8))
-            `((Unknown       . ,(all-the-icons-material "find_in_page"             :face 'all-the-icons-purple))
-              (Text          . ,(all-the-icons-material "text_fields"              :face 'all-the-icons-green))
-              (Method        . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (Function      . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (Constructor   . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (Field         . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (Variable      . ,(all-the-icons-material "adjust"                   :face 'all-the-icons-blue))
-              (Class         . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
-              (Interface     . ,(all-the-icons-material "settings_input_component" :face 'all-the-icons-red))
-              (Module        . ,(all-the-icons-material "view_module"              :face 'all-the-icons-red))
-              (Property      . ,(all-the-icons-material "settings"                 :face 'all-the-icons-red))
-              (Unit          . ,(all-the-icons-material "straighten"               :face 'all-the-icons-red))
-              (Value         . ,(all-the-icons-material "filter_1"                 :face 'all-the-icons-red))
-              (Enum          . ,(all-the-icons-material "plus_one"                 :face 'all-the-icons-red))
-              (Keyword       . ,(all-the-icons-material "filter_center_focus"      :face 'all-the-icons-red))
-              (Snippet       . ,(all-the-icons-material "short_text"               :face 'all-the-icons-red))
-              (Color         . ,(all-the-icons-material "color_lens"               :face 'all-the-icons-red))
-              (File          . ,(all-the-icons-material "insert_drive_file"        :face 'all-the-icons-red))
-              (Reference     . ,(all-the-icons-material "collections_bookmark"     :face 'all-the-icons-red))
-              (Folder        . ,(all-the-icons-material "folder"                   :face 'all-the-icons-red))
-              (EnumMember    . ,(all-the-icons-material "people"                   :face 'all-the-icons-red))
-              (Constant      . ,(all-the-icons-material "pause_circle_filled"      :face 'all-the-icons-red))
-              (Struct        . ,(all-the-icons-material "streetview"               :face 'all-the-icons-red))
-              (Event         . ,(all-the-icons-material "event"                    :face 'all-the-icons-red))
-              (Operator      . ,(all-the-icons-material "control_point"            :face 'all-the-icons-red))
-              (TypeParameter . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
-              (Template      . ,(all-the-icons-material "short_text"               :face 'all-the-icons-green))
-              (ElispFunction . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (ElispVariable . ,(all-the-icons-material "check_circle"             :face 'all-the-icons-blue))
-              (ElispFeature  . ,(all-the-icons-material "stars"                    :face 'all-the-icons-orange))
-              (ElispFace     . ,(all-the-icons-material "format_paint"             :face 'all-the-icons-pink)))))
-
-    ;; Disable tab-bar in company-box child frames
-    (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
-    )
-
-(use-package envrc
-  :hook ((python-mode . envrc-mode)
-         (org-mode . (lambda ()
-                       (with-current-buffer (buffer-name)
-                         (goto-char (point-min))
-                         (when (re-search-forward "begin_src jupyter-python" 10000 t)
-                           (envrc-mode))))))
-  )
-
-    (use-package yasnippet
-      :hook
-      ((text-mode . yas-minor-mode)
-       (prog-mode . yas-minor-mode)
-       (org-mode . yas-minor-mode)))
-
-  (use-package undo-fu
-    :general
-    (:states 'normal
-             "u" 'undo-fu-only-undo
-             "\C-r" 'undo-fu-only-redo))
-
-  (use-package vterm
-    :config
-    (setq vterm-shell (executable-find "fish")
-          vterm-max-scrollback 10000))
-
-(use-package vterm-toggle
-  :general
-  (my/leader-keys
-    "'" 'vterm-toggle))
-
-  (use-package dired
-    :straight (:type built-in)
-		:hook
-		(dired-mode . dired-hide-details-mode)
-    :general
-    (my/leader-keys
-      "f d" 'dired
-      "f j" 'dired-jump)
-		:init
-		(setq dired-dwim-target t))
-
-  (use-package dired-single
-    :after dired
-    :general
-    (dired-mode-map
-     :states 'normal
-     "h" 'dired-single-up-directory
-     "l" 'dired-single-buffer
-     "q" 'quit-window))
-
-  (use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
-
-  (use-package restart-emacs
-    :general
-    (my/leader-keys
-      "R" '(restart-emacs :wk "restart"))
-    )
 
 (use-package org
   :hook ((org-mode . my/org-mode-setup)
@@ -1182,7 +544,7 @@
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
   (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
   (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
-	(add-to-list 'org-structure-template-alist '("ha" . "#+PROPERTY: header-args :session "))
+  (add-to-list 'org-structure-template-alist '("jr" . "src jupyter-R"))
   ;; latex
   ;; (setq org-latex-compiler "xelatex")
 	;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
@@ -1248,61 +610,68 @@
     :init
     (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
 
-  (use-package jupyter
-    :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
-    :general
-    (my/local-leader-keys
-      :keymaps 'org-mode-map
-      "=" '((lambda () (interactive) (jupyter-org-insert-src-block t nil)) :wk "block below")
-      "m" '(jupyter-org-merge-blocks :wk "merge")
-      "+" '(jupyter-org-insert-src-block :wk "block above")
-      "?" '(jupyter-inspect-at-point :wk "inspect")
-      "x" '(jupyter-org-kill-block-and-results :wk "kill block"))
-    :hook ((envrc-mode . my/load-ob-jupyter)
-           (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
-                                             (when (derived-mode-p 'org-mode)
-                                               (jupyter-org-interaction-mode)))))
-    :init
-    (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
-                                                         (:pandoc t)
-                                                         (:kernel . "python3")))
-    (setq org-babel-default-header-args:jupyter-R '((:pandoc t)
-                                                    (:async . "yes")
-                                                    (:kernel . "ir")))
-    (defun my/load-ob-jupyter ()
-      ;; only try to load in org-mode
-      (when (derived-mode-p 'org-mode)
-        ;; skip if already loaded
-        (unless (member '(jupyter . t) org-babel-load-languages)
-          ;; only load if jupyter is available
-          (when (executable-find "jupyter")
-            (org-babel-do-load-languages 'org-babel-load-languages
-                                         (append org-babel-load-languages
-                                                 '((jupyter . t))))))))
-    (cl-defmethod jupyter-org--insert-result (_req context result)
-      (let ((str
-             (org-element-interpret-data
-              (jupyter-org--wrap-result-maybe
-               context (if (jupyter-org--stream-result-p result)
-                           (thread-last result
-                             jupyter-org-strip-last-newline
-                             jupyter-org-scalar)
-                         result)))))
-        (if (< (length str) 100000)
-            (insert str)
-          (insert (format ": Result was too long! Length was %d" (length str)))))
-      (when (/= (point) (line-beginning-position))
-        ;; Org objects such as file links do not have a newline added when
-        ;; converting to their string representation by
-        ;; `org-element-interpret-data' so insert one in these cases.
-        (insert "\n")))
-    :config
-    ;;Remove text/html since it's not human readable
-    ;; (delete :text/html jupyter-org-mime-types)
-    ;; (require 'tramp)
-    (with-eval-after-load 'org-src
-      (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
-      (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
+(use-package jupyter
+  :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+  :general
+  (my/local-leader-keys
+    :keymaps 'org-mode-map
+    "=" '((lambda () (interactive) (jupyter-org-insert-src-block t nil)) :wk "block below")
+    "m" '(jupyter-org-merge-blocks :wk "merge")
+    "+" '(jupyter-org-insert-src-block :wk "block above")
+    "?" '(jupyter-inspect-at-point :wk "inspect")
+    "x" '(jupyter-org-kill-block-and-results :wk "kill block"))
+  :hook ((jupyter-repl-persistent-mode .
+																			 (lambda ()  ;; we activate org-interaction-mode ourselves
+                                           (when (derived-mode-p 'org-mode)
+                                             ;; (setq-local company-backends '((company-capf)))
+                                             (jupyter-org-interaction-mode))))
+				 (envrc-mode . my/load-ob-jupyter)
+				 (org-mode . (lambda ()
+                       (with-current-buffer (buffer-name)
+                         (goto-char (point-min))
+                         (when (re-search-forward "begin_src jupyter-python" 10000 t)
+                           (envrc-mode))))))
+  :init
+  (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
+                                                       (:pandoc t)
+                                                       (:kernel . "python3")))
+  (setq org-babel-default-header-args:jupyter-R '((:pandoc t)
+                                                  (:async . "yes")
+                                                  (:kernel . "ir")))
+  (defun my/load-ob-jupyter ()
+    ;; only try to load in org-mode
+    (when (derived-mode-p 'org-mode)
+      ;; skip if already loaded
+      (unless (member '(jupyter . t) org-babel-load-languages)
+        ;; only load if jupyter is available
+        (when (executable-find "jupyter")
+          (org-babel-do-load-languages 'org-babel-load-languages
+                                       (append org-babel-load-languages
+                                               '((jupyter . t))))))))
+  (cl-defmethod jupyter-org--insert-result (_req context result)
+    (let ((str
+           (org-element-interpret-data
+            (jupyter-org--wrap-result-maybe
+             context (if (jupyter-org--stream-result-p result)
+                         (thread-last result
+                           jupyter-org-strip-last-newline
+                           jupyter-org-scalar)
+                       result)))))
+      (if (< (length str) 100000)
+          (insert str)
+        (insert (format ": Result was too long! Length was %d" (length str)))))
+    (when (/= (point) (line-beginning-position))
+      ;; Org objects such as file links do not have a newline added when
+      ;; converting to their string representation by
+      ;; `org-element-interpret-data' so insert one in these cases.
+      (insert "\n")))
+  :config
+  ;;Remove text/html since it's not human readable
+  ;; (delete :text/html jupyter-org-mime-types)
+  ;; (require 'tramp)
+  (with-eval-after-load 'org-src
+    (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+    (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
 
 (use-package org-tree-slide
   :after org
@@ -1598,8 +967,12 @@
   :hook (org-mode . org-html-themify-mode)
   :init
   (setq org-html-themify-themes
-   '((dark . modus-vivendi)
-     (light . modus-operandi))))
+				'((dark . modus-vivendi)
+          (light . modus-operandi)))
+  :config
+	;; otherwise it complains about invalid face
+  (require 'hl-line)
+	)
 
   (use-package ox-gfm
     :after org)
@@ -1623,8 +996,651 @@
 	:hook (org-mode . org-appear-mode)
   :init
   (setq org-appear-autoemphasis  t)
-  (setq org-appear-autolinks t)
+  ;; (setq org-appear-autolinks t)
   (setq org-appear-autosubmarkers t)
+	)
+
+  (use-package all-the-icons)
+
+  (use-package doom-modeline
+    :demand
+    :init
+    (setq doom-modeline-buffer-encoding nil)
+    (setq doom-modeline-env-enable-python nil)
+    (setq doom-modeline-height 15)
+    (setq doom-modeline-project-detection 'projectile)
+    :config
+    (doom-modeline-mode 1))
+
+(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+(add-to-list 'default-frame-alist '(ns-appearance . dark))
+(setq ns-use-proxy-icon  nil)
+(setq frame-title-format nil)
+
+(use-package modus-themes
+  :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+  :hook (emacs-startup . my/load-modus-theme)
+	:general
+  (my/leader-keys
+	 "t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
+  :init
+  (setq modus-themes-operandi-color-overrides
+        '((bg-main . "#fefcf4")
+          (bg-dim . "#faf6ef")
+          (bg-alt . "#f7efe5")
+          (bg-hl-line . "#f4f0e3")
+          (bg-active . "#e8dfd1")
+          (bg-inactive . "#f6ece5")
+          (bg-region . "#c6bab1")
+          (bg-header . "#ede3e0")
+          (bg-tab-bar . "#dcd3d3")
+          (bg-tab-active . "#fdf6eb")
+          (bg-tab-inactive . "#c8bab8")
+          (fg-unfocused ."#55556f")))
+  (setq modus-themes-vivendi-color-overrides
+        '((bg-main . "#100b17")
+          (bg-dim . "#161129")
+          (bg-alt . "#181732")
+          (bg-hl-line . "#191628")
+          (bg-active . "#282e46")
+          (bg-inactive . "#1a1e39")
+          (bg-region . "#393a53")
+          (bg-header . "#202037")
+          (bg-tab-bar . "#262b41")
+          (bg-tab-active . "#120f18")
+          (bg-tab-inactive . "#3a3a5a")
+          (fg-unfocused . "#9a9aab")))
+  (setq modus-themes-slanted-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-fringes 'nil ; {nil,'subtle,'intense}
+        modus-themes-mode-line '3d ; {nil,'3d,'moody}
+        modus-themes-intense-hl-line nil
+        modus-themes-prompts nil ; {nil,'subtle,'intense}
+        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+        modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
+        modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+        modus-themes-headings  ; Read further below in the manual for this one
+        '((1 . line)
+          (t . rainbow-line-no-bold))
+        modus-themes-variable-pitch-headings nil
+        modus-themes-scale-headings t
+        modus-themes-scale-1 1.1
+        modus-themes-scale-2 1.15
+        modus-themes-scale-3 1.21
+        modus-themes-scale-4 1.27
+        modus-themes-scale-5 1.33)
+  (defun my/load-modus-theme ()
+    ;;Light for the day
+    (run-at-time "07:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-operandi)))
+    ;; Dark for the night
+    (run-at-time "00:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-vivendi)))
+    (run-at-time "15:00" (* 60 60 24)
+                 (lambda () (modus-themes-load-vivendi)))))
+
+(use-package dashboard
+  :after projectile
+  ;; :hook
+  ;; (dashboard-after-initialize . (lambda () (setq-local cursor-type nil)))
+  :demand
+  :init
+  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+  (setq dashboard-center-content t)
+  (setq dashboard-projects-backend 'projectile)
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (setq dashboard-match-agenda-entry "work|life")
+	;; exclude work items after 17 and on weekends
+  (run-at-time "00:00" (* 60 60 24)
+							 (lambda ()
+								 (when (or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
+															 (substring 0 2)
+															 (string-to-number)
+															 (> 16)
+															 )
+													 (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
+															 (member  '("Sat" "Sun"))))
+									 (setq dashboard-match-agenda-entry "life"))))
+  (setq dashboard-items '((recents  . 5)
+                          (agenda . 5)
+                          ;; (bookmarks . 5)
+                          ;; (projects . 5)
+                          ))
+  ;; (setq dashboard-startup-banner [VALUE])
+	;; (setq dashboard-navigator-buttons
+  ;;  `((;; Github
+  ;;     (,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+  ;;      "Github"
+  ;;      "Browse github"
+  ;;      (lambda (&rest _) (browse-url "https://github.com/")))
+  ;;     ;; Codebase
+  ;;     ;; (,(all-the-icons-faicon "briefcase" :height 1.1 :v-adjust -0.1)
+  ;;     ;;  "Codebase"
+  ;;     ;;  "My assigned tickets"
+  ;;     ;;  (lambda (&rest _) (browse-url "https://hipo.codebasehq.com/tickets")))
+  ;;     ;; Perspective
+  ;;     (,(all-the-icons-octicon "history" :height 1.1 :v-adjust 0.0)
+  ;;      "Reload last session"
+  ;;      "Reload last session"
+  ;;      (lambda (&rest _) (persp-state-load persp-state-default-file))))))
+  :config
+  (dashboard-setup-startup-hook)
+	)
+
+  (use-package centaur-tabs
+    :hook (emacs-startup . centaur-tabs-mode)
+    :general
+    (general-nmap "gt" 'centaur-tabs-forward
+      "gT" 'centaur-tabs-backward)
+    :init
+    (setq centaur-tabs-set-icons t)
+    (setq ccentaur-tabs-set-modified-marker t
+          centaur-tabs-modified-marker "M"
+          centaur-tabs-cycle-scope 'tabs)
+    (setq centaur-tabs-set-close-button nil)
+    :config
+    (centaur-tabs-mode t)
+    (centaur-tabs-group-by-projectile-project)
+    )
+
+  (use-package centered-cursor-mode
+    :general (my/leader-keys "t -" (lambda () (interactive) (centered-cursor-mode 'toggle))))
+
+  (use-package hide-mode-line
+    :commands (hide-mode-line-mode))
+
+  (setq display-buffer-alist
+        `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
+           (display-buffer-reuse-mode-window display-buffer-below-selected)
+           (window-height . 0.33)
+           (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+
+(use-package winum
+:general
+(my/leader-keys
+"1" '(winum-select-window-1 :wk "win 1")
+"2" '(winum-select-window-2 :wk "win 2")
+"3" '(winum-select-window-3 :wk "win 3"))
+:config
+(winum-mode))
+
+  (use-package transpose-frame
+    :general
+    (my/leader-keys
+      "w t" '(transpose-frame :wk "transpose")
+      "w f" '(rotate-frame :wk "flip")))
+
+(use-package persistent-scratch
+:demand
+:init
+(setq persistent-scratch-autosave-interval 60)
+:config
+(persistent-scratch-setup-default))
+
+  (use-package olivetti
+    :general
+    (my/leader-keys
+      "t o" '(olivetti-mode :wk "olivetti"))
+    :init
+    (setq olivetti-body-width 100)
+    (setq olivetti-recall-visual-line-mode-entry-state t))
+
+  (use-package selectrum
+    :after embark
+    :demand
+    :general
+    (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
+                              "C-k" 'selectrum-previous-candidate)
+    :config
+    (selectrum-mode t)
+    )
+
+  (use-package selectrum-prescient
+    :after selectrum
+    :demand
+    :config
+    (prescient-persist-mode t)
+    (selectrum-prescient-mode t)
+    )
+
+  (use-package company-prescient
+    :after company
+    :demand
+    :config
+    (company-prescient-mode t))
+
+  (use-package marginalia
+    :after selectrum
+    :demand
+    :init
+    (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+    :config (marginalia-mode t))
+
+  (use-package embark
+    :demand
+    :general
+    (general-nmap "C-l" 'embark-act)
+    (selectrum-minibuffer-map "C-l" #'embark-act)
+    :config
+    ;; For Selectrum users:
+    (defun current-candidate+category ()
+      (when selectrum-active-p
+        (cons (selectrum--get-meta 'category)
+              (selectrum-get-current-candidate))))
+
+    (add-hook 'embark-target-finders #'current-candidate+category)
+
+    (defun current-candidates+category ()
+      (when selectrum-active-p
+        (cons (selectrum--get-meta 'category)
+              (selectrum-get-current-candidates
+               ;; Pass relative file names for dired.
+               minibuffer-completing-file-name))))
+
+    (add-hook 'embark-candidate-collectors #'current-candidates+category)
+
+    ;; No unnecessary computation delay after injection.
+    (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
+    )
+
+(use-package consult
+  :general
+  (my/leader-keys
+    "s o" '(consult-outline :which-key "outline")
+    "s s" 'consult-line
+    "y" '(consult-yank-pop :which-key "yank")
+    "b b" 'consult-buffer
+    ;; TODO consult mark
+    "f r" 'consult-recent-file
+    "s !" '(consult-flymake :wk "flymake"))
+	(with-eval-after-load 'projectile
+    (my/leader-keys
+      "s p" '((lambda () (interactive) (consult-ripgrep (projectile-project-root))) :wk "ripgrep")))
+  ;; :init
+  ;; (setq consult-preview-key "C-l")
+  ;; (setq consult-narrow-key ">")
+  :config
+  (consult-preview-mode)
+  )
+
+(use-package consult-selectrum
+  :after selectrum
+  :demand)
+
+(use-package projectile
+  :demand
+  :general
+  (my/leader-keys
+    "p" '(:keymap projectile-command-map :which-key "project")
+    "p a" '(projectile-add-known-project :wk "add known")
+    "p t" '(projectile-run-vterm :wk "term"))
+  :init
+  (when (file-directory-p "~/git")
+    (setq projectile-project-search-path '("~/git")))
+  (setq projectile-completion-system 'default)
+  (setq projectile-switch-project-action #'projectile-find-file)
+  (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
+	(setq projectile-switch-project-action 'projectile-commander)
+	;; Do not include straight repos (emacs packages) to project list
+	(setq projectile-ignored-project-function
+   (lambda (project-root)
+     (string-prefix-p (expand-file-name "straight/" user-emacs-directory) project-root)))
+  :config
+  (defadvice projectile-project-root (around ignore-remote first activate)
+    (unless (file-remote-p default-directory) ad-do-it))
+  (projectile-mode)
+	;; projectile commander methods
+	(setq projectile-commander-methods nil)
+	(def-projectile-commander-method ?? "Commander help buffer."
+		(ignore-errors (kill-buffer projectile-commander-help-buffer))
+		(with-current-buffer (get-buffer-create projectile-commander-help-buffer)
+			(insert "Projectile Commander Methods:\n\n")
+			(dolist (met projectile-commander-methods)
+				(insert (format "%c:\t%s\n" (car met) (cadr met))))
+			(goto-char (point-min))
+      (help-mode)
+      (display-buffer (current-buffer) t))
+    (projectile-commander))
+	(def-projectile-commander-method ?t
+    "Open a *shell* buffer for the project."
+    (projectile-run-vterm))
+	(def-projectile-commander-method ?\C-? ;; backspace
+		"Go back to project selection."
+		(projectile-switch-project))
+	(def-projectile-commander-method ?d
+    "Open project root in dired."
+    (projectile-dired))
+	(def-projectile-commander-method ?f
+    "Find file in project."
+    (projectile-find-file))
+	(def-projectile-commander-method ?s
+    "Ripgrep in project."
+    (projectile-find-file))
+	(def-projectile-commander-method ?g
+    "Git status in project."
+    (projectile-vc))
+  )
+
+  (use-package perspective
+    :commands (persp-new persp-switch)
+    :general
+    (my/leader-keys
+      "<tab>" '(:ignore true :wk "tab")
+      "<tab> <tab>" 'persp-switch
+      "<tab> `" 'persp-switch-last
+      "<tab> d" 'persp-kill
+      "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
+      "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
+      "<tab> n" '(my/new-tab :wk "new"))
+    :init
+    (defun my/new-tab ()
+      "Jump to the dashboard buffer, if doesn't exists create one."
+      (interactive)
+      ;; (persp-new (concat "tab " (+ 1 (int (length (persp-names))))))
+      (persp-new "main")
+      (persp-switch "main")
+      (switch-to-buffer dashboard-buffer-name)
+      (dashboard-mode)
+      (dashboard-insert-startupify-lists)
+      (dashboard-refresh-buffer))
+    :config
+    (persp-mode))
+
+(use-package persp-projectile
+  :general
+
+  (my/leader-keys
+    "p p" 'projectile-persp-switch-project
+		;; "<tab> o"	'((lambda () (interactive) (projectile-persp-switch-project "org")) :wk "org")
+    ;; "p P" '((lambda ()
+    ;;           (setq projectile-switch-project-action 'projectile-commander)
+    ;;           (setq projectile-switch-project-action 'projectile-find-file)
+		;; 					(interactive)
+    ;;           (projectile-persp-switch-project))
+    ;;         :wk "project commander" )
+    ))
+
+(use-package magit
+  :general
+  (my/leader-keys
+    "g g" 'magit-status
+    "g G" 'magit-status-here
+    "g l" '(magit-log :wk "log"))
+	(general-nmap
+		:keymaps '(magit-status-mode-map
+     magit-stash-mode-map
+     magit-revision-mode-map
+     magit-process-mode-map
+     magit-diff-mode-map)
+		 "<tab>" #'magit-section-toggle)
+  :init
+  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  (setq magit-log-arguments '("--graph" "--decorate" "--color"))
+	:config
+	  (evil-define-key* 'normal magit-status-mode-map [escape] nil)
+
+	(evil-define-key* '(normal visual) magit-mode-map
+    "zz" #'evil-scroll-line-to-center)
+  )
+
+  (use-package git-timemachine
+    :hook (git-time-machine-mode . evil-normalize-keymaps)
+    :init (setq git-timemachine-show-minibuffer-details t)
+    :general
+    (general-nmap "SPC g t" 'git-timemachine-toggle)
+    (git-timemachine-mode-map
+     "C-k" 'git-timemachine-show-previous-revision
+     "C-j" 'git-timemachine-show-next-revision
+     "q" 'git-timemachine-quit))
+
+(use-package diff-hl
+  :demand
+	:general
+	(my/leader-keys
+    "g n" '(diff-hl-next-hunk :wk "next hunk")
+    "g p" '(diff-hl-previous-hunk :wk "prev hunk"))
+  :hook
+  ((magit-pre-refresh . diff-hl-magit-pre-refresh)
+   (magit-post-refresh . diff-hl-magit-post-refresh))
+  :init
+  (setq diff-hl-draw-borders nil)
+	;; (setq diff-hl-global-modes '(not org-mode))
+  ;; (setq diff-hl-fringe-bmp-function 'diff-hl-fringe-bmp-from-type)
+  ;; (setq diff-hl-global-modes (not '(image-mode org-mode)))
+  :config
+  (global-diff-hl-mode)
+  )
+
+  (use-package smerge-mode
+    :straight (:type built-in)
+    :after hydra
+    :general
+    (my/leader-keys "g m" 'hydra-smerge)
+		:hook
+		(magit-diff-visit-file . (lambda ()
+                             (when smerge-mode
+                               (smerge-hydra/body))))
+    :init
+    (defhydra smerge-hydra (:hint nil
+                                  :pre (smerge-mode 1)
+                                  ;; Disable `smerge-mode' when quitting hydra if
+                                  ;; no merge conflicts remain.
+                                  :post (smerge-auto-leave))
+      "
+                                                    ╭────────┐
+  Movement   Keep           Diff              Other │ smerge │
+  ╭─────────────────────────────────────────────────┴────────╯
+     ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
+     ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
+     ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
+     ^_j_ ↓^     [_a_] all        [_H_] hightlight
+     ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
+     ^_G_^                                            │ [_q_] quit"
+      ("g" (progn (goto-char (point-min)) (smerge-next)))
+      ("G" (progn (goto-char (point-max)) (smerge-prev)))
+      ("C-j" smerge-next)
+      ("C-k" smerge-prev)
+      ("j" next-line)
+      ("k" previous-line)
+      ("b" smerge-keep-base)
+      ("u" smerge-keep-upper)
+      ("l" smerge-keep-lower)
+      ("a" smerge-keep-all)
+      ("RET" smerge-keep-current)
+      ("\C-m" smerge-keep-current)
+      ("<" smerge-diff-base-upper)
+      ("=" smerge-diff-upper-lower)
+      (">" smerge-diff-base-lower)
+      ("H" smerge-refine)
+      ("E" smerge-ediff)
+      ("C" smerge-combine-with-next)
+      ("r" smerge-resolve)
+      ("R" smerge-kill-current)
+      ("q" nil :color blue)))
+
+  (use-package hydra)
+
+;; add a visual intent guide
+(use-package highlight-indent-guides
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :init
+  ;; (setq highlight-indent-guides-method 'column)
+  (setq highlight-indent-guides-method 'character)
+  ;; (setq highlight-indent-guides-character ?|)
+  ;; (setq highlight-indent-guides-character ?❚)
+  (setq highlight-indent-guides-character ?‖)
+  (setq highlight-indent-guides-responsive 'stack)
+	;; (setq highlight-indent-guides-auto-enabled nil)
+	;; (set-face-background 'highlight-indent-guides-odd-face "darkgray")
+  ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
+  ;; (set-face-foreground 'highlight-indent-guides-character-face "dimgray")
+  )
+
+  (use-package rainbow-delimiters
+    :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+           (clojure-mode . rainbow-delimiters-mode)))
+
+  (use-package tree-sitter
+    :hook (python-mode . (lambda ()
+                           (require 'tree-sitter)
+                           (require 'tree-sitter-langs)
+                           (require 'tree-sitter-hl)
+                           (tree-sitter-hl-mode))))
+
+  (use-package tree-sitter-langs
+    :after tree-sitter)
+
+(use-package company
+  :demand
+	:general
+	(company-active-map
+	 ;; "RET" nil
+   "RET" 'company-complete-selection
+   "ESC" 'company-abort
+	 [return] nil
+   "TAB" 'company-complete-selection
+   "<tab>" 'company-complete-selection)
+  :init
+  ;; (setq company-backends '((company-capf :with company-yasnippet)
+  ;;                          (company-keywords company-files)))
+  (setq company-backends '((:separate company-yasnippet company-capf)
+													 (company-keywords company-files)))
+  (setq company-minimum-prefix-length 1)
+  (setq company-tooltip-align-annotations t)
+	(setq company-idle-delay 0.0)
+	;; always show candidates in overlay tooltip
+	(setq company-frontends '(company-pseudo-tooltip-frontend))
+	;; don't fill the only candidate
+	(setq company-auto-complete nil
+				company-auto-complete-chars nil)
+	:config
+	(global-company-mode)
+  (with-eval-after-load 'evil
+    (add-hook 'company-mode-hook #'evil-normalize-keymaps)))
+
+  (use-package company-box
+    :hook (company-mode . company-box-mode)
+    :config
+    (setq company-box-show-single-candidate t
+          company-box-backends-colors nil
+          company-box-max-candidates 50
+          company-box-icons-alist 'company-box-icons-all-the-icons
+          company-box-icons-all-the-icons
+          (let ((all-the-icons-scale-factor 0.8))
+            `((Unknown       . ,(all-the-icons-material "find_in_page"             :face 'all-the-icons-purple))
+              (Text          . ,(all-the-icons-material "text_fields"              :face 'all-the-icons-green))
+              (Method        . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Function      . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Constructor   . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Field         . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (Variable      . ,(all-the-icons-material "adjust"                   :face 'all-the-icons-blue))
+              (Class         . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+              (Interface     . ,(all-the-icons-material "settings_input_component" :face 'all-the-icons-red))
+              (Module        . ,(all-the-icons-material "view_module"              :face 'all-the-icons-red))
+              (Property      . ,(all-the-icons-material "settings"                 :face 'all-the-icons-red))
+              (Unit          . ,(all-the-icons-material "straighten"               :face 'all-the-icons-red))
+              (Value         . ,(all-the-icons-material "filter_1"                 :face 'all-the-icons-red))
+              (Enum          . ,(all-the-icons-material "plus_one"                 :face 'all-the-icons-red))
+              (Keyword       . ,(all-the-icons-material "filter_center_focus"      :face 'all-the-icons-red))
+              (Snippet       . ,(all-the-icons-material "short_text"               :face 'all-the-icons-red))
+              (Color         . ,(all-the-icons-material "color_lens"               :face 'all-the-icons-red))
+              (File          . ,(all-the-icons-material "insert_drive_file"        :face 'all-the-icons-red))
+              (Reference     . ,(all-the-icons-material "collections_bookmark"     :face 'all-the-icons-red))
+              (Folder        . ,(all-the-icons-material "folder"                   :face 'all-the-icons-red))
+              (EnumMember    . ,(all-the-icons-material "people"                   :face 'all-the-icons-red))
+              (Constant      . ,(all-the-icons-material "pause_circle_filled"      :face 'all-the-icons-red))
+              (Struct        . ,(all-the-icons-material "streetview"               :face 'all-the-icons-red))
+              (Event         . ,(all-the-icons-material "event"                    :face 'all-the-icons-red))
+              (Operator      . ,(all-the-icons-material "control_point"            :face 'all-the-icons-red))
+              (TypeParameter . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+              (Template      . ,(all-the-icons-material "short_text"               :face 'all-the-icons-green))
+              (ElispFunction . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+              (ElispVariable . ,(all-the-icons-material "check_circle"             :face 'all-the-icons-blue))
+              (ElispFeature  . ,(all-the-icons-material "stars"                    :face 'all-the-icons-orange))
+              (ElispFace     . ,(all-the-icons-material "format_paint"             :face 'all-the-icons-pink)))))
+
+    ;; Disable tab-bar in company-box child frames
+    (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
+    )
+
+(use-package envrc
+	:commands (envrc-mode)
+  :hook ((python-mode . envrc-mode)
+         (org-mode . (lambda ()
+                       (with-current-buffer (buffer-name)
+                         (goto-char (point-min))
+                         (when (re-search-forward "begin_src jupyter-python" 10000 t)
+                           (envrc-mode))))))
+  )
+
+    (use-package yasnippet
+      :hook
+      ((text-mode . yas-minor-mode)
+       (prog-mode . yas-minor-mode)
+       (org-mode . yas-minor-mode)))
+
+  (use-package undo-fu
+    :general
+    (:states 'normal
+             "u" 'undo-fu-only-undo
+             "\C-r" 'undo-fu-only-redo))
+
+  (use-package vterm
+    :config
+    (setq vterm-shell (executable-find "fish")
+          vterm-max-scrollback 10000))
+
+(use-package vterm-toggle
+  :general
+  (my/leader-keys
+    "'" 'vterm-toggle))
+
+  (use-package dired
+    :straight (:type built-in)
+		:hook
+		(dired-mode . dired-hide-details-mode)
+    :general
+    (my/leader-keys
+      "f d" 'dired
+      "f j" 'dired-jump)
+		:init
+		(setq dired-dwim-target t))
+
+  (use-package dired-single
+    :after dired
+    :general
+    (dired-mode-map
+     :states 'normal
+     "h" 'dired-single-up-directory
+     "l" 'dired-single-buffer
+     "q" 'quit-window))
+
+  (use-package all-the-icons-dired
+    :hook (dired-mode . all-the-icons-dired-mode))
+
+  (use-package restart-emacs
+    :general
+    (my/leader-keys
+      "R" '(restart-emacs :wk "restart"))
+    )
+
+(use-package xwwp
+  :straight (xwwp :type git :host github :repo "canatella/xwwp")
+	:commands (xwwp xwwp-follow-link)
+  ;; :custom
+  ;; (setq xwwp-follow-link-completion-system 'ivy)
+  ;; :bind (:map xwidget-webkit-mode-map
+  ;;             ("v" . xwwp-follow-link))
+	)
+
+(use-package toml-mode
+	:mode "\\.toml\\'")
+
+(use-package dash-at-point
+	:general
+  (my/leader-keys
+    "s d" '(dash-at-point :which-key "search dash"))
 	)
 
 (use-package lsp-mode
@@ -1895,7 +1911,6 @@
     )
 
 (use-package nix-mode
-:commands (nix-mode) ;;FIXME
 :mode "\\.nix\\'")
 
   (use-package clojure-mode
@@ -1903,28 +1918,39 @@
     :init
     (setq clojure-align-forms-automatically t))
 
-  (use-package cider
-    :hook ((cider-repl-mode . evil-normalize-keymaps)
-           (cider-mode . eldoc-mode))
-    :general
-    (my/local-leader-keys
-      :keymaps 'clojure-mode-map
-      "c" '(cider-connect-clj :wk "connect")
-      "C" '(cider-connect-cljs :wk "connect (cljs)")
-      "j" '(cider-jack-in :wk "jack in")
-      "J" '(cider-jack-in-cljs :wk "jack in (cljs)")
-      "e l" 'cider-eval-last-sexp
-      "e E" 'cider-pprint-eval-last-sexp-to-comment
-      "e d" '(cider-eval-defun-at-point :wk "defun")
-      "e D" 'cider-pprint-eval-defun-to-comment)
-    (my/local-leader-keys
-      :keymaps 'clojure-mode-map
-      :states 'visual
-      "e" 'cider-eval-region)
-    :init
-    (setq nrepl-hide-special-buffers t)
-    (setq nrepl-sync-request-timeout nil)
-    )
+(use-package cider
+  :hook ((cider-repl-mode . evil-normalize-keymaps)
+         (cider-mode . eldoc-mode))
+  :general
+  (my/local-leader-keys
+    :keymaps 'clojure-mode-map
+    "c" '(cider-connect-clj :wk "connect")
+    "C" '(cider-connect-cljs :wk "connect (cljs)")
+    "j" '(cider-jack-in :wk "jack in")
+    "J" '(cider-jack-in-cljs :wk "jack in (cljs)")
+    "e l" 'cider-eval-last-sexp
+    "e E" 'cider-pprint-eval-last-sexp-to-comment
+    "e d" '(cider-eval-defun-at-point :wk "defun")
+    "e D" 'cider-pprint-eval-defun-to-comment
+		"K" 'cider-doc
+		)
+  (my/local-leader-keys
+    :keymaps 'clojure-mode-map
+    :states 'visual
+    "e" 'cider-eval-region)
+  :init
+  (setq nrepl-hide-special-buffers t)
+  (setq nrepl-sync-request-timeout nil)
+	(setq cider-repl-display-help-banner nil)
+	(defun mpereira/cider-eval-sexp-at-point (&optional output-to-current-buffer)
+    "Evaluate the expression around point.
+If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
+    (interactive "P")
+    (save-excursion
+      (goto-char (- (cadr (cider-sexp-at-point 'bounds))
+                    1))
+      (cider-eval-last-sexp output-to-current-buffer)))
+  )
 
 (use-package org
 :config
