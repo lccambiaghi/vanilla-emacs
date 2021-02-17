@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: pd-set-options
+# key: pdset
+# --
+import pandas as pd; pd.set_option('expand_frame_repr', False); pd.set_option('display.max_columns', 500); pd.set_option('display.float_format', '{:.2f}'.format)

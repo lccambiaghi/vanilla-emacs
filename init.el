@@ -147,13 +147,13 @@
 	(defconst my/default-font-size
 		(let* ((command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
 					 (screen-size (string-to-number (shell-command-to-string command))))
-      (if (> screen-size 16) 90 110)))
+      (if (> screen-size 16) 130 180)))
 
   ;; point size * 10, so 18*10 =180
 	(defconst my/variable-pitch-font-size
 		(let* ((command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
 					 (screen-size (string-to-number (shell-command-to-string command))))
-      (if (> screen-size 16) 90 110)))
+      (if (> screen-size 16) 130 180)))
 
 	;; (set-face-attribute 'default nil
 	;; 										:family my/default-font-family
@@ -168,11 +168,11 @@
   ;;                     :family my/default-font-family
   ;;                     :height my/default-font-size)
   ;; Main typeface
-  (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
+  (set-face-attribute 'default nil :font "Fira Code Retina" :height my/default-font-size)
   ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
+  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height my/default-font-size)
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 180 :weight 'regular)
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/variable-pitch-font-size :weight 'regular)
 	)
 
 (when (eq system-type 'darwin)
@@ -219,6 +219,12 @@
     (add-to-list 'recentf-exclude no-littering-etc-directory))
 	)
 
+(use-package emacs
+	:init
+	(unless (and (fboundp 'server-running-p)
+               (server-running-p))
+    (server-start)))
+
 (use-package general
   :demand t
   :config
@@ -245,7 +251,6 @@
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
     "bd"  'kill-current-buffer
-    "bx" '((lambda () (interactive) (let ((kill-buffer-query-functions nil)) (kill-buffer-and-window))) :wk "kill")
 
     "c" '(:ignore t :which-key "code")
 
@@ -254,28 +259,40 @@
     "ff"  'find-file
     "fs" 'save-buffer
     "fr" 'recentf-open-files
-    "fR" '((lambda () (interactive) (rename-file (buffer-file-name))) :wk "move/rename")
+    "fR" '((lambda (new-path)
+						 (interactive (list (read-file-name "Move file to: ") current-prefix-arg))
+						 (rename-file (buffer-file-name) (expand-file-name new-path))) :wk "move/rename")
 
     "g" '(:ignore t :which-key "git")
+		;; keybindings defined in magit
 
     "h" '(:ignore t :which-key "describe")
     "he" 'view-echo-area-messages
     "hf" 'describe-function
     "hF" 'describe-face
+    "hl" 'view-lossage
+    "hL" 'find-library
+    "hm" 'describe-mode
     "hk" 'describe-key
     "hK" 'describe-keymap
     "hp" 'describe-package
     "hv" 'describe-variable
 
     "o" '(:ignore t :which-key "org")
+		;; keybindings defined in org-mode
 
     "p" '(:ignore t :which-key "project")
+		;; keybindings defined in projectile
 
     "s" '(:ignore t :which-key "search")
+		;; keybindings defined in consult
 
     "t"  '(:ignore t :which-key "toggle")
     "t d"  '(toggle-debug-on-error :which-key "debug on error")
+		"t l" '(display-line-numbers-mode :wk "line numbers")
     "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
+
+		"u" '(universal-argument :wk "universal")
 
     "w" '(:ignore t :which-key "window")
     "wl"  'windmove-right
@@ -284,6 +301,7 @@
     "wj"  'windmove-down
     "wr" 'winner-redo
     "wd"  'delete-window
+		"w=" 'balance-windows-area
     "wD" 'kill-buffer-and-window
     "wu" 'winner-undo
     "wr" 'winner-redo
@@ -381,6 +399,16 @@
 		"s e" '(evil-iedit-state/iedit-mode :wk "iedit"))
 	)
 
+(use-package evil-mc
+	:general
+	(general-vmap
+    "A" #'evil-mc-make-cursor-in-visual-selection-end
+    "I" #'evil-mc-make-cursor-in-visual-selection-beg)
+	(general-nmap
+		"Q" #'evil-mc-undo-all-cursors)
+	:config
+	(global-evil-mc-mode 1))
+
 (use-package which-key
   :demand t
   :init
@@ -404,14 +432,17 @@
             :wk "open config")
     "o t" '((lambda () (interactive)
               (find-file (concat org-directory "/personal/todo.org")))
-            :wk "open todos"))
+            :wk "open todos")
+    )
   (my/local-leader-keys
     :keymaps 'org-mode-map
-    "A" '(org-archive-subtree :wk "archive subtree")
+    "a" '(org-archive-subtree :wk "archive subtree")
     "E" '(org-export-dispatch :wk "export")
+		"i" '(org-insert-structure-template :wk "insert src")
     "l" '(:ignore true :wk "link")
     "l l" '(org-insert-link :wk "insert link")
     "l s" '(org-store-link :wk "store link")
+    "L" '((lambda () (interactive) (org-latex-preview)) :wk "latex")
     "r" '(org-refile :wk "refile")
     "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
 		"p" '(org-priority :wk "priority")
@@ -434,7 +465,7 @@
         ;; org-export-in-background t
         org-src-preserve-indentation t ;; do not put two spaces on the left
 				org-startup-indented t
-				org-startup-with-inline-images t
+				;; org-startup-with-inline-images t
 				org-hide-emphasis-markers t
         org-catch-invisible-edits 'smart)
   ;; disable modules for faster startup
@@ -537,7 +568,7 @@
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
   ;; (efs/org-font-setup)
-  (require 'org-tempo)
+  ;; (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
@@ -548,8 +579,9 @@
   ;; (setq org-latex-compiler "xelatex")
 	;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
 	(setq org-latex-pdf-process '("tectonic %f"))
-	(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
   (add-to-list 'org-export-backends 'beamer)
+  (setq org-html-htmlize-output-type 'css)
+	(plist-put org-format-latex-options :scale 1.5)
   )
 
 (use-package org-reverse-datetree
@@ -973,12 +1005,13 @@
   (require 'hl-line)
 	)
 
-  (use-package ox-gfm
-    :after org)
+(use-package ox-gfm
+  :after org)
 
-  (use-package ox-ipynb
-    :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
-    :after org)
+(use-package ox-ipynb
+  :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
+  :after org
+  :demand)
 
 (use-package org-re-reveal
   :after org
@@ -999,6 +1032,12 @@
   (setq org-appear-autosubmarkers t)
 	)
 
+(use-package weblorg)
+
+(use-package templatel)
+
+(use-package htmlize)
+
   (use-package all-the-icons)
 
   (use-package doom-modeline
@@ -1017,66 +1056,78 @@
 (setq frame-title-format nil)
 
 (use-package modus-themes
-  :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
-  :hook (emacs-startup . my/load-modus-theme)
+	:straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+	:hook (emacs-startup . my/load-modus-theme)
 	:general
-  (my/leader-keys
-	 "t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
-  :init
-  (setq modus-themes-operandi-color-overrides
-        '((bg-main . "#fefcf4")
-          (bg-dim . "#faf6ef")
-          (bg-alt . "#f7efe5")
-          (bg-hl-line . "#f4f0e3")
-          (bg-active . "#e8dfd1")
-          (bg-inactive . "#f6ece5")
-          (bg-region . "#c6bab1")
-          (bg-header . "#ede3e0")
-          (bg-tab-bar . "#dcd3d3")
-          (bg-tab-active . "#fdf6eb")
-          (bg-tab-inactive . "#c8bab8")
-          (fg-unfocused ."#55556f")))
-  (setq modus-themes-vivendi-color-overrides
-        '((bg-main . "#100b17")
-          (bg-dim . "#161129")
-          (bg-alt . "#181732")
-          (bg-hl-line . "#191628")
-          (bg-active . "#282e46")
-          (bg-inactive . "#1a1e39")
-          (bg-region . "#393a53")
-          (bg-header . "#202037")
-          (bg-tab-bar . "#262b41")
-          (bg-tab-active . "#120f18")
-          (bg-tab-inactive . "#3a3a5a")
-          (fg-unfocused . "#9a9aab")))
-  (setq modus-themes-slanted-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-fringes 'nil ; {nil,'subtle,'intense}
-        modus-themes-mode-line '3d ; {nil,'3d,'moody}
-        modus-themes-intense-hl-line nil
-        modus-themes-prompts nil ; {nil,'subtle,'intense}
-        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
-        modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-        modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-        modus-themes-headings  ; Read further below in the manual for this one
-        '((1 . line)
-          (t . rainbow-line-no-bold))
-        modus-themes-variable-pitch-headings nil
-        modus-themes-scale-headings t
-        modus-themes-scale-1 1.1
-        modus-themes-scale-2 1.15
-        modus-themes-scale-3 1.21
-        modus-themes-scale-4 1.27
-        modus-themes-scale-5 1.33)
-  (defun my/load-modus-theme ()
-    ;;Light for the day
-    (run-at-time "07:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-operandi)))
-    ;; Dark for the night
-    (run-at-time "00:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))
-    (run-at-time "15:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))))
+	(my/leader-keys
+		"t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
+	:init
+	(setq modus-themes-operandi-color-overrides
+				'((bg-main . "#fefcf4")
+					(bg-dim . "#faf6ef")
+					(bg-alt . "#f7efe5")
+					(bg-hl-line . "#f4f0e3")
+					(bg-active . "#e8dfd1")
+					(bg-inactive . "#f6ece5")
+					(bg-region . "#c6bab1")
+					(bg-header . "#ede3e0")
+					(bg-tab-bar . "#dcd3d3")
+					(bg-tab-active . "#fdf6eb")
+					(bg-tab-inactive . "#c8bab8")
+					(fg-unfocused ."#55556f")))
+	(setq modus-themes-vivendi-color-overrides
+				'((bg-main . "#100b17")
+					(bg-dim . "#161129")
+					(bg-alt . "#181732")
+					(bg-hl-line . "#191628")
+					(bg-active . "#282e46")
+					(bg-inactive . "#1a1e39")
+					(bg-region . "#393a53")
+					(bg-header . "#202037")
+					(bg-tab-bar . "#262b41")
+					(bg-tab-active . "#120f18")
+					(bg-tab-inactive . "#3a3a5a")
+					(fg-unfocused . "#9a9aab")))
+	(setq modus-themes-slanted-constructs t
+				modus-themes-bold-constructs t
+				modus-themes-fringes 'nil ; {nil,'subtle,'intense}
+				modus-themes-mode-line '3d ; {nil,'3d,'moody}
+				modus-themes-intense-hl-line nil
+				modus-themes-prompts nil ; {nil,'subtle,'intense}
+				modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+				modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
+				modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+				modus-themes-headings  ; Read further below in the manual for this one
+				'((1 . line)
+					(t . rainbow-line-no-bold))
+				modus-themes-variable-pitch-headings nil
+				modus-themes-scale-headings t
+				modus-themes-scale-1 1.1
+				modus-themes-scale-2 1.15
+				modus-themes-scale-3 1.21
+				modus-themes-scale-4 1.27
+				modus-themes-scale-5 1.33)
+	(defun my/load-modus-theme ()
+		;;Light for the day
+		(run-at-time "07:00" (* 60 60 24)
+								 (lambda ()
+									 (modus-themes-load-operandi)
+									 (with-eval-after-load 'org
+										 (plist-put org-format-latex-options :foreground "black"))
+									 ))
+		;; Dark for the night
+		(run-at-time "00:00" (* 60 60 24)
+								 (lambda ()
+									 (modus-themes-load-vivendi)
+									 (with-eval-after-load 'org
+										 (plist-put org-format-latex-options :foreground "whitesmoke"))
+									 ))
+		(run-at-time "17:00" (* 60 60 24)
+								 (lambda ()
+									 (modus-themes-load-vivendi)
+									 (with-eval-after-load 'org
+										 (plist-put org-format-latex-options :foreground "whitesmoke"))
+									 ))))
 
 (use-package dashboard
   :after projectile
@@ -1089,18 +1140,20 @@
   (setq dashboard-projects-backend 'projectile)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
-  (setq dashboard-match-agenda-entry "work|life")
-	;; exclude work items after 17 and on weekends
-  (run-at-time "00:00" (* 60 60 24)
-							 (lambda ()
-								 (when (or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
+	(defun is-after-17-or-weekends? ()
+		(or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
 															 (substring 0 2)
 															 (string-to-number)
 															 (> 16)
 															 )
 													 (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
-															 (member  '("Sat" "Sun"))))
-									 (setq dashboard-match-agenda-entry "life"))))
+															 (member  '("Sat" "Sun")))))
+	;; exclude work items after 17 and on weekends
+  (run-at-time "00:00" (* 60 60 24)
+							 (lambda ()
+								 (if (is-after-17-or-weekends?)
+									 (setq dashboard-match-agenda-entry "life")
+                   (setq dashboard-match-agenda-entry "work|life"))))
   (setq dashboard-items '((recents  . 5)
                           (agenda . 5)
                           ;; (bookmarks . 5)
@@ -1199,7 +1252,6 @@
     (setq olivetti-recall-visual-line-mode-entry-state t))
 
   (use-package selectrum
-    :after embark
     :demand
     :general
     (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
@@ -1229,39 +1281,41 @@
     (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
     :config (marginalia-mode t))
 
-  (use-package embark
-    :demand
-    :general
-    (general-nmap "C-l" 'embark-act)
-    (selectrum-minibuffer-map "C-l" #'embark-act)
-    :config
-    ;; For Selectrum users:
-    (defun current-candidate+category ()
-      (when selectrum-active-p
-        (cons (selectrum--get-meta 'category)
-              (selectrum-get-current-candidate))))
+(use-package embark
+  :general
+  (general-nmap "C-l" 'embark-act)
+  (selectrum-minibuffer-map "C-l" #'embark-act)
+  :config
+  ;; For Selectrum users:
+  (defun current-candidate+category ()
+    (when selectrum-active-p
+      (cons (selectrum--get-meta 'category)
+            (selectrum-get-current-candidate))))
 
-    (add-hook 'embark-target-finders #'current-candidate+category)
+  (add-hook 'embark-target-finders #'current-candidate+category)
 
-    (defun current-candidates+category ()
-      (when selectrum-active-p
-        (cons (selectrum--get-meta 'category)
-              (selectrum-get-current-candidates
-               ;; Pass relative file names for dired.
-               minibuffer-completing-file-name))))
+  (defun current-candidates+category ()
+    (when selectrum-active-p
+      (cons (selectrum--get-meta 'category)
+            (selectrum-get-current-candidates
+             ;; Pass relative file names for dired.
+             minibuffer-completing-file-name))))
 
-    (add-hook 'embark-candidate-collectors #'current-candidates+category)
+  (add-hook 'embark-candidate-collectors #'current-candidates+category)
 
-    ;; No unnecessary computation delay after injection.
-    (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
-    )
+  ;; No unnecessary computation delay after injection.
+  (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
+  )
 
 (use-package consult
   :general
+	(general-nmap
+		:states '(normal insert)
+    "C-p" 'consult-yank-pop)
   (my/leader-keys
+    "s i" '(consult-isearch :wk "isearch")
     "s o" '(consult-outline :which-key "outline")
     "s s" 'consult-line
-    "y" '(consult-yank-pop :which-key "yank")
     "b b" 'consult-buffer
     ;; TODO consult mark
     "f r" 'consult-recent-file
@@ -1269,11 +1323,12 @@
 	(with-eval-after-load 'projectile
     (my/leader-keys
       "s p" '((lambda () (interactive) (consult-ripgrep (projectile-project-root))) :wk "ripgrep")))
+	:config
+	(autoload 'projectile-project-root "projectile")
+  (setq consult-project-root-function #'projectile-project-root)
   ;; :init
   ;; (setq consult-preview-key "C-l")
   ;; (setq consult-narrow-key ">")
-  :config
-  (consult-preview-mode)
   )
 
 (use-package consult-selectrum
@@ -1426,9 +1481,9 @@
 
   (use-package smerge-mode
     :straight (:type built-in)
-    :after hydra
+		:after hydra
     :general
-    (my/leader-keys "g m" 'hydra-smerge)
+    (my/leader-keys "g m" 'hydra-smerge/body)
 		:hook
 		(magit-diff-visit-file . (lambda ()
                              (when smerge-mode
@@ -1471,7 +1526,8 @@
       ("R" smerge-kill-current)
       ("q" nil :color blue)))
 
-  (use-package hydra)
+(use-package hydra
+  :demand)
 
 ;; add a visual intent guide
 (use-package highlight-indent-guides
@@ -1505,31 +1561,32 @@
 
 (use-package company
   :demand
-	:general
-	(company-active-map
-	 ;; "RET" nil
-   "RET" 'company-complete-selection
-   "ESC" 'company-abort
-	 [return] nil
-   "TAB" 'company-complete-selection
-   "<tab>" 'company-complete-selection)
+	;; :hook
+	;; (python-mode . (lambda ()
+	;; 								(setq-local company-backends '((company-capf :with company-files)))))
   :init
-  ;; (setq company-backends '((company-capf :with company-yasnippet)
-  ;;                          (company-keywords company-files)))
-  (setq company-backends '((:separate company-yasnippet company-capf)
-													 (company-keywords company-files)))
+  ;; (setq company-backends '((company-capf :with company-files)
+	;; 												 (company-dabbrev company-dabbrev-code company-files company-keywords)))
   (setq company-minimum-prefix-length 1)
-  (setq company-tooltip-align-annotations t)
 	(setq company-idle-delay 0.0)
-	;; always show candidates in overlay tooltip
-	(setq company-frontends '(company-pseudo-tooltip-frontend))
-	;; don't fill the only candidate
-	(setq company-auto-complete nil
-				company-auto-complete-chars nil)
-	:config
-	(global-company-mode)
+  (setq company-tooltip-align-annotations t)
+	;; don't autocomplete when single candidate
+	(setq company-auto-complete nil)
+	(setq company-auto-complete-chars nil)
+	(setq company-dabbrev-code-other-buffers nil)
+	;; manually configure tng
+	;; (setq company-tng-auto-configure nil)
+	;; (setq company-frontends '(company-tng-frontend
+  ;;                           company-pseudo-tooltip-frontend
+  ;;                           company-echo-metadata-frontend))
+	;; (setq company-selection-default nil)
+  :config
+  (global-company-mode)
   (with-eval-after-load 'evil
-    (add-hook 'company-mode-hook #'evil-normalize-keymaps)))
+    (add-hook 'company-mode-hook #'evil-normalize-keymaps))
+	;; needed in case we only have one candidate
+	(define-key company-active-map (kbd "C-j") 'company-select-next)
+	)
 
   (use-package company-box
     :hook (company-mode . company-box-mode)
@@ -1586,11 +1643,22 @@
                            (envrc-mode))))))
   )
 
-    (use-package yasnippet
-      :hook
-      ((text-mode . yas-minor-mode)
-       (prog-mode . yas-minor-mode)
-       (org-mode . yas-minor-mode)))
+(use-package yasnippet
+	:general
+	(yas-minor-mode-map
+	 :states 'insert
+   "<tab>" 'nil
+   "C-<tab>" 'yas-expand)
+  :hook
+  ((text-mode . yas-minor-mode)
+   (prog-mode . yas-minor-mode)
+	 (dap-ui-repl-mode . yas-minor-mode)
+   (org-mode . yas-minor-mode))
+	;; :init
+  ;; (setq yas-prompt-functions '(yas-ido-prompt))
+  :config
+  (yas-reload-all)
+	)
 
   (use-package undo-fu
     :general
@@ -1639,7 +1707,14 @@
 
 (use-package xwwp
   :straight (xwwp :type git :host github :repo "canatella/xwwp")
-	:commands (xwwp xwwp-follow-link)
+	:commands (xwwp)
+	:general
+  (my/leader-keys
+    "s w" '((lambda () (interactive)
+							(let ((current-prefix-arg 4)) ;; emulate C-u
+                (call-interactively 'xwwp)))
+            :wk "search or visit")
+    "s l" '(xwwp-follow-link :wk "link"))
   ;; :custom
   ;; (setq xwwp-follow-link-completion-system 'ivy)
   ;; :bind (:map xwidget-webkit-mode-map
@@ -1806,8 +1881,10 @@
     :general
     (my/local-leader-keys
       :keymaps 'python-mode-map
-      "t t" '(python-pytest-dispatch :wk "dispatch")
-      "t d" '(python-pytest-function :wk "defun"))
+			"t" '(:ignore t :wk "test")
+      "t d" '(python-pytest-dispatch :wk "dispatch")
+      "t f" '(python-pytest-file-dwim :wk "file")
+      "t t" '(python-pytest-function :wk "function"))
     :init
     (setq python-pytest-arguments '("--color" "--failed-first"))
     (defun my/pytest-use-venv (orig-fun &rest args)
@@ -1897,19 +1974,18 @@
                                    (ess-R-fl-keyword:F&T . t)))
       )
 
-  (use-package elisp-mode
-    :straight (:type built-in)
-    :general
-    (my/local-leader-keys
-      :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
-      "e l" '(eval-last-sexp :wk "last sexp")
-      ;; "e" '(eval-last-sexp :states 'visual :wk "sexp")
-      )
-    (my/local-leader-keys
-      :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
-      :states 'visual
-      "e" '(eval-last-sexp :wk "sexp"))
-    )
+(use-package elisp-mode
+  :straight (:type built-in)
+  :general
+  (my/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
+    "e l" '(eval-last-sexp :wk "last sexp")
+		"e b" '(eval-buffer :wk "buffer"))
+  (my/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
+    :states 'visual
+    "e" '(eval-last-sexp :wk "sexp"))
+  )
 
   (use-package evil-lisp-state
     :after evil
@@ -1925,10 +2001,10 @@
 (use-package nix-mode
 :mode "\\.nix\\'")
 
-  (use-package clojure-mode
-    :mode "\\.clj$"
-    :init
-    (setq clojure-align-forms-automatically t))
+(use-package clojure-mode
+  :mode "\\.clj$"
+  :init
+  (setq clojure-align-forms-automatically t))
 
 (use-package cider
   :hook ((cider-repl-mode . evil-normalize-keymaps)

@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
 # name: header-args
-# key: <ha
+# key: +ha
 # --
 #+PROPERTY: header-args :session $0

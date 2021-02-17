@@ -148,18 +148,15 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("all-the-icons.el" . "6917b08f64dd8487e23769433d6cb9ba11f4152f")
  ("annalist.el" . "134fa3f0fb91a636a1c005c483516d4b64905a6d")
  ("avy" . "e92cb37457b43336b765630dbfbea8ba4be601fa")
- ("blacken" . "784da60033fe3743336d1da0f33239f1bf514266")
  ("bui.el" . "28a9b0a36cb69b931cf32db7546ad5c6589752cf")
  ("centaur-tabs" . "23eda0a0292a84c7e0a0aa2b598f9e29c7e5b54f")
  ("centered-cursor-mode.el" . "4093821cc9759ca5a3c6e527d4cc915fc3a5ad74")
  ("cfrs" . "a5225c1830ae4c5a98fc0973d62d131321c059cd")
  ("cider" . "9c137c52cf5b769fcc52b4e8108acda10638f766")
  ("clojure-mode" . "53ef8ac076ae7811627fbdd408e519ab7fca9a0b")
- ("company-box" . "ec8f44674dc10dd4d50785a1f97820b29d392ea2")
  ("company-mode" . "6116c4617a7934acfe84cb82a058e9b198f0f480")
  ("consult" . "7a2f751421f4a1601811fa59571bd64baf7ec900")
  ("dap-mode" . "612388d0b85e77972a9c28391bac6224a63408c7")
- ("dash-at-point" . "4d795a23a8428c421d5107f1b005c9d8e0d1816c")
  ("dash.el" . "8879c41d30211ae2e72298e354fdffef627a3836")
  ("diff-hl" . "89aeb2fc8b24b6c4de4394f85041c5dd5fa60dad")
  ("dired-single" . "98c2102429fcac6fbfdba9198c126eb1b3dcc4e5")
@@ -190,16 +187,13 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("evil-cleverparens" . "8c45879d49bfa6d4e414b6c1df700a4a51cbb869")
  ("evil-collection" . "f53ef08224f709c732740d45b373ef3617f6d759")
  ("evil-goggles" . "08a22058fd6a167f9f1b684c649008caef571459")
- ("evil-iedit-state" . "30fcfa96ceebed0191337c493f5c2efc8ae090ad")
- ("evil-indent-plus" . "0c7501e6efed661242c3a20e0a6c79a6455c2c40")
  ("evil-lisp-state" . "3c65fecd9917a41eaf6460f22187e2323821f3ce")
+ ("evil-mc" . "7dfb2ca5ac00c249cb2f55cd6fa91fb2bfb1117e")
  ("evil-nerd-commenter" . "563cdc154b1f29d181b883563dd37be7eafafdee")
  ("evil-org-mode" . "a9706da260c45b98601bcd72b1d2c0a24a017700")
- ("evil-snipe" . "6dcac7f2516c6137a2de532fc2c052f242559ee3")
  ("evil-surround" . "346d4d85fcf1f9517e9c4991c1efe68b4130f93a")
  ("exec-path-from-shell" . "d14d6d2966efe5a1409f84a6b9d998268f74761d")
  ("f.el" . "1814209e2ff43cf2e6d38c4cd476218915f550fb")
- ("frame-local" . "7ee1106c3bcd4022f48421f8cb1ef4f995da816e")
  ("gcmh" . "0089f9c3a6d4e9a310d0791cf6fa8f35642ecfd9")
  ("general.el" . "a0b17d207badf462311b2eef7c065b884462cb7c")
  ("git-timemachine" . "8d675750e921a047707fcdc36d84f8439b19a907")
@@ -211,7 +205,6 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("hl-todo" . "9661a462d86b22293caaa4c3d94f971a15dbf1d5")
  ("ht.el" . "2850301d19176b8d3bb6cc8d95af6ab7e529bd56")
  ("hydra" . "2d553787aca1aceb3e6927e426200e9bb9f056f1")
- ("iedit" . "5c792f5fd44797ece83169b7ef6ac6f4b259255d")
  ("lsp-mode" . "f51741e2bbf002381d9bc51a6c7ae504c11d827b")
  ("lsp-pyright" . "71ff088ac4c93b0edd012f305a3dfd1602c5d21e")
  ("lsp-treemacs" . "64e375fcc700d4d47cf52ad912e6863d479e3bfa")
@@ -226,7 +219,6 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("ob-async" . "de1cd6c93242a4cb8773bbe115b7be3d4dd6b97e")
  ("olivetti" . "b76a020aedb57a6a7d0ae61cde13434f5c802a44")
  ("org" . "94d1753ec8b171442f0e789ca38beee2415198b0")
- ("org-appear" . "19ea96e6e2ce01b8583b25a6e5579f1be207a119")
  ("org-html-themify" . "dd5fea084c1ac9e868c356c59d5355b313aeb90d")
  ("org-re-reveal" . "d404eb13d9e34354c081870ebdd69711937682b3")
  ("org-reverse-datetree" . "be24274dd62cd3c586cbea99c8f73db251bf319d")
@@ -260,14 +252,11 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("smartparens" . "63695c64233d215a92bf08e762f643cdb595bdd9")
  ("spinner" . "61f59fab44d22cd5add61a1baf3f0b88a5d829d7")
  ("straight.el" . "2d407bccd9378f1d5218f8ba2ae85c6be73fbaf1")
- ("toml-mode.el" . "f6c61817b00f9c4a3cab1bae9c309e0fc45cdd06")
  ("transient" . "90e640fe8fa3f309c7cf347501e86ca5cd0bd85e")
  ("transpose-frame" . "12e523d70ff78cc8868097b56120848befab5dbc")
  ("treemacs" . "a0a1e96393c41b909ea75a35e0c8972047cfd1ae")
  ("use-package" . "caa92f1d64fc25480551757d854b4b49981dfa6b")
- ("vterm-toggle" . "61cb072af997aa961e2aebe0125b883ff3bd6f43")
  ("with-editor" . "6735180e73e787b79535c245b162249b70dbf841")
- ("xwwp" . "f67e070a6e1b233e60274deb717274b000923231")
  ("yasnippet" . "5cbdbf0d2015540c59ed8ee0fcf4788effdf75b6"))
 :beta
 #+end_src
@@ -394,13 +383,13 @@ We do the same for ~dired~.
 	(defconst my/default-font-size
 		(let* ((command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
 					 (screen-size (string-to-number (shell-command-to-string command))))
-      (if (> screen-size 16) 90 110)))
+      (if (> screen-size 16) 130 180)))
 
   ;; point size * 10, so 18*10 =180
 	(defconst my/variable-pitch-font-size
 		(let* ((command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
 					 (screen-size (string-to-number (shell-command-to-string command))))
-      (if (> screen-size 16) 90 110)))
+      (if (> screen-size 16) 130 180)))
 
 	;; (set-face-attribute 'default nil
 	;; 										:family my/default-font-family
@@ -415,11 +404,11 @@ We do the same for ~dired~.
   ;;                     :family my/default-font-family
   ;;                     :height my/default-font-size)
   ;; Main typeface
-  (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
+  (set-face-attribute 'default nil :font "Fira Code Retina" :height my/default-font-size)
   ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
+  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height my/default-font-size)
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 180 :weight 'regular)
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/variable-pitch-font-size :weight 'regular)
 	)
 #+end_src
 
@@ -486,6 +475,15 @@ Used by DOOM to manage garbage collection
 	)
 #+end_src
 
+** server mode
+#+begin_src emacs-lisp
+(use-package emacs
+	:init
+	(unless (and (fboundp 'server-running-p)
+               (server-running-p))
+    (server-start)))
+#+end_src
+
 * Keybindings
 ** general
 In this block we load ~general~ and define bindings for generic commands e.g. ~find-file~.
@@ -519,7 +517,6 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
     "bd"  'kill-current-buffer
-    "bx" '((lambda () (interactive) (let ((kill-buffer-query-functions nil)) (kill-buffer-and-window))) :wk "kill")
 
     "c" '(:ignore t :which-key "code")
 
@@ -528,28 +525,40 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     "ff"  'find-file
     "fs" 'save-buffer
     "fr" 'recentf-open-files
-    "fR" '((lambda () (interactive) (rename-file (buffer-file-name))) :wk "move/rename")
+    "fR" '((lambda (new-path)
+						 (interactive (list (read-file-name "Move file to: ") current-prefix-arg))
+						 (rename-file (buffer-file-name) (expand-file-name new-path))) :wk "move/rename")
 
     "g" '(:ignore t :which-key "git")
+		;; keybindings defined in magit
 
     "h" '(:ignore t :which-key "describe")
     "he" 'view-echo-area-messages
     "hf" 'describe-function
     "hF" 'describe-face
+    "hl" 'view-lossage
+    "hL" 'find-library
+    "hm" 'describe-mode
     "hk" 'describe-key
     "hK" 'describe-keymap
     "hp" 'describe-package
     "hv" 'describe-variable
 
     "o" '(:ignore t :which-key "org")
+		;; keybindings defined in org-mode
 
     "p" '(:ignore t :which-key "project")
+		;; keybindings defined in projectile
 
     "s" '(:ignore t :which-key "search")
+		;; keybindings defined in consult
 
     "t"  '(:ignore t :which-key "toggle")
     "t d"  '(toggle-debug-on-error :which-key "debug on error")
+		"t l" '(display-line-numbers-mode :wk "line numbers")
     "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
+
+		"u" '(universal-argument :wk "universal")
 
     "w" '(:ignore t :which-key "window")
     "wl"  'windmove-right
@@ -558,6 +567,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     "wj"  'windmove-down
     "wr" 'winner-redo
     "wd"  'delete-window
+		"w=" 'balance-windows-area
     "wD" 'kill-buffer-and-window
     "wu" 'winner-undo
     "wr" 'winner-redo
@@ -646,6 +656,9 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 #+END_SRC
 
 *** evil-surround
+- Use =S)= to surround something without spaces e.g. ~(sexp)~ 
+- Use =S(= to surround something with spaces e.g. ~( sexp )~ 
+
 #+BEGIN_SRC emacs-lisp
 (use-package evil-surround
   :general
@@ -658,6 +671,10 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 #+END_SRC
 
 *** evil-indent-plus
+To select a function in ~python~:
+- Stand on a line in the body of the function (root, not an if)
+- Select with =vik= 
+
 #+begin_src emacs-lisp
 (use-package evil-indent-plus
 	:after evil
@@ -688,6 +705,19 @@ Keybindings:
 	)
 #+end_src
 
+*** evil-mc
+#+begin_src emacs-lisp
+(use-package evil-mc
+	:general
+	(general-vmap
+    "A" #'evil-mc-make-cursor-in-visual-selection-end
+    "I" #'evil-mc-make-cursor-in-visual-selection-beg)
+	(general-nmap
+		"Q" #'evil-mc-undo-all-cursors)
+	:config
+	(global-evil-mc-mode 1))
+#+end_src
+
 ** which-key
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
@@ -706,6 +736,7 @@ Keybindings:
   + subitem
 - you can cycle to next TODO state with ~org-shiftright~
 - You can access custom agenda views with ~org-agenda~, mapped to =SPC o A=
+- Yo insert a src block use =, i= and then type initials e.g. ~jp~  for ~jupyter-python~
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
@@ -722,14 +753,17 @@ Keybindings:
             :wk "open config")
     "o t" '((lambda () (interactive)
               (find-file (concat org-directory "/personal/todo.org")))
-            :wk "open todos"))
+            :wk "open todos")
+    )
   (my/local-leader-keys
     :keymaps 'org-mode-map
-    "A" '(org-archive-subtree :wk "archive subtree")
+    "a" '(org-archive-subtree :wk "archive subtree")
     "E" '(org-export-dispatch :wk "export")
+		"i" '(org-insert-structure-template :wk "insert src")
     "l" '(:ignore true :wk "link")
     "l l" '(org-insert-link :wk "insert link")
     "l s" '(org-store-link :wk "store link")
+    "L" '((lambda () (interactive) (org-latex-preview)) :wk "latex")
     "r" '(org-refile :wk "refile")
     "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
 		"p" '(org-priority :wk "priority")
@@ -752,7 +786,7 @@ Keybindings:
         ;; org-export-in-background t
         org-src-preserve-indentation t ;; do not put two spaces on the left
 				org-startup-indented t
-				org-startup-with-inline-images t
+				;; org-startup-with-inline-images t
 				org-hide-emphasis-markers t
         org-catch-invisible-edits 'smart)
   ;; disable modules for faster startup
@@ -855,7 +889,7 @@ Keybindings:
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
   ;; (efs/org-font-setup)
-  (require 'org-tempo)
+  ;; (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
@@ -866,10 +900,14 @@ Keybindings:
   ;; (setq org-latex-compiler "xelatex")
 	;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
 	(setq org-latex-pdf-process '("tectonic %f"))
-	(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
   (add-to-list 'org-export-backends 'beamer)
+  (setq org-html-htmlize-output-type 'css)
+	(plist-put org-format-latex-options :scale 1.5)
   )
 #+END_SRC
+
+#+RESULTS:
+: #s(hash-table size 65 test eql rehash-size 1.5 rehash-threshold 0.8125 data (:use-package (24619 55547 217760 0) :init (24619 55547 207385 0) :init-secs (0 0 59 0) :use-package-secs (0 0 23287 0) :config (24619 55547 207370 0) :config-secs (0 0 11 0)))
 
 ** TODO async tangle
 Taken from https://github.com/KaratasFurkan/.emacs.d
@@ -1379,12 +1417,13 @@ Taken from DOOM:
 
 ** exporters
 #+BEGIN_SRC emacs-lisp
-  (use-package ox-gfm
-    :after org)
+(use-package ox-gfm
+  :after org)
 
-  (use-package ox-ipynb
-    :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
-    :after org)
+(use-package ox-ipynb
+  :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
+  :after org
+  :demand)
 #+END_SRC
 
 ** ox-reveal
@@ -1412,6 +1451,15 @@ Automatically disaply emphasis markers and links when the cursor is on them.
   (setq org-appear-autosubmarkers t)
 	)
 
+#+end_src
+
+** weblorg
+#+begin_src emacs-lisp
+(use-package weblorg)
+
+(use-package templatel)
+
+(use-package htmlize)
 #+end_src
 
 * UI
@@ -1444,66 +1492,78 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 ** Modus themes
 #+BEGIN_SRC emacs-lisp
 (use-package modus-themes
-  :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
-  :hook (emacs-startup . my/load-modus-theme)
+	:straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+	:hook (emacs-startup . my/load-modus-theme)
 	:general
-  (my/leader-keys
-	 "t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
-  :init
-  (setq modus-themes-operandi-color-overrides
-        '((bg-main . "#fefcf4")
-          (bg-dim . "#faf6ef")
-          (bg-alt . "#f7efe5")
-          (bg-hl-line . "#f4f0e3")
-          (bg-active . "#e8dfd1")
-          (bg-inactive . "#f6ece5")
-          (bg-region . "#c6bab1")
-          (bg-header . "#ede3e0")
-          (bg-tab-bar . "#dcd3d3")
-          (bg-tab-active . "#fdf6eb")
-          (bg-tab-inactive . "#c8bab8")
-          (fg-unfocused ."#55556f")))
-  (setq modus-themes-vivendi-color-overrides
-        '((bg-main . "#100b17")
-          (bg-dim . "#161129")
-          (bg-alt . "#181732")
-          (bg-hl-line . "#191628")
-          (bg-active . "#282e46")
-          (bg-inactive . "#1a1e39")
-          (bg-region . "#393a53")
-          (bg-header . "#202037")
-          (bg-tab-bar . "#262b41")
-          (bg-tab-active . "#120f18")
-          (bg-tab-inactive . "#3a3a5a")
-          (fg-unfocused . "#9a9aab")))
-  (setq modus-themes-slanted-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-fringes 'nil ; {nil,'subtle,'intense}
-        modus-themes-mode-line '3d ; {nil,'3d,'moody}
-        modus-themes-intense-hl-line nil
-        modus-themes-prompts nil ; {nil,'subtle,'intense}
-        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
-        modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-        modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-        modus-themes-headings  ; Read further below in the manual for this one
-        '((1 . line)
-          (t . rainbow-line-no-bold))
-        modus-themes-variable-pitch-headings nil
-        modus-themes-scale-headings t
-        modus-themes-scale-1 1.1
-        modus-themes-scale-2 1.15
-        modus-themes-scale-3 1.21
-        modus-themes-scale-4 1.27
-        modus-themes-scale-5 1.33)
-  (defun my/load-modus-theme ()
-    ;;Light for the day
-    (run-at-time "07:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-operandi)))
-    ;; Dark for the night
-    (run-at-time "00:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))
-    (run-at-time "15:00" (* 60 60 24)
-                 (lambda () (modus-themes-load-vivendi)))))
+	(my/leader-keys
+		"t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
+	:init
+	(setq modus-themes-operandi-color-overrides
+				'((bg-main . "#fefcf4")
+					(bg-dim . "#faf6ef")
+					(bg-alt . "#f7efe5")
+					(bg-hl-line . "#f4f0e3")
+					(bg-active . "#e8dfd1")
+					(bg-inactive . "#f6ece5")
+					(bg-region . "#c6bab1")
+					(bg-header . "#ede3e0")
+					(bg-tab-bar . "#dcd3d3")
+					(bg-tab-active . "#fdf6eb")
+					(bg-tab-inactive . "#c8bab8")
+					(fg-unfocused ."#55556f")))
+	(setq modus-themes-vivendi-color-overrides
+				'((bg-main . "#100b17")
+					(bg-dim . "#161129")
+					(bg-alt . "#181732")
+					(bg-hl-line . "#191628")
+					(bg-active . "#282e46")
+					(bg-inactive . "#1a1e39")
+					(bg-region . "#393a53")
+					(bg-header . "#202037")
+					(bg-tab-bar . "#262b41")
+					(bg-tab-active . "#120f18")
+					(bg-tab-inactive . "#3a3a5a")
+					(fg-unfocused . "#9a9aab")))
+	(setq modus-themes-slanted-constructs t
+				modus-themes-bold-constructs t
+				modus-themes-fringes 'nil ; {nil,'subtle,'intense}
+				modus-themes-mode-line '3d ; {nil,'3d,'moody}
+				modus-themes-intense-hl-line nil
+				modus-themes-prompts nil ; {nil,'subtle,'intense}
+				modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+				modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
+				modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+				modus-themes-headings  ; Read further below in the manual for this one
+				'((1 . line)
+					(t . rainbow-line-no-bold))
+				modus-themes-variable-pitch-headings nil
+				modus-themes-scale-headings t
+				modus-themes-scale-1 1.1
+				modus-themes-scale-2 1.15
+				modus-themes-scale-3 1.21
+				modus-themes-scale-4 1.27
+				modus-themes-scale-5 1.33)
+	(defun my/load-modus-theme ()
+		;;Light for the day
+		(run-at-time "07:00" (* 60 60 24)
+								 (lambda ()
+									 (modus-themes-load-operandi)
+									 (with-eval-after-load 'org
+										 (plist-put org-format-latex-options :foreground "black"))
+									 ))
+		;; Dark for the night
+		(run-at-time "00:00" (* 60 60 24)
+								 (lambda ()
+									 (modus-themes-load-vivendi)
+									 (with-eval-after-load 'org
+										 (plist-put org-format-latex-options :foreground "whitesmoke"))
+									 ))
+		(run-at-time "17:00" (* 60 60 24)
+								 (lambda ()
+									 (modus-themes-load-vivendi)
+									 (with-eval-after-load 'org
+										 (plist-put org-format-latex-options :foreground "whitesmoke"))
+									 ))))
 #+END_SRC
 
 ** dashboard
@@ -1519,18 +1579,20 @@ Automatically disaply emphasis markers and links when the cursor is on them.
   (setq dashboard-projects-backend 'projectile)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
-  (setq dashboard-match-agenda-entry "work|life")
-	;; exclude work items after 17 and on weekends
-  (run-at-time "00:00" (* 60 60 24)
-							 (lambda ()
-								 (when (or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
+	(defun is-after-17-or-weekends? ()
+		(or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
 															 (substring 0 2)
 															 (string-to-number)
 															 (> 16)
 															 )
 													 (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
-															 (member  '("Sat" "Sun"))))
-									 (setq dashboard-match-agenda-entry "life"))))
+															 (member  '("Sat" "Sun")))))
+	;; exclude work items after 17 and on weekends
+  (run-at-time "00:00" (* 60 60 24)
+							 (lambda ()
+								 (if (is-after-17-or-weekends?)
+									 (setq dashboard-match-agenda-entry "life")
+                   (setq dashboard-match-agenda-entry "work|life"))))
   (setq dashboard-items '((recents  . 5)
                           (agenda . 5)
                           ;; (bookmarks . 5)
@@ -1776,7 +1838,6 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 ** selectrum
 #+BEGIN_SRC emacs-lisp
   (use-package selectrum
-    :after embark
     :demand
     :general
     (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
@@ -1818,53 +1879,57 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 
    You can act on candidates with =C-l= and ask to remind bindings with =C-h=
 #+BEGIN_SRC emacs-lisp
-  (use-package embark
-    :demand
-    :general
-    (general-nmap "C-l" 'embark-act)
-    (selectrum-minibuffer-map "C-l" #'embark-act)
-    :config
-    ;; For Selectrum users:
-    (defun current-candidate+category ()
-      (when selectrum-active-p
-        (cons (selectrum--get-meta 'category)
-              (selectrum-get-current-candidate))))
+(use-package embark
+  :general
+  (general-nmap "C-l" 'embark-act)
+  (selectrum-minibuffer-map "C-l" #'embark-act)
+  :config
+  ;; For Selectrum users:
+  (defun current-candidate+category ()
+    (when selectrum-active-p
+      (cons (selectrum--get-meta 'category)
+            (selectrum-get-current-candidate))))
 
-    (add-hook 'embark-target-finders #'current-candidate+category)
+  (add-hook 'embark-target-finders #'current-candidate+category)
 
-    (defun current-candidates+category ()
-      (when selectrum-active-p
-        (cons (selectrum--get-meta 'category)
-              (selectrum-get-current-candidates
-               ;; Pass relative file names for dired.
-               minibuffer-completing-file-name))))
+  (defun current-candidates+category ()
+    (when selectrum-active-p
+      (cons (selectrum--get-meta 'category)
+            (selectrum-get-current-candidates
+             ;; Pass relative file names for dired.
+             minibuffer-completing-file-name))))
 
-    (add-hook 'embark-candidate-collectors #'current-candidates+category)
+  (add-hook 'embark-candidate-collectors #'current-candidates+category)
 
-    ;; No unnecessary computation delay after injection.
-    (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
-    )
+  ;; No unnecessary computation delay after injection.
+  (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
+  )
 #+END_SRC
 
 ** TODO embark-consult
 #+begin_src emacs-lisp :tangle no
 (use-package embark-consult
+  :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
   :after (embark consult)
   :demand t ; only necessary if you have the hook below
   ;; if you want to have consult previews as you move around an
   ;; auto-updating embark collect buffer
   :hook
   (embark-collect-mode . embark-consult-preview-minor-mode))
+
 #+end_src
 
 ** consult
 #+BEGIN_SRC emacs-lisp
 (use-package consult
   :general
+	(general-nmap
+		:states '(normal insert)
+    "C-p" 'consult-yank-pop)
   (my/leader-keys
+    "s i" '(consult-isearch :wk "isearch")
     "s o" '(consult-outline :which-key "outline")
     "s s" 'consult-line
-    "y" '(consult-yank-pop :which-key "yank")
     "b b" 'consult-buffer
     ;; TODO consult mark
     "f r" 'consult-recent-file
@@ -1872,11 +1937,12 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 	(with-eval-after-load 'projectile
     (my/leader-keys
       "s p" '((lambda () (interactive) (consult-ripgrep (projectile-project-root))) :wk "ripgrep")))
+	:config
+	(autoload 'projectile-project-root "projectile")
+  (setq consult-project-root-function #'projectile-project-root)
   ;; :init
   ;; (setq consult-preview-key "C-l")
   ;; (setq consult-narrow-key ">")
-  :config
-  (consult-preview-mode)
   )
 
 (use-package consult-selectrum
@@ -2064,9 +2130,9 @@ TODO:
 #+begin_src emacs-lisp
   (use-package smerge-mode
     :straight (:type built-in)
-    :after hydra
+		:after hydra
     :general
-    (my/leader-keys "g m" 'hydra-smerge)
+    (my/leader-keys "g m" 'hydra-smerge/body)
 		:hook
 		(magit-diff-visit-file . (lambda ()
                              (when smerge-mode
@@ -2112,7 +2178,8 @@ TODO:
 
 ** hydra
 #+begin_src emacs-lisp
-  (use-package hydra)
+(use-package hydra
+  :demand)
 #+end_src
 
 ** Highlight indentation guides
@@ -2155,40 +2222,39 @@ TODO:
 #+END_SRC
 
 ** company-mode
-Select candidates with =C-j= and =C-k= or =<tab>= and =S-<tab>=, don't press =RET= to confirm
-
-TODO:
-- use company-dabbrev for org-mode
-- use company-capf for jupyter...mode
+~company-tng-mode~ (tab-n-go):
+- Select candidates with =C-j= / =C-k= or =<tab>= / =S-<tab>=
+- don't press =RET= to confirm
 
 #+BEGIN_SRC emacs-lisp
 (use-package company
   :demand
-	:general
-	(company-active-map
-	 ;; "RET" nil
-   "RET" 'company-complete-selection
-   "ESC" 'company-abort
-	 [return] nil
-   "TAB" 'company-complete-selection
-   "<tab>" 'company-complete-selection)
+	;; :hook
+	;; (python-mode . (lambda ()
+	;; 								(setq-local company-backends '((company-capf :with company-files)))))
   :init
-  ;; (setq company-backends '((company-capf :with company-yasnippet)
-  ;;                          (company-keywords company-files)))
-  (setq company-backends '((:separate company-yasnippet company-capf)
-													 (company-keywords company-files)))
+  ;; (setq company-backends '((company-capf :with company-files)
+	;; 												 (company-dabbrev company-dabbrev-code company-files company-keywords)))
   (setq company-minimum-prefix-length 1)
-  (setq company-tooltip-align-annotations t)
 	(setq company-idle-delay 0.0)
-	;; always show candidates in overlay tooltip
-	(setq company-frontends '(company-pseudo-tooltip-frontend))
-	;; don't fill the only candidate
-	(setq company-auto-complete nil
-				company-auto-complete-chars nil)
-	:config
-	(global-company-mode)
+  (setq company-tooltip-align-annotations t)
+	;; don't autocomplete when single candidate
+	(setq company-auto-complete nil)
+	(setq company-auto-complete-chars nil)
+	(setq company-dabbrev-code-other-buffers nil)
+	;; manually configure tng
+	;; (setq company-tng-auto-configure nil)
+	;; (setq company-frontends '(company-tng-frontend
+  ;;                           company-pseudo-tooltip-frontend
+  ;;                           company-echo-metadata-frontend))
+	;; (setq company-selection-default nil)
+  :config
+  (global-company-mode)
   (with-eval-after-load 'evil
-    (add-hook 'company-mode-hook #'evil-normalize-keymaps)))
+    (add-hook 'company-mode-hook #'evil-normalize-keymaps))
+	;; needed in case we only have one candidate
+	(define-key company-active-map (kbd "C-j") 'company-select-next)
+	)
 #+END_SRC
 
 ** company box
@@ -2263,12 +2329,25 @@ TODO: maybe move this logic over to the ob-jupyter section?
 #+end_src
 
 ** yasnippet
+We use =C-<tab>= to expand snippets instead of =<tab>= .
+
 #+begin_src emacs-lisp
-    (use-package yasnippet
-      :hook
-      ((text-mode . yas-minor-mode)
-       (prog-mode . yas-minor-mode)
-       (org-mode . yas-minor-mode)))
+(use-package yasnippet
+	:general
+	(yas-minor-mode-map
+	 :states 'insert
+   "<tab>" 'nil
+   "C-<tab>" 'yas-expand)
+  :hook
+  ((text-mode . yas-minor-mode)
+   (prog-mode . yas-minor-mode)
+	 (dap-ui-repl-mode . yas-minor-mode)
+   (org-mode . yas-minor-mode))
+	;; :init
+  ;; (setq yas-prompt-functions '(yas-ido-prompt))
+  :config
+  (yas-reload-all)
+	)
 #+end_src
 
 ** undo fu
@@ -2349,7 +2428,14 @@ TODO: maybe move this logic over to the ob-jupyter section?
 #+begin_src emacs-lisp
 (use-package xwwp
   :straight (xwwp :type git :host github :repo "canatella/xwwp")
-	:commands (xwwp xwwp-follow-link)
+	:commands (xwwp)
+	:general
+  (my/leader-keys
+    "s w" '((lambda () (interactive)
+							(let ((current-prefix-arg 4)) ;; emulate C-u
+                (call-interactively 'xwwp)))
+            :wk "search or visit")
+    "s l" '(xwwp-follow-link :wk "link"))
   ;; :custom
   ;; (setq xwwp-follow-link-completion-system 'ivy)
   ;; :bind (:map xwidget-webkit-mode-map
@@ -2543,8 +2629,10 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     :general
     (my/local-leader-keys
       :keymaps 'python-mode-map
-      "t t" '(python-pytest-dispatch :wk "dispatch")
-      "t d" '(python-pytest-function :wk "defun"))
+			"t" '(:ignore t :wk "test")
+      "t d" '(python-pytest-dispatch :wk "dispatch")
+      "t f" '(python-pytest-file-dwim :wk "file")
+      "t t" '(python-pytest-function :wk "function"))
     :init
     (setq python-pytest-arguments '("--color" "--failed-first"))
     (defun my/pytest-use-venv (orig-fun &rest args)
@@ -2655,19 +2743,18 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 ** emacs-lisp
 *** elisp-mode
 #+begin_src emacs-lisp
-  (use-package elisp-mode
-    :straight (:type built-in)
-    :general
-    (my/local-leader-keys
-      :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
-      "e l" '(eval-last-sexp :wk "last sexp")
-      ;; "e" '(eval-last-sexp :states 'visual :wk "sexp")
-      )
-    (my/local-leader-keys
-      :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
-      :states 'visual
-      "e" '(eval-last-sexp :wk "sexp"))
-    )
+(use-package elisp-mode
+  :straight (:type built-in)
+  :general
+  (my/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
+    "e l" '(eval-last-sexp :wk "last sexp")
+		"e b" '(eval-buffer :wk "buffer"))
+  (my/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
+    :states 'visual
+    "e" '(eval-last-sexp :wk "sexp"))
+  )
 #+end_src
 
 *** evil-lisp state
@@ -2695,10 +2782,10 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 ** Clojure
 *** Clojure mode
 #+begin_src emacs-lisp
-  (use-package clojure-mode
-    :mode "\\.clj$"
-    :init
-    (setq clojure-align-forms-automatically t))
+(use-package clojure-mode
+  :mode "\\.clj$"
+  :init
+  (setq clojure-align-forms-automatically t))
 #+end_src
 
 *** Cider
@@ -2797,8 +2884,10 @@ size. This function also handles icons and modeline font sizes."
                         my/default-font-size
                       (+ height (face-attribute 'default :height)))))
     (set-face-attribute 'default nil :height new-height)
-    (set-face-attribute 'mode-line nil :height new-height)
-    (set-face-attribute 'mode-line-inactive nil :height new-height)
+    (set-face-attribute 'fixed-pitch nil :height new-height)
+    (set-face-attribute 'variable-pitch nil :height new-height)
+    ;; (set-face-attribute 'mode-line nil :height new-height)
+    ;; (set-face-attribute 'mode-line-inactive nil :height new-height)
     (message "Font size: %s" new-height)))
 
 (defun my/increase-font-size ()
@@ -2817,9 +2906,12 @@ size. This function also handles icons and modeline font sizes."
   (my/adjust-font-size 0))
 #+end_src
 
+*** Make different window configurations for dap-mode
++ One with just the code and the REPL
++ One with everything
+
 *** org-encrypt
 https://beorgapp.com/learning/emacs-encryption/
-*** setq-local company-dabbrev as backend for org-mode
 *** async org tangling
 https://github.com/mpereira/.emacs.d#asynchronous-org-babel-tangling-and-byte-recompilation
 ** Half done
@@ -2868,6 +2960,24 @@ Found at https://github.com/nnicandro/emacs-jupyter/issues/160
   ( scimax-jupyter-turn-on-eldoc )
   )
 #+END_SRC
+
+*** TODO better ~org-link~
+#+begin_src emacs-lisp :tangle no
+(defun hoperyto/org-id-complete-link-description (link desc)
+  (if (and (string-prefix-p "id:" link)
+           (or (not desc) (string= "" desc)))
+      (let* ((id (string-remove-prefix "id:" link)))
+        (save-excursion
+          (org-id-goto id)
+          (nth 4 (org-heading-components))))
+    desc))
+
+;; Store id based link to org entry at point via C-c l
+(setq org-id-link-to-org-use-id t)
+
+;; Set org entry heading/title as default description for id:<id> type links
+(setq org-link-make-description-function #'hoperyto/org-id-complete-link-description)
+#+end_src
 
 ** To fix
 *** ~evil-scroll-down~ throwing error when ~centaur-tabs-mode~ is active
