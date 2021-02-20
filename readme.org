@@ -29,6 +29,38 @@ It is still a long journey but I am glad I started it.
 - In the fourth section we configure ~emacs~ with sane defaults and extend some its core features (e.g. ~help-mode~)
 - In the fifth section we set up ~general~, which we use to manage our keybindings and lazy loading of packages. Afterwards we configure ~evil~, for modal editing.
 - The remaining sections declare my personal configuration of UI and core packages, leveraging the great tools described in this list.
+** Notable sections
+I am particularly proud of some sections in this configuration, because of one or more of these reasons:
+- They improve my productivity considerably
+- They are non-standard solutions (or at least hard to find online)
+- They are particularly fine-tuned to my workflow
+
+Here they are, without any ranking:
+- [[*Increase font size][Increase font size]]
+- [[*general][general]]
+- [[*evil-indent-plus][evil-indent-plus]]
+- [[*evil-iedit-state][evil-iedit-state]]
+- [[*evil-mc][evil-mc]]
+- [[*org mode][org mode]]
+- [[*ob-jupyter][ob-jupyter]]
+- [[*org-tree-slide][org-tree-slide]]
+- [[*evil-org-mode][evil-org-mode]]
+- [[*org-html-themify][org-html-themify]]
+- [[*Modus themes][Modus themes]]
+- [[*dashboard][dashboard]]
+- [[*popup management][popup management]]
+- [[*projectile][projectile]]
+- [[*hydra-smerge][hydra-smerge]]
+- [[*company-mode][company-mode]]
+- [[*envrc][envrc]]
+- [[*yasnippet][yasnippet]]
+- [[*dired][dired]]
+- [[*web browser][web browser]]
+- [[*lsp mode][lsp mode]]
+- [[*dap-mode][dap-mode]]
+- [[*pytest][pytest]]
+- [[*jupyter][jupyter]]
+- [[*evil-lisp state][evil-lisp state]] 
 * Startup
 ** early-init.el
 Taken from DOOM's early init
@@ -380,6 +412,7 @@ We do the same for ~dired~.
 	:init
   ;; auto-close parentheses
   (electric-pair-mode +1)
+	(setq electric-pair-preserve-balance nil)
   ;; disable auto pairing for <
   (add-function :before-until electric-pair-inhibit-predicate
                 (lambda (c) (eq c ?<))))
@@ -395,9 +428,10 @@ We do the same for ~dired~.
 	;; my/default-font-size is calculated on start according to the primary screen
 	;; size. if screen-size is bigger than 16 inch: 9 else 11.
 	(defconst my/default-font-size
-		(let* ((command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
-					 (screen-size (string-to-number (shell-command-to-string command))))
-      (if (> screen-size 16) 130 180)))
+		(let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
+					 (command "osascript -e 'tell application \"Finder\" to get bounds of window of desktop' | cut -d',' -f3")
+					 (screen-width (string-to-number (shell-command-to-string command))))
+      (if (> screen-width 2560) 210 180)))
 
   ;; point size * 10, so 18*10 =180
 	(defconst my/variable-pitch-font-size
@@ -405,18 +439,6 @@ We do the same for ~dired~.
 					 (screen-size (string-to-number (shell-command-to-string command))))
       (if (> screen-size 16) 130 180)))
 
-	;; (set-face-attribute 'default nil
-	;; 										:family my/default-font-family
-	;; 										:height my/default-font-size)
-
-	;; (set-face-attribute 'variable-pitch nil
-	;; 										:family my/variable-pitch-font-family
-	;; 										:height my/variable-pitch-font-size
-	;; 										:weight 'regular)
-
-	;; (set-face-attribute 'fixed-pitch nil
-  ;;                     :family my/default-font-family
-  ;;                     :height my/default-font-size)
   ;; Main typeface
   (set-face-attribute 'default nil :font "Fira Code Retina" :height my/default-font-size)
   ;; Set the fixed pitch face
@@ -424,6 +446,38 @@ We do the same for ~dired~.
   ;; Set the variable pitch face
   (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/variable-pitch-font-size :weight 'regular)
 	)
+#+end_src
+
+** Increase font size
+#+begin_src emacs-lisp
+(defun my/adjust-font-size (height)
+  "Adjust font size by given height. If height is '0', reset font
+size. This function also handles icons and modeline font sizes."
+  (interactive "nHeight ('0' to reset): ")
+  (let ((new-height (if (zerop height)
+                        my/default-font-size
+                      (+ height (face-attribute 'default :height)))))
+    (set-face-attribute 'default nil :height new-height)
+    (set-face-attribute 'fixed-pitch nil :height new-height)
+    (set-face-attribute 'variable-pitch nil :height new-height)
+    ;; (set-face-attribute 'mode-line nil :height new-height)
+    ;; (set-face-attribute 'mode-line-inactive nil :height new-height)
+    (message "Font size: %s" new-height)))
+
+(defun my/increase-font-size ()
+  "Increase font size by 0.5 (5 in height)."
+  (interactive)
+  (my/adjust-font-size 5))
+
+(defun my/decrease-font-size ()
+  "Decrease font size by 0.5 (5 in height)."
+  (interactive)
+  (my/adjust-font-size -5))
+
+(defun my/reset-font-size ()
+  "Reset font size according to the `my/default-font-size'."
+  (interactive)
+  (my/adjust-font-size 0))
 #+end_src
 
 ** macOS
@@ -755,7 +809,11 @@ Keybindings:
 #+BEGIN_SRC emacs-lisp
 (use-package org
   :hook ((org-mode . my/org-mode-setup)
-         (org-mode . prettify-symbols-mode))
+         (org-mode . prettify-symbols-mode)
+				 (org-mode . (lambda ()
+											 (let ((org-electric-pairs '((?= . ?=) (?~ . ?~))))
+												 (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
+												 (setq-local electric-pair-text-pairs electric-pair-pairs)))))
   :general
   (my/leader-keys
     "o a" '(org-agenda-list :wk "agenda")
@@ -777,7 +835,8 @@ Keybindings:
     "l" '(:ignore true :wk "link")
     "l l" '(org-insert-link :wk "insert link")
     "l s" '(org-store-link :wk "store link")
-    "L" '((lambda () (interactive) (org-latex-preview)) :wk "latex")
+    "L" '((lambda () (interactive) (org-latex-preview)) :wk "latex preview")
+    ;; "L" '((lambda () (interactive) (org--latex-preview-region (point-min) (point-max))) :wk "latex")
     "r" '(org-refile :wk "refile")
     "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
 		"p" '(org-priority :wk "priority")
@@ -787,8 +846,11 @@ Keybindings:
     "t s" '(org-schedule :wk "schedule")
     "t d" '(org-deadline :wk "deadline"))
   (org-mode-map
-   :states '(normal)
+   :states 'normal
    "z i" '(org-toggle-inline-images :wk "inline images"))
+	;; (org-mode-map
+  ;;  :states 'insert
+  ;;  "(" '((lambda () (interactive) (skeleton-pair-insert-maybe))))
   :init
   ;; general settings
   (setq org-directory "~/Dropbox/org"
@@ -803,19 +865,11 @@ Keybindings:
 				;; org-startup-with-inline-images t
 				org-hide-emphasis-markers t
         org-catch-invisible-edits 'smart)
+	(setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
   ;; disable modules for faster startup
   (setq org-modules
-        '(;; ol-w3m
-          ;; ol-bbdb
-          ;; ol-bibtex
-          ol-docview
-          ;; ol-gnus
-          ;; ol-info
-          ;; ol-irc
-          ;; ol-mhe
-          ;; ol-rmail
-          ;; ol-eww
-          ))
+        '(ol-docview
+					org-habit))
   (setq org-todo-keywords
         '((sequence "NEXT(n)" "TODO(t)" "|" "PROG(n)" "|" "DONE(d)" "HOLD(h)")))
   (setq org-capture-templates
@@ -900,10 +954,7 @@ Keybindings:
 												do
 												(insert (format "** [[%s::*%s][%s]]\n" file heading heading))))))
 	:config
-  (require 'org-habit)
-  (add-to-list 'org-modules 'org-habit)
   ;; (efs/org-font-setup)
-  ;; (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
@@ -919,9 +970,6 @@ Keybindings:
 	(plist-put org-format-latex-options :scale 1.5)
   )
 #+END_SRC
-
-#+RESULTS:
-: #s(hash-table size 65 test eql rehash-size 1.5 rehash-threshold 0.8125 data (:use-package (24619 55547 217760 0) :init (24619 55547 207385 0) :init-secs (0 0 59 0) :use-package-secs (0 0 23287 0) :config (24619 55547 207370 0) :config-secs (0 0 11 0)))
 
 ** TODO async tangle
 Taken from https://github.com/KaratasFurkan/.emacs.d
@@ -1410,6 +1458,7 @@ Taken from DOOM:
 #+end_src
 
 ** org-html-themify
+I use this package to export my config to HTML. I then push it to the ~gh-pages~ branch
 #+begin_src emacs-lisp
 (use-package org-html-themify
   :straight
@@ -1436,8 +1485,7 @@ Taken from DOOM:
 
 (use-package ox-ipynb
   :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
-  :after org
-  :demand)
+	:commands (ox-ipynb-export-org-file-to-ipynb-file))
 #+END_SRC
 
 ** ox-reveal
@@ -1476,6 +1524,12 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 (use-package htmlize)
 #+end_src
 
+** automatic latex preview
+#+begin_src emacs-lisp
+(use-package org-fragtog
+	:hook (org-mode . org-fragtog-mode))
+#+end_src
+
 * UI
 ** all the icons
 #+BEGIN_SRC emacs-lisp
@@ -1492,15 +1546,20 @@ Automatically disaply emphasis markers and links when the cursor is on them.
     (setq doom-modeline-height 15)
     (setq doom-modeline-project-detection 'projectile)
     :config
-    (doom-modeline-mode 1))
+    (doom-modeline-mode 1)
+    (set-face-attribute 'doom-modeline-evil-insert-state nil :foreground "orange")
+)
 #+END_SRC
 
 ** Fancy titlebar for macOS
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-(add-to-list 'default-frame-alist '(ns-appearance . dark))
-(setq ns-use-proxy-icon  nil)
-(setq frame-title-format nil)
+(use-package emacs
+	:init
+	(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+	(add-to-list 'default-frame-alist '(ns-appearance . dark))
+  (setq ns-use-proxy-icon  nil)
+  (setq frame-title-format nil)
+	)
 #+END_SRC
 
 ** Modus themes
@@ -1546,7 +1605,7 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 				modus-themes-prompts nil ; {nil,'subtle,'intense}
 				modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
 				modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-				modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+				;; modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
 				modus-themes-headings  ; Read further below in the manual for this one
 				'((1 . line)
 					(t . rainbow-line-no-bold))
@@ -1666,116 +1725,6 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 #+end_src
 
 ** popup management
-Taken from https://github.com/gilbertw1/bmacs/blob/master/bmacs.org#popup-rules
-#+begin_src emacs-lisp :tangle no
-  (defvar my-popups '()
-    "A list of popup matchers that determine if a popup can be escaped")
-
-
-  (cl-defun my/make-popup (buffer-rx &optional (height 0.4))
-    (add-to-list 'my-popups buffer-rx)
-    (add-to-list 'display-buffer-alist
-                 `(,buffer-rx
-                   (display-buffer-reuse-window
-                    display-buffer-in-side-window)
-                   (reusable-frames . visible)
-                   (side            . bottom)
-                   (window-height   . ,height))))
-
-  (my/make-popup (rx bos "*Messages*" eos))
-  (my/make-popup (rx bos "*Backtrace*" eos))
-  (my/make-popup (rx bos "*Warnings*" eos))
-  (my/make-popup (rx bos "*compilation*" eos))
-  (my/make-popup (rx bos "*Help*" eos))
-  (my/make-popup (rx bos "*helpful*" eos))
-  (my/make-popup (rx bos "*scratch*" eos) 0.4)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-(setq display-buffer-alist
-        '(;; ("\\*emacs-audit: package-list\\*"
-          ;;  (display-buffer-in-side-window)
-          ;;  (window-height . 1.0)
-          ;;  (window-width . 1.0)
-          ;;  (slot . 0)
-          ;;  (mode-line-format . (" " "%b")))
-
-          ("\\* Merriam-Webster Thesaurus \\*"
-           (display-buffer-below-selected))
-
-          ;; File-specific magit-log buffer.
-          ;; magit-log(branch-name -- path/to/file.ext): project-name
-          ("magit-log(.+): .+"
-           (display-buffer-below-selected))
-
-          ;; Clicking on a revision in a file-specific magit-log buffer.
-          ;; magit-revision: project-name
-          ("magit-revision: .+"
-           (display-buffer-same-window))
-
-          ("\\*compilation\\*"
-           (display-buffer-below-selected))
-
-          ("\\*mpereira/pp-macroexpand-all\\*"
-           (display-buffer-in-side-window)
-           (window-height . 0.5)
-           (window-width . 0.5)
-           (slot . 0)
-           (mode-line-format . (" " "%b")))
-
-          ("\\*hackernews top stories\\*"
-           (display-buffer-in-side-window)
-           (window-width . 120)
-           (side . left)
-           (slot . 0)
-           (mode-line-format . (" " "%b")))
-
-          ("^\\(\\*help.*\\)$"
-           (display-buffer-below-selected))
-
-          ("^\\(\\*lsp-help\\*\\)$"
-           (display-buffer-below-selected))
-
-          ("\\(\\Wo\\)?*Man.*"
-           (display-buffer-below-selected))
-
-          ("\\*\\(compilation\\|run .*\\|cargo test.*\\|cargo check.*\\|Async Shell Command\\)\\*"
-           (display-buffer-in-side-window)
-           (window-width . 100)
-           (side . right)
-           (slot . 0)
-           (mode-line-format . (" " "%b")))
-
-          ("\\*\\(rg\\)\\*"
-           (display-buffer-in-side-window)
-           (window-height . 0.5)
-           (window-width . 0.5)
-           (slot . 0)
-           (mode-line-format . (" " "%b")))
-
-          ("\\*Flycheck.*\\*"
-           (display-buffer-below-selected))
-
-          ("\\*last-eshell-output\\*"
-           (display-buffer-same-window))
-
-          ("\\(\\*undo-tree\\*\\)"
-           (display-buffer-in-side-window)
-           (window-width . 80)
-           (window-height . 0.5)
-           (side . left)
-           (slot . 0)
-           (mode-line-format . (" " "%b")))
-
-          ("\\(\\*undo-tree Diff\\*\\)"
-           (display-buffer-in-side-window)
-           (window-width . 80)
-           (window-height . 0.5)
-           (side . left)
-           (slot . 1)
-           (mode-line-format . (" " "%b")))))
-#+end_src
-
 Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+begin_src emacs-lisp
   (setq display-buffer-alist
@@ -1846,6 +1795,27 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
   :straight (:type built-in)
   :hook
   ((prog-mode org-mode) . display-fill-column-indicator-mode))
+#+end_src
+
+** TODO nano-emacs
+Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
+
+#+begin_src emacs-lisp :tangle no
+(use-package nano-emacs
+  :straight (nano-emacs :type git :host github :repo "rougier/nano-emacs")
+	:demand
+	:config
+	(require 'nano-layout)
+  (require 'nano-faces)
+  (nano-faces)
+
+	(require 'nano-theme-light)
+	;; (require 'nano-theme-dark)
+	(require 'nano-theme)
+	(nano-theme)
+
+	(require 'nano-modeline)
+	)
 #+end_src
 
 * Completion framework
@@ -1920,8 +1890,8 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
   )
 #+END_SRC
 
-** TODO embark-consult
-#+begin_src emacs-lisp :tangle no
+** embark-consult
+#+begin_src emacs-lisp
 (use-package embark-consult
   :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
   :after (embark consult)
@@ -1930,7 +1900,6 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
   ;; auto-updating embark collect buffer
   :hook
   (embark-collect-mode . embark-consult-preview-minor-mode))
-
 #+end_src
 
 ** consult
@@ -2247,8 +2216,7 @@ TODO:
 	;; (python-mode . (lambda ()
 	;; 								(setq-local company-backends '((company-capf :with company-files)))))
   :init
-  ;; (setq company-backends '((company-capf :with company-files)
-	;; 												 (company-dabbrev company-dabbrev-code company-files company-keywords)))
+  (setq company-backends '((company-capf company-files)))
   (setq company-minimum-prefix-length 1)
 	(setq company-idle-delay 0.0)
   (setq company-tooltip-align-annotations t)
@@ -2345,6 +2313,8 @@ TODO: maybe move this logic over to the ob-jupyter section?
 ** yasnippet
 We use =C-<tab>= to expand snippets instead of =<tab>= .
 
+You can have ~#condition: 'auto~ for the snippet to auto-expand.
+
 #+begin_src emacs-lisp
 (use-package yasnippet
 	:general
@@ -2357,11 +2327,16 @@ We use =C-<tab>= to expand snippets instead of =<tab>= .
    (prog-mode . yas-minor-mode)
 	 (dap-ui-repl-mode . yas-minor-mode)
    (org-mode . yas-minor-mode))
-	;; :init
+	:init
   ;; (setq yas-prompt-functions '(yas-ido-prompt))
+	(defun my-yas-try-expanding-auto-snippets ()
+    (when (and (boundp 'yas-minor-mode) yas-minor-mode)
+      (let ((yas-buffer-local-condition ''(require-snippet-condition . auto)))
+        (yas-expand))))
   :config
   (yas-reload-all)
-	)
+  (add-hook 'post-command-hook #'my-yas-try-expanding-auto-snippets)
+  )
 #+end_src
 
 ** undo fu
@@ -2405,28 +2380,28 @@ We use =C-<tab>= to expand snippets instead of =<tab>= .
 - View files with =go= and exit with ~q~
 
 #+BEGIN_SRC emacs-lisp
-  (use-package dired
-    :straight (:type built-in)
-		:hook
-		(dired-mode . dired-hide-details-mode)
-    :general
-    (my/leader-keys
-      "f d" 'dired
-      "f j" 'dired-jump)
-		:init
-		(setq dired-dwim-target t))
+(use-package dired
+  :straight (:type built-in)
+  :hook
+	(dired-mode . dired-hide-details-mode)
+  :general
+  (my/leader-keys
+    "f d" 'dired
+    "f j" 'dired-jump)
+	:init
+	(setq dired-dwim-target t))
 
-  (use-package dired-single
-    :after dired
-    :general
-    (dired-mode-map
-     :states 'normal
-     "h" 'dired-single-up-directory
-     "l" 'dired-single-buffer
-     "q" 'quit-window))
+(use-package dired-single
+  :after dired
+  :general
+  (dired-mode-map
+   :states 'normal
+   "h" 'dired-single-up-directory
+   "l" 'dired-single-buffer
+   "q" 'kill-current-buffer))
 
-  (use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
 #+END_SRC
 
 ** restart-emacs
@@ -2439,6 +2414,9 @@ We use =C-<tab>= to expand snippets instead of =<tab>= .
 #+end_src
 
 ** web browser
+Use =SPC s w= to search the web! You can also visit a URL in the buffer.
+With the web browser open, scroll with =j= / =k= .
+To visit a link, =SPC s l= 
 #+begin_src emacs-lisp
 (use-package xwwp
   :straight (xwwp :type git :host github :repo "canatella/xwwp")
@@ -2446,7 +2424,7 @@ We use =C-<tab>= to expand snippets instead of =<tab>= .
 	:general
   (my/leader-keys
     "s w" '((lambda () (interactive)
-							(let ((current-prefix-arg 4)) ;; emulate C-u
+							(let ((current-prefix-arg 4)) ;; emulate C-u universal arg
                 (call-interactively 'xwwp)))
             :wk "search or visit")
     "s l" '(xwwp-follow-link :wk "link"))
@@ -2538,7 +2516,8 @@ TODO:
       "d r" '(dap-ui-repl :wk "repl")
       "d h" '(dap-hydra :wk "hydra"))
     :init
-    (setq dap-auto-configure-features '(locals repl))
+    ;; (setq dap-auto-configure-features '(locals repl))
+    (setq dap-auto-configure-features '(repl))
     (setq dap-python-debugger 'debugpy)
     ;; show stdout
     (setq dap-auto-show-output t)
@@ -2555,7 +2534,7 @@ TODO:
     ;; configure windows
     (require 'dap-ui)
     (setq dap-ui-buffer-configurations
-          `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.50)))
+          `(;; (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.50)))
             ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
             ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
             (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.50)))))
@@ -2639,23 +2618,23 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 
 *** pytest
 #+begin_src emacs-lisp
-  (use-package python-pytest
-    :general
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-			"t" '(:ignore t :wk "test")
-      "t d" '(python-pytest-dispatch :wk "dispatch")
-      "t f" '(python-pytest-file-dwim :wk "file")
-      "t t" '(python-pytest-function :wk "function"))
-    :init
-    (setq python-pytest-arguments '("--color" "--failed-first"))
-    (defun my/pytest-use-venv (orig-fun &rest args)
-      (if-let ((python-pytest-executable (executable-find "pytest")))
-          (apply orig-fun args)
-        (apply orig-fun args)))
-    :config
-    (advice-add 'python-pytest--run :around #'my/pytest-use-venv)
-    )
+(use-package python-pytest
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+		"t" '(:ignore t :wk "test")
+    "t d" '(python-pytest-dispatch :wk "dispatch")
+    "t f" '(python-pytest-file-dwim :wk "file")
+    "t t" '(python-pytest-function :wk "function"))
+  :init
+  (setq python-pytest-arguments '("--color" "--failed-first"))
+  (defun my/pytest-use-venv (orig-fun &rest args)
+    (if-let ((python-pytest-executable (executable-find "pytest")))
+        (apply orig-fun args)
+      (apply orig-fun args)))
+  :config
+  (advice-add 'python-pytest--run :around #'my/pytest-use-venv)
+  )
 #+end_src
 
 *** flymake 
@@ -2674,52 +2653,52 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 
 *** jupyter
 #+begin_src emacs-lisp
-  (use-package jupyter
-    :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
-    :general
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-      "'" '(my/jupyter-repl :wk "jupyter REPL")
-      "e e" '(jupyter-eval-line-or-region :wk "line")
-      "e d" '(jupyter-eval-defun :wk "defun")
-      "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
-		(my/local-leader-keys
-      :keymaps 'python-mode-map
-			:states 'visual
-      "e" '(jupyter-eval-line-or-region))
-    (my/local-leader-keys
-      :keymaps 'jupyter-repl-interaction-mode-map
-			"k" '(:ignore true :wk "kernel")
-      "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
-      "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
-    :init
-    (setq jupyter-repl-prompt-margin-width 4)
-    (defun jupyter-command-venv (&rest args)
-      "This overrides jupyter-command to use the virtualenv's jupyter"
-      (let ((jupyter-executable (executable-find "jupyter")))
-        (with-temp-buffer
-          (when (zerop (apply #'process-file jupyter-executable nil t nil args))
-            (string-trim-right (buffer-string))))))
-    (defun my/jupyter-eval-buffer ()
-      "Send the contents of BUFFER using `jupyter-current-client'."
-      (interactive)
-      (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
-    (defun my/jupyter-repl ()
-      "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
-      (interactive)
-      (if (bound-and-true-p jupyter-current-client)
-          (jupyter-repl-pop-to-buffer)
-        (call-interactively 'jupyter-repl-associate-buffer)))
-    (advice-add 'jupyter-command :override #'jupyter-command-venv))
+(use-package jupyter
+  :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "'" '(my/jupyter-repl :wk "jupyter REPL")
+    "e e" '(jupyter-eval-line-or-region :wk "line")
+    "e d" '(jupyter-eval-defun :wk "defun")
+    "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
+	(my/local-leader-keys
+    :keymaps 'python-mode-map
+		:states 'visual
+    "e" '(jupyter-eval-line-or-region))
+  (my/local-leader-keys
+    :keymaps 'jupyter-repl-interaction-mode-map
+		"k" '(:ignore true :wk "kernel")
+    "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
+    "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
+  :init
+  (setq jupyter-repl-prompt-margin-width 4)
+  (defun jupyter-command-venv (&rest args)
+    "This overrides jupyter-command to use the virtualenv's jupyter"
+    (let ((jupyter-executable (executable-find "jupyter")))
+      (with-temp-buffer
+        (when (zerop (apply #'process-file jupyter-executable nil t nil args))
+          (string-trim-right (buffer-string))))))
+  (defun my/jupyter-eval-buffer ()
+    "Send the contents of BUFFER using `jupyter-current-client'."
+    (interactive)
+    (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
+  (defun my/jupyter-repl ()
+    "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
+    (interactive)
+    (if (bound-and-true-p jupyter-current-client)
+        (jupyter-repl-pop-to-buffer)
+      (call-interactively 'jupyter-repl-associate-buffer)))
+  (advice-add 'jupyter-command :override #'jupyter-command-venv))
 #+end_src
 
 *** auto-import
 #+begin_src emacs-lisp
-  (use-package pyimport
-    :general
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-      "i i" '(pyimport-insert-missing :wk "autoimport")))
+(use-package pyimport
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "i i" '(pyimport-insert-missing :wk "autoimport")))
 #+end_src
 
 *** blacken
@@ -2772,17 +2751,22 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 *** evil-lisp state
++ Enter ~lisp-state~ with =SPC l .=
++ Navigate symbols with =j= and =k=
++ Navigate forms with =h= and =l=
++ Go to parent sexp with =U=
+
 #+begin_src emacs-lisp
-  (use-package evil-lisp-state
-    :after evil
-    :demand
-    :init
-    (setq evil-lisp-state-enter-lisp-state-on-command nil)
-    ;; (setq evil-lisp-state-global t)
-    (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode clojurescript-mode lisp-interaction-mode))
-    :config
-    (evil-lisp-state-leader "SPC l")
-    )
+(use-package evil-lisp-state
+  :after evil
+  :demand
+  :init
+  (setq evil-lisp-state-enter-lisp-state-on-command nil)
+  (setq evil-lisp-state-global t)
+  ;; (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode clojurescript-mode lisp-interaction-mode))
+  :config
+  (evil-lisp-state-leader "SPC l")
+  )
 
 #+end_src
 
@@ -2851,20 +2835,20 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
 This package provides additional text objects for LISPs.
 For example, you can mark the outer form with =v a d=.
 #+begin_src emacs-lisp
-  (use-package evil-cleverparens
-    :hook
-    ((emacs-lisp-mode . evil-cleverparens-mode)
-     (clojure-mode . evil-cleverparens-mode))
-    :init
-    (setq evil-move-beyond-eol t
-          evil-cleverparens-use-additional-bindings nil
-          evil-cleverparens-use-s-and-S nil
-          ;; evil-cleverparens-swap-move-by-word-and-symbol t
-          ;; evil-cleverparens-use-regular-insert t
-          )
-    ;; :config
-    ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
-    )
+(use-package evil-cleverparens
+  :hook
+  ((emacs-lisp-mode . evil-cleverparens-mode)
+   (clojure-mode . evil-cleverparens-mode))
+  :init
+  (setq evil-move-beyond-eol t
+        evil-cleverparens-use-additional-bindings nil
+        evil-cleverparens-use-s-and-S nil
+        ;; evil-cleverparens-swap-move-by-word-and-symbol t
+        ;; evil-cleverparens-use-regular-insert t
+        )
+  ;; :config
+  ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+  )
 #+end_src
 
 *** aggressive-indent
@@ -2889,37 +2873,6 @@ For example, you can mark the outer form with =v a d=.
 * TODO missing / to fix
 ** Missing
 *** Make different font configurations (toggle big font)
-#+begin_src emacs-lisp :tangle no
-(defun my/adjust-font-size (height)
-  "Adjust font size by given height. If height is '0', reset font
-size. This function also handles icons and modeline font sizes."
-  (interactive "nHeight ('0' to reset): ")
-  (let ((new-height (if (zerop height)
-                        my/default-font-size
-                      (+ height (face-attribute 'default :height)))))
-    (set-face-attribute 'default nil :height new-height)
-    (set-face-attribute 'fixed-pitch nil :height new-height)
-    (set-face-attribute 'variable-pitch nil :height new-height)
-    ;; (set-face-attribute 'mode-line nil :height new-height)
-    ;; (set-face-attribute 'mode-line-inactive nil :height new-height)
-    (message "Font size: %s" new-height)))
-
-(defun my/increase-font-size ()
-  "Increase font size by 0.5 (5 in height)."
-  (interactive)
-  (my/adjust-font-size 5))
-
-(defun my/decrease-font-size ()
-  "Decrease font size by 0.5 (5 in height)."
-  (interactive)
-  (my/adjust-font-size -5))
-
-(defun my/reset-font-size ()
-  "Reset font size according to the `my/default-font-size'."
-  (interactive)
-  (my/adjust-font-size 0))
-#+end_src
-
 *** Make different window configurations for dap-mode
 + One with just the code and the REPL
 + One with everything
@@ -2998,7 +2951,9 @@ Found at https://github.com/nnicandro/emacs-jupyter/issues/160
 *** ~org-ellipsis~ not shown in heading when ~git-gutter-fringe-mode~ is active
 *** ~helpful-variable~ sometimes throws syntax error
 *** override modus face for highlight in consult-line minibuffer
+*** Weird indent behavior in org-mode
 * Local variables
 # Local Variables:
 # eval: (add-hook 'after-save-hook (lambda ()(org-babel-tangle)) nil t)
+# company-backends: (company-dabbrev company-dabbrev-code company-files company-keywords)
 # End:

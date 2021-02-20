@@ -133,6 +133,7 @@
 	:init
   ;; auto-close parentheses
   (electric-pair-mode +1)
+	(setq electric-pair-preserve-balance nil)
   ;; disable auto pairing for <
   (add-function :before-until electric-pair-inhibit-predicate
                 (lambda (c) (eq c ?<))))
@@ -145,9 +146,10 @@
 	;; my/default-font-size is calculated on start according to the primary screen
 	;; size. if screen-size is bigger than 16 inch: 9 else 11.
 	(defconst my/default-font-size
-		(let* ((command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
-					 (screen-size (string-to-number (shell-command-to-string command))))
-      (if (> screen-size 16) 130 180)))
+		(let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
+					 (command "osascript -e 'tell application \"Finder\" to get bounds of window of desktop' | cut -d',' -f3")
+					 (screen-width (string-to-number (shell-command-to-string command))))
+      (if (> screen-width 2560) 210 180)))
 
   ;; point size * 10, so 18*10 =180
 	(defconst my/variable-pitch-font-size
@@ -155,18 +157,6 @@
 					 (screen-size (string-to-number (shell-command-to-string command))))
       (if (> screen-size 16) 130 180)))
 
-	;; (set-face-attribute 'default nil
-	;; 										:family my/default-font-family
-	;; 										:height my/default-font-size)
-
-	;; (set-face-attribute 'variable-pitch nil
-	;; 										:family my/variable-pitch-font-family
-	;; 										:height my/variable-pitch-font-size
-	;; 										:weight 'regular)
-
-	;; (set-face-attribute 'fixed-pitch nil
-  ;;                     :family my/default-font-family
-  ;;                     :height my/default-font-size)
   ;; Main typeface
   (set-face-attribute 'default nil :font "Fira Code Retina" :height my/default-font-size)
   ;; Set the fixed pitch face
@@ -174,6 +164,35 @@
   ;; Set the variable pitch face
   (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/variable-pitch-font-size :weight 'regular)
 	)
+
+(defun my/adjust-font-size (height)
+  "Adjust font size by given height. If height is '0', reset font
+size. This function also handles icons and modeline font sizes."
+  (interactive "nHeight ('0' to reset): ")
+  (let ((new-height (if (zerop height)
+                        my/default-font-size
+                      (+ height (face-attribute 'default :height)))))
+    (set-face-attribute 'default nil :height new-height)
+    (set-face-attribute 'fixed-pitch nil :height new-height)
+    (set-face-attribute 'variable-pitch nil :height new-height)
+    ;; (set-face-attribute 'mode-line nil :height new-height)
+    ;; (set-face-attribute 'mode-line-inactive nil :height new-height)
+    (message "Font size: %s" new-height)))
+
+(defun my/increase-font-size ()
+  "Increase font size by 0.5 (5 in height)."
+  (interactive)
+  (my/adjust-font-size 5))
+
+(defun my/decrease-font-size ()
+  "Decrease font size by 0.5 (5 in height)."
+  (interactive)
+  (my/adjust-font-size -5))
+
+(defun my/reset-font-size ()
+  "Reset font size according to the `my/default-font-size'."
+  (interactive)
+  (my/adjust-font-size 0))
 
 (when (eq system-type 'darwin)
   (setq mac-command-modifier 'super)     ; command as super
@@ -420,7 +439,11 @@
 
 (use-package org
   :hook ((org-mode . my/org-mode-setup)
-         (org-mode . prettify-symbols-mode))
+         (org-mode . prettify-symbols-mode)
+				 (org-mode . (lambda ()
+											 (let ((org-electric-pairs '((?= . ?=) (?~ . ?~))))
+												 (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
+												 (setq-local electric-pair-text-pairs electric-pair-pairs)))))
   :general
   (my/leader-keys
     "o a" '(org-agenda-list :wk "agenda")
@@ -442,7 +465,8 @@
     "l" '(:ignore true :wk "link")
     "l l" '(org-insert-link :wk "insert link")
     "l s" '(org-store-link :wk "store link")
-    "L" '((lambda () (interactive) (org-latex-preview)) :wk "latex")
+    "L" '((lambda () (interactive) (org-latex-preview)) :wk "latex preview")
+    ;; "L" '((lambda () (interactive) (org--latex-preview-region (point-min) (point-max))) :wk "latex")
     "r" '(org-refile :wk "refile")
     "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
 		"p" '(org-priority :wk "priority")
@@ -452,8 +476,11 @@
     "t s" '(org-schedule :wk "schedule")
     "t d" '(org-deadline :wk "deadline"))
   (org-mode-map
-   :states '(normal)
+   :states 'normal
    "z i" '(org-toggle-inline-images :wk "inline images"))
+	;; (org-mode-map
+  ;;  :states 'insert
+  ;;  "(" '((lambda () (interactive) (skeleton-pair-insert-maybe))))
   :init
   ;; general settings
   (setq org-directory "~/Dropbox/org"
@@ -468,19 +495,11 @@
 				;; org-startup-with-inline-images t
 				org-hide-emphasis-markers t
         org-catch-invisible-edits 'smart)
+	(setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
   ;; disable modules for faster startup
   (setq org-modules
-        '(;; ol-w3m
-          ;; ol-bbdb
-          ;; ol-bibtex
-          ol-docview
-          ;; ol-gnus
-          ;; ol-info
-          ;; ol-irc
-          ;; ol-mhe
-          ;; ol-rmail
-          ;; ol-eww
-          ))
+        '(ol-docview
+					org-habit))
   (setq org-todo-keywords
         '((sequence "NEXT(n)" "TODO(t)" "|" "PROG(n)" "|" "DONE(d)" "HOLD(h)")))
   (setq org-capture-templates
@@ -565,10 +584,7 @@
 												do
 												(insert (format "** [[%s::*%s][%s]]\n" file heading heading))))))
 	:config
-  (require 'org-habit)
-  (add-to-list 'org-modules 'org-habit)
   ;; (efs/org-font-setup)
-  ;; (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
@@ -1010,8 +1026,7 @@
 
 (use-package ox-ipynb
   :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
-  :after org
-  :demand)
+	:commands (ox-ipynb-export-org-file-to-ipynb-file))
 
 (use-package org-re-reveal
   :after org
@@ -1038,6 +1053,9 @@
 
 (use-package htmlize)
 
+(use-package org-fragtog
+	:hook (org-mode . org-fragtog-mode))
+
   (use-package all-the-icons)
 
   (use-package doom-modeline
@@ -1048,12 +1066,17 @@
     (setq doom-modeline-height 15)
     (setq doom-modeline-project-detection 'projectile)
     :config
-    (doom-modeline-mode 1))
+    (doom-modeline-mode 1)
+    (set-face-attribute 'doom-modeline-evil-insert-state nil :foreground "orange")
+)
 
-(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-(add-to-list 'default-frame-alist '(ns-appearance . dark))
-(setq ns-use-proxy-icon  nil)
-(setq frame-title-format nil)
+(use-package emacs
+	:init
+	(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+	(add-to-list 'default-frame-alist '(ns-appearance . dark))
+  (setq ns-use-proxy-icon  nil)
+  (setq frame-title-format nil)
+	)
 
 (use-package modus-themes
 	:straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
@@ -1096,7 +1119,7 @@
 				modus-themes-prompts nil ; {nil,'subtle,'intense}
 				modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
 				modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-				modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+				;; modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
 				modus-themes-headings  ; Read further below in the manual for this one
 				'((1 . line)
 					(t . rainbow-line-no-bold))
@@ -1306,6 +1329,15 @@
   ;; No unnecessary computation delay after injection.
   (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
   )
+
+(use-package embark-consult
+  :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
+  :after (embark consult)
+  :demand t ; only necessary if you have the hook below
+  ;; if you want to have consult previews as you move around an
+  ;; auto-updating embark collect buffer
+  :hook
+  (embark-collect-mode . embark-consult-preview-minor-mode))
 
 (use-package consult
   :general
@@ -1565,8 +1597,7 @@
 	;; (python-mode . (lambda ()
 	;; 								(setq-local company-backends '((company-capf :with company-files)))))
   :init
-  ;; (setq company-backends '((company-capf :with company-files)
-	;; 												 (company-dabbrev company-dabbrev-code company-files company-keywords)))
+  (setq company-backends '((company-capf company-files)))
   (setq company-minimum-prefix-length 1)
 	(setq company-idle-delay 0.0)
   (setq company-tooltip-align-annotations t)
@@ -1654,11 +1685,16 @@
    (prog-mode . yas-minor-mode)
 	 (dap-ui-repl-mode . yas-minor-mode)
    (org-mode . yas-minor-mode))
-	;; :init
+	:init
   ;; (setq yas-prompt-functions '(yas-ido-prompt))
+	(defun my-yas-try-expanding-auto-snippets ()
+    (when (and (boundp 'yas-minor-mode) yas-minor-mode)
+      (let ((yas-buffer-local-condition ''(require-snippet-condition . auto)))
+        (yas-expand))))
   :config
   (yas-reload-all)
-	)
+  (add-hook 'post-command-hook #'my-yas-try-expanding-auto-snippets)
+  )
 
   (use-package undo-fu
     :general
@@ -1676,28 +1712,28 @@
   (my/leader-keys
     "'" 'vterm-toggle))
 
-  (use-package dired
-    :straight (:type built-in)
-		:hook
-		(dired-mode . dired-hide-details-mode)
-    :general
-    (my/leader-keys
-      "f d" 'dired
-      "f j" 'dired-jump)
-		:init
-		(setq dired-dwim-target t))
+(use-package dired
+  :straight (:type built-in)
+  :hook
+	(dired-mode . dired-hide-details-mode)
+  :general
+  (my/leader-keys
+    "f d" 'dired
+    "f j" 'dired-jump)
+	:init
+	(setq dired-dwim-target t))
 
-  (use-package dired-single
-    :after dired
-    :general
-    (dired-mode-map
-     :states 'normal
-     "h" 'dired-single-up-directory
-     "l" 'dired-single-buffer
-     "q" 'quit-window))
+(use-package dired-single
+  :after dired
+  :general
+  (dired-mode-map
+   :states 'normal
+   "h" 'dired-single-up-directory
+   "l" 'dired-single-buffer
+   "q" 'kill-current-buffer))
 
-  (use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
 
   (use-package restart-emacs
     :general
@@ -1711,7 +1747,7 @@
 	:general
   (my/leader-keys
     "s w" '((lambda () (interactive)
-							(let ((current-prefix-arg 4)) ;; emulate C-u
+							(let ((current-prefix-arg 4)) ;; emulate C-u universal arg
                 (call-interactively 'xwwp)))
             :wk "search or visit")
     "s l" '(xwwp-follow-link :wk "link"))
@@ -1787,7 +1823,8 @@
       "d r" '(dap-ui-repl :wk "repl")
       "d h" '(dap-hydra :wk "hydra"))
     :init
-    (setq dap-auto-configure-features '(locals repl))
+    ;; (setq dap-auto-configure-features '(locals repl))
+    (setq dap-auto-configure-features '(repl))
     (setq dap-python-debugger 'debugpy)
     ;; show stdout
     (setq dap-auto-show-output t)
@@ -1804,7 +1841,7 @@
     ;; configure windows
     (require 'dap-ui)
     (setq dap-ui-buffer-configurations
-          `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.50)))
+          `(;; (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.50)))
             ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
             ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
             (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.50)))))
@@ -1877,23 +1914,23 @@
                            (require 'lsp-pyright)
                            (lsp-deferred))))
 
-  (use-package python-pytest
-    :general
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-			"t" '(:ignore t :wk "test")
-      "t d" '(python-pytest-dispatch :wk "dispatch")
-      "t f" '(python-pytest-file-dwim :wk "file")
-      "t t" '(python-pytest-function :wk "function"))
-    :init
-    (setq python-pytest-arguments '("--color" "--failed-first"))
-    (defun my/pytest-use-venv (orig-fun &rest args)
-      (if-let ((python-pytest-executable (executable-find "pytest")))
-          (apply orig-fun args)
-        (apply orig-fun args)))
-    :config
-    (advice-add 'python-pytest--run :around #'my/pytest-use-venv)
-    )
+(use-package python-pytest
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+		"t" '(:ignore t :wk "test")
+    "t d" '(python-pytest-dispatch :wk "dispatch")
+    "t f" '(python-pytest-file-dwim :wk "file")
+    "t t" '(python-pytest-function :wk "function"))
+  :init
+  (setq python-pytest-arguments '("--color" "--failed-first"))
+  (defun my/pytest-use-venv (orig-fun &rest args)
+    (if-let ((python-pytest-executable (executable-find "pytest")))
+        (apply orig-fun args)
+      (apply orig-fun args)))
+  :config
+  (advice-add 'python-pytest--run :around #'my/pytest-use-venv)
+  )
 
   (use-package flymake
     :straight (:type built-in)
@@ -1906,49 +1943,49 @@
     (general-nmap "[ !" 'flymake-goto-prev-error)
     )
 
-  (use-package jupyter
-    :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
-    :general
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-      "'" '(my/jupyter-repl :wk "jupyter REPL")
-      "e e" '(jupyter-eval-line-or-region :wk "line")
-      "e d" '(jupyter-eval-defun :wk "defun")
-      "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
-		(my/local-leader-keys
-      :keymaps 'python-mode-map
-			:states 'visual
-      "e" '(jupyter-eval-line-or-region))
-    (my/local-leader-keys
-      :keymaps 'jupyter-repl-interaction-mode-map
-			"k" '(:ignore true :wk "kernel")
-      "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
-      "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
-    :init
-    (setq jupyter-repl-prompt-margin-width 4)
-    (defun jupyter-command-venv (&rest args)
-      "This overrides jupyter-command to use the virtualenv's jupyter"
-      (let ((jupyter-executable (executable-find "jupyter")))
-        (with-temp-buffer
-          (when (zerop (apply #'process-file jupyter-executable nil t nil args))
-            (string-trim-right (buffer-string))))))
-    (defun my/jupyter-eval-buffer ()
-      "Send the contents of BUFFER using `jupyter-current-client'."
-      (interactive)
-      (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
-    (defun my/jupyter-repl ()
-      "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
-      (interactive)
-      (if (bound-and-true-p jupyter-current-client)
-          (jupyter-repl-pop-to-buffer)
-        (call-interactively 'jupyter-repl-associate-buffer)))
-    (advice-add 'jupyter-command :override #'jupyter-command-venv))
+(use-package jupyter
+  :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "'" '(my/jupyter-repl :wk "jupyter REPL")
+    "e e" '(jupyter-eval-line-or-region :wk "line")
+    "e d" '(jupyter-eval-defun :wk "defun")
+    "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
+	(my/local-leader-keys
+    :keymaps 'python-mode-map
+		:states 'visual
+    "e" '(jupyter-eval-line-or-region))
+  (my/local-leader-keys
+    :keymaps 'jupyter-repl-interaction-mode-map
+		"k" '(:ignore true :wk "kernel")
+    "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
+    "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
+  :init
+  (setq jupyter-repl-prompt-margin-width 4)
+  (defun jupyter-command-venv (&rest args)
+    "This overrides jupyter-command to use the virtualenv's jupyter"
+    (let ((jupyter-executable (executable-find "jupyter")))
+      (with-temp-buffer
+        (when (zerop (apply #'process-file jupyter-executable nil t nil args))
+          (string-trim-right (buffer-string))))))
+  (defun my/jupyter-eval-buffer ()
+    "Send the contents of BUFFER using `jupyter-current-client'."
+    (interactive)
+    (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
+  (defun my/jupyter-repl ()
+    "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
+    (interactive)
+    (if (bound-and-true-p jupyter-current-client)
+        (jupyter-repl-pop-to-buffer)
+      (call-interactively 'jupyter-repl-associate-buffer)))
+  (advice-add 'jupyter-command :override #'jupyter-command-venv))
 
-  (use-package pyimport
-    :general
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-      "i i" '(pyimport-insert-missing :wk "autoimport")))
+(use-package pyimport
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "i i" '(pyimport-insert-missing :wk "autoimport")))
 
 (use-package blacken
 	:general
@@ -1987,16 +2024,16 @@
     "e" '(eval-last-sexp :wk "sexp"))
   )
 
-  (use-package evil-lisp-state
-    :after evil
-    :demand
-    :init
-    (setq evil-lisp-state-enter-lisp-state-on-command nil)
-    ;; (setq evil-lisp-state-global t)
-    (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode clojurescript-mode lisp-interaction-mode))
-    :config
-    (evil-lisp-state-leader "SPC l")
-    )
+(use-package evil-lisp-state
+  :after evil
+  :demand
+  :init
+  (setq evil-lisp-state-enter-lisp-state-on-command nil)
+  (setq evil-lisp-state-global t)
+  ;; (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode clojurescript-mode lisp-interaction-mode))
+  :config
+  (evil-lisp-state-leader "SPC l")
+  )
 
 (use-package nix-mode
 :mode "\\.nix\\'")
@@ -2045,20 +2082,20 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider))
 
-  (use-package evil-cleverparens
-    :hook
-    ((emacs-lisp-mode . evil-cleverparens-mode)
-     (clojure-mode . evil-cleverparens-mode))
-    :init
-    (setq evil-move-beyond-eol t
-          evil-cleverparens-use-additional-bindings nil
-          evil-cleverparens-use-s-and-S nil
-          ;; evil-cleverparens-swap-move-by-word-and-symbol t
-          ;; evil-cleverparens-use-regular-insert t
-          )
-    ;; :config
-    ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
-    )
+(use-package evil-cleverparens
+  :hook
+  ((emacs-lisp-mode . evil-cleverparens-mode)
+   (clojure-mode . evil-cleverparens-mode))
+  :init
+  (setq evil-move-beyond-eol t
+        evil-cleverparens-use-additional-bindings nil
+        evil-cleverparens-use-s-and-S nil
+        ;; evil-cleverparens-swap-move-by-word-and-symbol t
+        ;; evil-cleverparens-use-regular-insert t
+        )
+  ;; :config
+  ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+  )
 
   ;; keep the file indented
   (use-package aggressive-indent

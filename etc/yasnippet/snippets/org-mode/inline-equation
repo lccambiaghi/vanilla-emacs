@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: inline-equation
+# key: \(
+# condition: 'auto
+# --
+\\( $0 \
