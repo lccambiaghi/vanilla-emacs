@@ -24,35 +24,35 @@
 ;; Ensure Doom is running out of this file's directory
 (setq user-emacs-directory (file-truename (file-name-directory load-file-name)))
 
-  (setq straight-use-package-by-default t)
-  (setq straight-vc-git-default-clone-depth 1)
+(setq straight-use-package-by-default t)
+(setq straight-vc-git-default-clone-depth 1)
+(setq straight-recipes-gnu-elpa-use-mirror t)
 (setq straight-check-for-modifications '(check-on-save find-when-checking))
-  (setq use-package-always-defer t)
-  (defvar bootstrap-version)
-  (let* ((straight-repo-dir
-          (expand-file-name "straight/repos" user-emacs-directory))
-         (bootstrap-file
-          (concat straight-repo-dir "/straight.el/bootstrap.el"))
-         (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-      (shell-command
-       (concat
-        "mkdir -p " straight-repo-dir " && "
-        "git -C " straight-repo-dir " clone "
-        "https://github.com/raxod502/straight.el.git && "
-        "git -C " straight-repo-dir " checkout 2d407bc")))
-    (load bootstrap-file nil 'nomessage))
-  (straight-use-package 'use-package)
-  ;; This is a variable that has been renamed but straight still refers when
-  ;; doing :sraight (:no-native-compile t)
-  (setq comp-deferred-compilation-black-list nil)
+(setq use-package-always-defer t)
+(defvar bootstrap-version)
+(let* ((straight-repo-dir
+        (expand-file-name "straight/repos" user-emacs-directory))
+       (bootstrap-file
+        (concat straight-repo-dir "/straight.el/bootstrap.el"))
+       (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (shell-command
+     (concat
+      "mkdir -p " straight-repo-dir " && "
+      "git -C " straight-repo-dir " clone "
+      "https://github.com/raxod502/straight.el.git && "
+      "git -C " straight-repo-dir " checkout 2d407bc")))
+  (load bootstrap-file nil 'nomessage))
+(straight-use-package 'use-package)
+;; This is a variable that has been renamed but straight still refers when
+;; doing :sraight (:no-native-compile t)
+(setq comp-deferred-compilation-black-list nil)
 
 (setq use-package-compute-statistics t)
 
 (use-package emacs
   :init
   (setq inhibit-startup-screen t
-        default-fill-column 80
         initial-scratch-message nil
         sentence-end-double-space nil
         ring-bell-function 'ignore
@@ -123,7 +123,7 @@
   (setq-default tab-width 2)
 
   ;; use a reasonable line length
-  (setq-default fill-column 120)
+  (setq-default fill-column  90)
 	
   ;; Increase the amount of data read from processes
 	(setq read-process-output-max (* 1024 1024)) ; 1mb.
@@ -134,6 +134,14 @@
   ;; auto-close parentheses
   (electric-pair-mode +1)
 	(setq electric-pair-preserve-balance nil)
+  ;; mode-specific local-electric pairs
+  (defun set-local-electric-pairs (pairs)
+		"Example usage: 
+    (add-hook 'jupyter-org-interaction-mode '(lambda () (set-local-electric-pairs '())))
+    "
+    (setq-local electric-pair-pairs (append electric-pair-pairs pairs))
+    (setq-local electric-pair-text-pairs electric-pair-pairs))
+
   ;; disable auto pairing for <
   (add-function :before-until electric-pair-inhibit-predicate
                 (lambda (c) (eq c ?<))))
@@ -151,18 +159,12 @@
 					 (screen-width (string-to-number (shell-command-to-string command))))
       (if (> screen-width 2560) 210 180)))
 
-  ;; point size * 10, so 18*10 =180
-	(defconst my/variable-pitch-font-size
-		(let* ((command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
-					 (screen-size (string-to-number (shell-command-to-string command))))
-      (if (> screen-size 16) 130 180)))
-
   ;; Main typeface
   (set-face-attribute 'default nil :font "Fira Code Retina" :height my/default-font-size)
   ;; Set the fixed pitch face
   (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height my/default-font-size)
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/variable-pitch-font-size :weight 'regular)
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/default-font-size :weight 'regular)
 	)
 
 (defun my/adjust-font-size (height)
@@ -243,6 +245,25 @@ size. This function also handles icons and modeline font sizes."
 	(unless (and (fboundp 'server-running-p)
                (server-running-p))
     (server-start)))
+
+(use-package emacs
+  :init
+  (defun is-jupyter-python-org-buffer? ()
+    (with-current-buffer (buffer-name)
+      (goto-char (point-min))
+      (re-search-forward "begin_src jupyter-python" 10000 t)))
+  
+  (define-minor-mode org-jupyter-python-mode
+    "Minor mode which is active when an org file has the string 
+begin_src jupyter-python in the first few hundred rows"
+		;; :keymap (let ((map (make-sparse-keymap)))
+    ;;             (define-key map (kbd "C-c f") 'insert-foo)
+		;;             map)
+		)
+
+  (add-hook 'org-mode-hook (lambda ()
+														 (when (is-jupyter-python-org-buffer?)
+															 (org-jupyter-python-mode)))))
 
 (use-package general
   :demand t
@@ -348,17 +369,18 @@ size. This function also handles icons and modeline font sizes."
   ;; move to window when splitting
   (setq evil-split-window-below t)
   (setq evil-vsplit-window-right t)
-  (setq-local evil-scroll-count 0)
+  ;; (setq-local evil-scroll-count 0)
+  (setq evil-auto-indent nil)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal)
-	;; don't move cursor after ==
-	(defun my/evil-dont-move-cursor (orig-fn &rest args)
+  ;; don't move cursor after ==
+  (defun my/evil-dont-move-cursor (orig-fn &rest args)
     (save-excursion (apply orig-fn args)))
-	(advice-add 'evil-indent :around #'my/evil-dont-move-cursor)
-	)
+  (advice-add 'evil-indent :around #'my/evil-dont-move-cursor)
+  )
 
 (use-package evil-collection
   :after evil
@@ -438,12 +460,10 @@ size. This function also handles icons and modeline font sizes."
   (which-key-mode))
 
 (use-package org
-  :hook ((org-mode . my/org-mode-setup)
+  :hook ((org-mode . variable-pitch-mode)
          (org-mode . prettify-symbols-mode)
-				 (org-mode . (lambda ()
-											 (let ((org-electric-pairs '((?= . ?=) (?~ . ?~))))
-												 (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
-												 (setq-local electric-pair-text-pairs electric-pair-pairs)))))
+         (org-mode . visual-line-mode)
+         (org-mode . (lambda () (set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
   :general
   (my/leader-keys
     "o a" '(org-agenda-list :wk "agenda")
@@ -455,8 +475,7 @@ size. This function also handles icons and modeline font sizes."
             :wk "open config")
     "o t" '((lambda () (interactive)
               (find-file (concat org-directory "/personal/todo.org")))
-            :wk "open todos")
-    )
+            :wk "open todos"))
   (my/local-leader-keys
     :keymaps 'org-mode-map
     "a" '(org-archive-subtree :wk "archive subtree")
@@ -495,6 +514,7 @@ size. This function also handles icons and modeline font sizes."
 				;; org-startup-with-inline-images t
 				org-hide-emphasis-markers t
         org-catch-invisible-edits 'smart)
+	(setq org-indent-indentation-per-level 1)
 	(setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
   ;; disable modules for faster startup
   (setq org-modules
@@ -562,9 +582,6 @@ size. This function also handles icons and modeline font sizes."
            ((todo "NEXT"
                   ((org-agenda-overriding-header "Next Tasks")))))
           ("w" "Work Tasks" tags-todo "+work")))
-  (defun my/org-mode-setup ()
-    (variable-pitch-mode 1)
-    (visual-line-mode 1))
   (defun org-toc ()
     (interactive)
     (let ((headings (delq nil (cl-loop for f in (f-entries "." (lambda (f) (f-ext? f "org")) t)
@@ -583,6 +600,7 @@ size. This function also handles icons and modeline font sizes."
 							 (cl-loop for (file . heading) in file-headings 
 												do
 												(insert (format "** [[%s::*%s][%s]]\n" file heading heading))))))
+	
 	:config
   ;; (efs/org-font-setup)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -597,23 +615,23 @@ size. This function also handles icons and modeline font sizes."
 	(setq org-latex-pdf-process '("tectonic %f"))
   (add-to-list 'org-export-backends 'beamer)
   (setq org-html-htmlize-output-type 'css)
-	(plist-put org-format-latex-options :scale 1.5)
+	(plist-put org-format-latex-options :scale 2.0)
   )
 
 (use-package org-reverse-datetree
 :after org)
 
-    (use-package org-superstar
-      :hook (org-mode . org-superstar-mode)
-      :init
-      (setq org-superstar-headline-bullets-list '("✖" "✚" "◆" "▶" "○")
-            org-superstar-special-todo-items t
-            ;; org-ellipsis "⤵"
-            ;; org-ellipsis "▼"
-            ;; org-ellipsis "..."
-            org-ellipsis " ↴ "
-            )
-      )
+(use-package org-superstar
+  :hook (org-mode . org-superstar-mode)
+  :init
+  (setq org-superstar-headline-bullets-list '("✖" "✚" "◆" "▶" "○")
+        org-superstar-special-todo-items t
+        ;; org-ellipsis "⤵"
+        ;; org-ellipsis "▼"
+        ;; org-ellipsis "..."
+        org-ellipsis " ↴ "
+        )
+  )
 
 (use-package hl-todo
 	:hook ((prog-mode org-mode) . my/hl-todo-init)
@@ -667,17 +685,12 @@ size. This function also handles icons and modeline font sizes."
     "+" '(jupyter-org-insert-src-block :wk "block above")
     "?" '(jupyter-inspect-at-point :wk "inspect")
     "x" '(jupyter-org-kill-block-and-results :wk "kill block"))
-  :hook ((jupyter-repl-persistent-mode .
-																			 (lambda ()  ;; we activate org-interaction-mode ourselves
+  :hook ((jupyter-org-interaction-mode . (lambda () (set-local-electric-pairs '())))
+         (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
                                            (when (derived-mode-p 'org-mode)
                                              ;; (setq-local company-backends '((company-capf)))
                                              (jupyter-org-interaction-mode))))
-				 (envrc-mode . my/load-ob-jupyter)
-				 (org-mode . (lambda ()
-                       (with-current-buffer (buffer-name)
-                         (goto-char (point-min))
-                         (when (re-search-forward "begin_src jupyter-python" 10000 t)
-                           (envrc-mode))))))
+				 (envrc-mode . my/load-ob-jupyter))
   :init
   (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
                                                        (:pandoc t)
@@ -1119,7 +1132,7 @@ size. This function also handles icons and modeline font sizes."
 				modus-themes-prompts nil ; {nil,'subtle,'intense}
 				modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
 				modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-				;; modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+				modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
 				modus-themes-headings  ; Read further below in the manual for this one
 				'((1 . line)
 					(t . rainbow-line-no-bold))
@@ -1203,21 +1216,24 @@ size. This function also handles icons and modeline font sizes."
   (dashboard-setup-startup-hook)
 	)
 
-  (use-package centaur-tabs
-    :hook (emacs-startup . centaur-tabs-mode)
-    :general
-    (general-nmap "gt" 'centaur-tabs-forward
-      "gT" 'centaur-tabs-backward)
-    :init
-    (setq centaur-tabs-set-icons t)
-    (setq ccentaur-tabs-set-modified-marker t
-          centaur-tabs-modified-marker "M"
-          centaur-tabs-cycle-scope 'tabs)
-    (setq centaur-tabs-set-close-button nil)
-    :config
-    (centaur-tabs-mode t)
-    (centaur-tabs-group-by-projectile-project)
-    )
+(use-package centaur-tabs
+  :hook (emacs-startup . centaur-tabs-mode)
+  :general
+  (general-nmap "gt" 'centaur-tabs-forward
+    "gT" 'centaur-tabs-backward)
+	(my/leader-keys
+		"b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
+  :init
+  (setq centaur-tabs-set-icons t)
+  (setq centaur-tabs-set-modified-marker t
+        centaur-tabs-modified-marker "M"
+        centaur-tabs-cycle-scope 'tabs)
+  (setq centaur-tabs-set-close-button nil)
+  :config
+  (centaur-tabs-mode t)
+  (centaur-tabs-headline-match)
+  (centaur-tabs-group-by-projectile-project)
+  )
 
   (use-package centered-cursor-mode
     :general (my/leader-keys "t -" (lambda () (interactive) (centered-cursor-mode 'toggle))))
@@ -1274,6 +1290,27 @@ size. This function also handles icons and modeline font sizes."
     (setq olivetti-body-width 100)
     (setq olivetti-recall-visual-line-mode-entry-state t))
 
+(use-package display-fill-column-indicator
+  :straight (:type built-in)
+  :hook
+  ((prog-mode org-mode) . display-fill-column-indicator-mode))
+
+;; add a visual intent guide
+(use-package highlight-indent-guides
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :init
+  ;; (setq highlight-indent-guides-method 'column)
+  (setq highlight-indent-guides-method 'character)
+  ;; (setq highlight-indent-guides-character ?|)
+  ;; (setq highlight-indent-guides-character ?❚)
+  (setq highlight-indent-guides-character ?‖)
+  (setq highlight-indent-guides-responsive 'stack)
+	;; (setq highlight-indent-guides-auto-enabled nil)
+	;; (set-face-background 'highlight-indent-guides-odd-face "darkgray")
+  ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
+  ;; (set-face-foreground 'highlight-indent-guides-character-face "dimgray")
+  )
+
   (use-package selectrum
     :demand
     :general
@@ -1308,6 +1345,7 @@ size. This function also handles icons and modeline font sizes."
   :general
   (general-nmap "C-l" 'embark-act)
   (selectrum-minibuffer-map "C-l" #'embark-act)
+  (embark-file-map "o" 'find-file-other-window)	
   :config
   ;; For Selectrum users:
   (defun current-candidate+category ()
@@ -1476,6 +1514,7 @@ size. This function also handles icons and modeline font sizes."
   :init
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   (setq magit-log-arguments '("--graph" "--decorate" "--color"))
+	(setq git-commit-fill-column 72)
 	:config
 	  (evil-define-key* 'normal magit-status-mode-map [escape] nil)
 
@@ -1560,22 +1599,6 @@ size. This function also handles icons and modeline font sizes."
 
 (use-package hydra
   :demand)
-
-;; add a visual intent guide
-(use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :init
-  ;; (setq highlight-indent-guides-method 'column)
-  (setq highlight-indent-guides-method 'character)
-  ;; (setq highlight-indent-guides-character ?|)
-  ;; (setq highlight-indent-guides-character ?❚)
-  (setq highlight-indent-guides-character ?‖)
-  (setq highlight-indent-guides-responsive 'stack)
-	;; (setq highlight-indent-guides-auto-enabled nil)
-	;; (set-face-background 'highlight-indent-guides-odd-face "darkgray")
-  ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
-  ;; (set-face-foreground 'highlight-indent-guides-character-face "dimgray")
-  )
 
   (use-package rainbow-delimiters
     :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
@@ -1664,14 +1687,14 @@ size. This function also handles icons and modeline font sizes."
     (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
     )
 
+(use-package inheritenv
+  :straight (inheritenv :type git :host github :repo "purcell/inheritenv"))
+
 (use-package envrc
-	:commands (envrc-mode)
+  :straight (envrc :type git :host github :repo "purcell/envrc")
+  :commands (envrc-mode)
   :hook ((python-mode . envrc-mode)
-         (org-mode . (lambda ()
-                       (with-current-buffer (buffer-name)
-                         (goto-char (point-min))
-                         (when (re-search-forward "begin_src jupyter-python" 10000 t)
-                           (envrc-mode))))))
+         (org-jupyter-python-mode . (envrc-mode)))
   )
 
 (use-package yasnippet
@@ -1735,36 +1758,20 @@ size. This function also handles icons and modeline font sizes."
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "H" 'dired-hide-dotfiles-mode))
+
   (use-package restart-emacs
     :general
     (my/leader-keys
       "R" '(restart-emacs :wk "restart"))
     )
 
-(use-package xwwp
-  :straight (xwwp :type git :host github :repo "canatella/xwwp")
-	:commands (xwwp)
-	:general
-  (my/leader-keys
-    "s w" '((lambda () (interactive)
-							(let ((current-prefix-arg 4)) ;; emulate C-u universal arg
-                (call-interactively 'xwwp)))
-            :wk "search or visit")
-    "s l" '(xwwp-follow-link :wk "link"))
-  ;; :custom
-  ;; (setq xwwp-follow-link-completion-system 'ivy)
-  ;; :bind (:map xwidget-webkit-mode-map
-  ;;             ("v" . xwwp-follow-link))
-	)
-
 (use-package toml-mode
 	:mode "\\.toml\\'")
-
-(use-package dash-at-point
-	:general
-  (my/leader-keys
-    "s d" '(dash-at-point :which-key "search dash"))
-	)
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
@@ -1888,24 +1895,24 @@ size. This function also handles icons and modeline font sizes."
       )
     )
 
-  (use-package python-mode
-    :hook (envrc-mode . (lambda ()
-                          (when (executable-find "ipython")
-                            (setq python-shell-interpreter (executable-find "ipython")))))
-		:general
-		(python-mode-map :states 'normal "gz" nil)
-		:init
-		(setq python-indent-offset 0)
-    :config
-    (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
-          python-shell-interpreter-args "-i --simple-prompt --no-color-info"
-          python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-          python-shell-prompt-block-regexp "\\.\\.\\.\\.: "
-          python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-          python-shell-completion-setup-code
-          "from IPython.core.completerlib import module_completion"
-          python-shell-completion-string-code
-          "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
+(use-package python-mode
+  :hook ((envrc-mode . (lambda ()
+                         (when (executable-find "ipython")
+                           (setq python-shell-interpreter (executable-find "ipython"))))))
+	:general
+	(python-mode-map :states 'normal "gz" nil)
+	:init
+  (setq python-indent-offset 0)
+  :config
+  (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
+        python-shell-interpreter-args "-i --simple-prompt --no-color-info"
+        python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+        python-shell-prompt-block-regexp "\\.\\.\\.\\.: "
+        python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+        python-shell-completion-setup-code
+        "from IPython.core.completerlib import module_completion"
+        python-shell-completion-string-code
+        "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
 
   (use-package lsp-pyright
     :init
@@ -1957,7 +1964,7 @@ size. This function also handles icons and modeline font sizes."
 		:states 'visual
     "e" '(jupyter-eval-line-or-region))
   (my/local-leader-keys
-    :keymaps 'jupyter-repl-interaction-mode-map
+    :keymaps 'jupyter-org-interaction-mode
 		"k" '(:ignore true :wk "kernel")
     "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
     "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
@@ -2045,6 +2052,8 @@ size. This function also handles icons and modeline font sizes."
 
 (use-package cider
   :hook ((cider-repl-mode . evil-normalize-keymaps)
+         (cider-mode . (lambda ()
+                           (setq-local evil-lookup-func #'cider-doc)))
          (cider-mode . eldoc-mode))
   :general
   (my/local-leader-keys
@@ -2058,6 +2067,7 @@ size. This function also handles icons and modeline font sizes."
     "e d" '(cider-eval-defun-at-point :wk "defun")
     "e D" 'cider-pprint-eval-defun-to-comment
 		"K" 'cider-doc
+		"q" '(cider-quit :qk "quit")
 		)
   (my/local-leader-keys
     :keymaps 'clojure-mode-map
@@ -2108,3 +2118,28 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "multimarkdown"))
+
+(use-package md4rd
+	:commands (md4rd))
+
+(use-package xwwp
+  :straight (xwwp :type git :host github :repo "canatella/xwwp")
+	:commands (xwwp)
+	:general
+  (my/leader-keys
+    "s w" '((lambda () (interactive)
+							(let ((current-prefix-arg 4)) ;; emulate C-u universal arg
+                (call-interactively 'xwwp)))
+            :wk "search or visit")
+    "s l" '(xwwp-follow-link :wk "link"))
+  ;; :custom
+  ;; (setq xwwp-follow-link-completion-system 'ivy)
+  ;; :bind (:map xwidget-webkit-mode-map
+  ;;             ("v" . xwwp-follow-link))
+	)
+
+(use-package dash-at-point
+	:general
+  (my/leader-keys
+    "s d" '(dash-at-point :which-key "search dash"))
+	)
