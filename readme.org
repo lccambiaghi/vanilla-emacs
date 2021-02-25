@@ -834,8 +834,8 @@ Keybindings:
 (use-package evil-iedit-state
   :general
   (my/leader-keys
-		"s e" '(evil-iedit-state/iedit-mode :wk "iedit"))
-	)
+		"s e" '(evil-iedit-state/iedit-mode :wk "iedit")
+		"s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
 #+end_src
 
 *** evil-mc
@@ -876,9 +876,9 @@ Interesting bits:
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
-  :hook ((org-mode . variable-pitch-mode)
-         (org-mode . prettify-symbols-mode)
+  :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)
+         (org-mode . variable-pitch-mode)
          (org-mode . (lambda () (set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
   :general
   (my/leader-keys
@@ -1122,27 +1122,29 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
 
 ** org babel
 #+BEGIN_SRC emacs-lisp
-  (use-package org
-    :general
-    (my/local-leader-keys
-      :keymaps 'org-mode-map
-      "," '(org-edit-special :wk "edit")
-      "-" '(org-babel-demarcate-block :wk "split block")
-      "z" '(org-babel-hide-result-toggle :wk "fold result"))
-    (my/local-leader-keys
-      :keymaps 'org-src-mode-map
-      "," '(org-edit-src-exit :wk "exit")) ;;FIXME
-    :init
-    (setq org-confirm-babel-evaluate nil)
-    :config
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((emacs-lisp . t)
-       (shell . t))))
+(use-package org
+  :general
+  (my/local-leader-keys
+    :keymaps 'org-mode-map
+    "," '(org-edit-special :wk "edit")
+    "-" '(org-babel-demarcate-block :wk "split block")
+    "z" '(org-babel-hide-result-toggle :wk "fold result"))
+  (my/local-leader-keys
+    :keymaps 'org-src-mode-map
+    "," '(org-edit-src-exit :wk "exit")) ;;FIXME
+  :init
+  (setq org-confirm-babel-evaluate nil)
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (shell . t)))
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
+  )
 
-  ;; enable mermaid diagram blocks
-  ;; (use-package ob-mermaid
-  ;;   :custom (ob-mermaid-cli-path "~/.asdf/shims/mmdc"))
+;; enable mermaid diagram blocks
+;; (use-package ob-mermaid
+;;   :custom (ob-mermaid-cli-path "~/.asdf/shims/mmdc"))
 #+END_SRC
 
 ** ob-async
@@ -1170,12 +1172,13 @@ Note:
     "+" '(jupyter-org-insert-src-block :wk "block above")
     "?" '(jupyter-inspect-at-point :wk "inspect")
     "x" '(jupyter-org-kill-block-and-results :wk "kill block"))
-  :hook ((jupyter-org-interaction-mode . (lambda () (set-local-electric-pairs '())))
+  :hook ((jupyter-org-interaction-mode . (lambda () (set-local-electric-pairs '((?' . ?')))))
          (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
                                            (when (derived-mode-p 'org-mode)
                                              ;; (setq-local company-backends '((company-capf)))
                                              (jupyter-org-interaction-mode))))
-				 (envrc-mode . my/load-ob-jupyter))
+				 (envrc-mode . my/load-ob-jupyter)
+				 )
   :init
   (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
                                                        (:pandoc t)
@@ -1183,6 +1186,10 @@ Note:
   (setq org-babel-default-header-args:jupyter-R '((:pandoc t)
                                                   (:async . "yes")
                                                   (:kernel . "ir")))
+	(defun my/org-load-jupyter ()
+    (org-babel-do-load-languages 'org-babel-load-languages
+                                 (append org-babel-load-languages
+                                         '((jupyter . t)))))
   (defun my/load-ob-jupyter ()
     ;; only try to load in org-mode
     (when (derived-mode-p 'org-mode)
@@ -1190,9 +1197,8 @@ Note:
       (unless (member '(jupyter . t) org-babel-load-languages)
         ;; only load if jupyter is available
         (when (executable-find "jupyter")
-          (org-babel-do-load-languages 'org-babel-load-languages
-                                       (append org-babel-load-languages
-                                               '((jupyter . t))))))))
+					(my/org-load-jupyter)))))
+	
   (cl-defmethod jupyter-org--insert-result (_req context result)
     (let ((str
            (org-element-interpret-data
@@ -1222,63 +1228,64 @@ Note:
 ** org-tree-slide
 #+begin_src emacs-lisp
 (use-package org-tree-slide
-  :after org
-  :hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
-         (org-tree-slide-stop . (lambda () (+remap-faces-at-stop-present))))
-  :general
-  (my/leader-keys
-    "t p" '(org-tree-slide-mode :wk "present"))
-  (general-nmap
-    :keymaps '(org-tree-slide-mode-map org-mode-map)
-    "C-j" 'org-tree-slide-move-next-tree
-    "C-k" 'org-tree-slide-move-previous-tree)
-  :init
-  (setq org-tree-slide-activate-message "Presentation mode ON")
-  (setq org-tree-slide-deactivate-message "Presentation mode OFF")
-  (setq org-tree-slide-indicator nil)
+	:after org
+	:hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
+				 (org-tree-slide-stop . (lambda () (+remap-faces-at-stop-present))))
+	:general
+	(my/leader-keys
+		"t p" '(org-tree-slide-mode :wk "present"))
+	(general-nmap
+		:keymaps '(org-tree-slide-mode-map org-mode-map)
+		"C-j" 'org-tree-slide-move-next-tree
+		"C-k" 'org-tree-slide-move-previous-tree)
+	:init
+	(setq org-tree-slide-activate-message "Presentation mode ON")
+	(setq org-tree-slide-deactivate-message "Presentation mode OFF")
+	(setq org-tree-slide-indicator nil)
 	(setq org-tree-slide-breadcrumbs "    >    ")
 	(setq org-tree-slide-heading-emphasis t)
-  (setq org-tree-slide-slide-in-waiting 0.025)
-  (setq org-tree-slide-content-margin-top 4)
-  ;; TODO maybe also enable olivetti mode?
-  (defun +remap-faces-at-start-present ()
-    (setq-local face-remapping-alist '((default (:height 1.50) variable-pitch)
+	(setq org-tree-slide-slide-in-waiting 0.025)
+	(setq org-tree-slide-content-margin-top 4)
+	(defun +remap-faces-at-start-present ()
+		(setq-local face-remapping-alist '((default (:height 1.50) variable-pitch)
 																			 (fixed-pitch (:height 1.2) fixed-pitch)
-                                       ;; (org-verbatim (:height 1.2) org-verbatim)
-                                       ;; (org-block (:height 1.2) org-block)
+																			 ;; (org-verbatim (:height 1.2) org-verbatim)
+																			 ;; (org-block (:height 1.2) org-block)
 																			 ))
-    ;; (setq-local olivetti-body-width 95)
+		;; (setq-local olivetti-body-width 95)
 		(olivetti-mode 1)
-    (hide-mode-line-mode 1)
-    (diff-hl-mode 0)
-    (centaur-tabs-mode 0))
-  (defun +remap-faces-at-stop-present ()
-    (setq-local face-remapping-alist '((default variable-pitch default)))
+		(display-fill-column-indicator-mode 0)
+		(hide-mode-line-mode 1)
+		(diff-hl-mode 0)
+		(centaur-tabs-mode 0))
+	(defun +remap-faces-at-stop-present ()
+		(setq-local face-remapping-alist '((default variable-pitch default)))
 		;; (setq-local olivetti-body-width 120)
 		(olivetti-mode 0)
-    (hide-mode-line-mode 0)
-    (doom-modeline-mode 1)
-    (diff-hl-mode 1)
-    (centaur-tabs-mode 1))
-  (setq org-tree-slide-breadcrumbs nil)
-  (setq org-tree-slide-header nil)
-  (setq org-tree-slide-slide-in-effect nil)
-  (setq org-tree-slide-heading-emphasis nil)
-  (setq org-tree-slide-cursor-init t)
-  (setq org-tree-slide-modeline-display nil)
-  (setq org-tree-slide-skip-done nil)
-  (setq org-tree-slide-skip-comments t)
-  (setq org-tree-slide-fold-subtrees-skipped t)
-  (setq org-tree-slide-skip-outline-level 8) ;; or 0?
-  (setq org-tree-slide-never-touch-face t)
-  ;; :config
-  ;; (org-tree-slide-presentation-profile)
+		(display-fill-column-indicator-mode 1)
+		(hide-mode-line-mode 0)
+		(doom-modeline-mode 1)
+		(diff-hl-mode 1)
+		(centaur-tabs-mode 1))
+	(setq org-tree-slide-breadcrumbs nil)
+	(setq org-tree-slide-header nil)
+	(setq org-tree-slide-slide-in-effect nil)
+	(setq org-tree-slide-heading-emphasis nil)
+	(setq org-tree-slide-cursor-init t)
+	(setq org-tree-slide-modeline-display nil)
+	(setq org-tree-slide-skip-done nil)
+	(setq org-tree-slide-skip-comments t)
+	(setq org-tree-slide-fold-subtrees-skipped t)
+	(setq org-tree-slide-skip-outline-level 8) ;; or 0?
+	(setq org-tree-slide-never-touch-face t)
+	;; :config
+	;; (org-tree-slide-presentation-profile)
 	;; :custom-face
-  ;; (org-tree-slide-heading-level-1 ((t (:height 1.8 :weight bold))))
-  ;; (org-tree-slide-heading-level-2 ((t (:height 1.5 :weight bold))))
-  ;; (org-tree-slide-heading-level-3 ((t (:height 1.5 :weight bold))))
-  ;; (org-tree-slide-heading-level-4 ((t (:height 1.5 :weight bold))))
-  )
+	;; (org-tree-slide-heading-level-1 ((t (:height 1.8 :weight bold))))
+	;; (org-tree-slide-heading-level-2 ((t (:height 1.5 :weight bold))))
+	;; (org-tree-slide-heading-level-3 ((t (:height 1.5 :weight bold))))
+	;; (org-tree-slide-heading-level-4 ((t (:height 1.5 :weight bold))))
+	)
 #+end_src
 
 ** evil-org-mode
@@ -1449,7 +1456,7 @@ Taken from DOOM:
                 (image-overlays
                  (cl-find-if (lambda (o) (overlay-get o 'org-image-overlay))
                              overlays)))
-           (+org--toggle-inline-images-in-subtree beg end)
+           ;; (+org--toggle-inline-images-in-subtree beg end)
            (if (or image-overlays latex-overlays)
                (org-clear-latex-preview beg end)
              (org--latex-preview-region beg end))))
@@ -1769,7 +1776,7 @@ Automatically disaply emphasis markers and links when the cursor is on them.
   (setq centaur-tabs-set-close-button nil)
   :config
   (centaur-tabs-mode t)
-  (centaur-tabs-headline-match)
+  ;; (centaur-tabs-headline-match)
   (centaur-tabs-group-by-projectile-project)
   )
 #+end_src
@@ -1892,6 +1899,13 @@ An alternative:
   ;; (set-face-foreground 'highlight-indent-guides-character-face "dimgray")
   )
 #+END_SRC
+
+** TODO Show emoji
+#+begin_src emacs-lisp
+(use-package emojify
+  :disabled t
+  :hook (after-init . global-emojify-mode))
+#+end_src
 
 * Completion framework
 ** selectrum
@@ -2366,7 +2380,7 @@ In the [[*ob-jupyter][ob-jupyter]] section I then load ~ob-jupyter~ only when ~e
   :straight (envrc :type git :host github :repo "purcell/envrc")
   :commands (envrc-mode)
   :hook ((python-mode . envrc-mode)
-         (org-jupyter-python-mode . (envrc-mode)))
+         (org-jupyter-python-mode . envrc-mode))
   )
 #+end_src
 
@@ -2490,45 +2504,45 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 ** lsp mode
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :hook
+	:commands (lsp lsp-deferred)
+	:hook
 	(lsp-mode . (lambda ()
-                      (setq-local evil-lookup-func #'lsp-describe-thing-at-point)
-											(setq-local evil-goto-definition-functions
-																	'(lambda (&rest args) (lsp-find-definition)))))
+								(setq-local evil-lookup-func #'lsp-describe-thing-at-point)
+								(setq-local evil-goto-definition-functions
+														'(lambda (&rest args) (lsp-find-definition)))))
 	(lsp-mode . lsp-enable-which-key-integration)
-  :general
-  (my/leader-keys
-    "c" '(:keymap lsp-command-map))
-  (my/local-leader-keys
-    :keymaps 'lsp-mode-map
-    "r" '(lsp-rename :wk "rename")
-    "i" '(:ignore t :which-key "import")
-    "i o" '(lsp-rename :wk "optimize"))
-  ;; (lsp-mode-map
-  ;;  :states 'normal "gD" 'lsp-find-references)
-  :init
-  (setq lsp-restart 'ignore)
-  (setq lsp-eldoc-enable-hover nil)
-  (setq lsp-enable-file-watchers nil)
-  (setq lsp-signature-auto-activate nil)
+	:general
+	(my/local-leader-keys
+		:states 'normal
+		:keymaps 'lsp-mode-map
+		"i" '(:ignore t :which-key "import")
+		"i o" '(lsp-organize-imports :wk "optimize")
+		"l" '(:keymap lsp-command-map :wk "lsp")
+		"r" '(lsp-rename :wk "rename"))
+	;; (lsp-mode-map
+	;;  :states 'normal "gD" 'lsp-find-references)
+	:init
+	(setq lsp-restart 'ignore)
+	(setq lsp-eldoc-enable-hover nil)
+	(setq lsp-enable-file-watchers nil)
+	(setq lsp-signature-auto-activate nil)
 	(setq lsp-modeline-diagnostics-enable nil)
-  (setq lsp-keep-workspace-alive nil)
-  (setq lsp-auto-execute-action nil)
-  (setq lsp-before-save-edits nil)
-  )
+	(setq lsp-keep-workspace-alive nil)
+	(setq lsp-auto-execute-action nil)
+	(setq lsp-before-save-edits nil)
+	)
 
 (use-package lsp-ui
-  :hook ((lsp-mode . lsp-ui-mode))
+	:hook ((lsp-mode . lsp-ui-mode))
 	:general
 	(lsp-mode-map
-   :states 'normal "gD" 'lsp-ui-peek-find-references)
-  :init
-  (setq lsp-ui-doc-show-with-cursor nil)
-  (setq lsp-ui-doc-show-with-mouse nil)
+	 :states 'normal "gD" 'lsp-ui-peek-find-references)
+	:init
+	(setq lsp-ui-doc-show-with-cursor nil)
+	(setq lsp-ui-doc-show-with-mouse nil)
 	(setq lsp-ui-peek-always-show t)
-  (setq lsp-ui-peek-fontify 'always)
-  )
+	(setq lsp-ui-peek-fontify 'always)
+	)
 #+END_SRC
 
 ** dap-mode
@@ -2689,40 +2703,38 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
   :general
-  (my/local-leader-keys
+	(my/local-leader-keys
     :keymaps 'python-mode-map
     "'" '(my/jupyter-repl :wk "jupyter REPL")
     "e e" '(jupyter-eval-line-or-region :wk "line")
     "e d" '(jupyter-eval-defun :wk "defun")
-    "e b" '((call-interactively 'my/jupyter-eval-buffer) :wk "buffer"))
-	(my/local-leader-keys
-    :keymaps 'python-mode-map
-		:states 'visual
-    "e" '(jupyter-eval-line-or-region))
-  (my/local-leader-keys
-    :keymaps 'jupyter-org-interaction-mode
-		"k" '(:ignore true :wk "kernel")
+    "e b" '((lambda () (interactive) (my/jupyter-eval-buffer)) :wk "buffer")
+    "k" '(:ignore true :wk "kernel")
     "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
-    "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
-  :init
-  (setq jupyter-repl-prompt-margin-width 4)
-  (defun jupyter-command-venv (&rest args)
-    "This overrides jupyter-command to use the virtualenv's jupyter"
-    (let ((jupyter-executable (executable-find "jupyter")))
-      (with-temp-buffer
-        (when (zerop (apply #'process-file jupyter-executable nil t nil args))
-          (string-trim-right (buffer-string))))))
-  (defun my/jupyter-eval-buffer ()
-    "Send the contents of BUFFER using `jupyter-current-client'."
-    (interactive)
-    (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
-  (defun my/jupyter-repl ()
-    "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
-    (interactive)
-    (if (bound-and-true-p jupyter-current-client)
-        (jupyter-repl-pop-to-buffer)
-      (call-interactively 'jupyter-repl-associate-buffer)))
-  (advice-add 'jupyter-command :override #'jupyter-command-venv))
+		"k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
+	(my/local-leader-keys
+		:keymaps 'python-mode-map
+		:states 'visual
+		"e" '(jupyter-eval-region :wk "eval"))
+	:init
+	(setq jupyter-repl-prompt-margin-width 4)
+	(defun jupyter-command-venv (&rest args)
+		"This overrides jupyter-command to use the virtualenv's jupyter"
+		(let ((jupyter-executable (executable-find "jupyter")))
+			(with-temp-buffer
+				(when (zerop (apply #'process-file jupyter-executable nil t nil args))
+					(string-trim-right (buffer-string))))))
+	(defun my/jupyter-eval-buffer ()
+		"Send the contents of BUFFER using `jupyter-current-client'."
+		(interactive)
+		(jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
+	(defun my/jupyter-repl ()
+		"If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
+		(interactive)
+		(if (bound-and-true-p jupyter-current-client)
+				(jupyter-repl-pop-to-buffer)
+			(call-interactively 'jupyter-repl-associate-buffer)))
+	(advice-add 'jupyter-command :override #'jupyter-command-venv))
 #+end_src
 
 *** auto-import
@@ -2779,7 +2791,7 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
   (my/local-leader-keys
     :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
     :states 'visual
-    "e" '(eval-last-sexp :wk "sexp"))
+    "e" '(eval-region :wk "sexp"))
   )
 #+end_src
 
