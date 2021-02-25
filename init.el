@@ -1034,10 +1034,10 @@ begin_src jupyter-python in the first few hundred rows"
   :hook (org-mode . org-html-themify-mode)
   :init
   (setq org-html-themify-themes
-				'((dark . modus-vivendi)
+        '((dark . modus-vivendi)
           (light . modus-operandi)))
   :config
-	;; otherwise it complains about invalid face
+  ;; otherwise it complains about invalid face
   (require 'hl-line)
 	)
 

@@ -10,7 +10,7 @@ By default, they get tangled (in sequence) to ~./init.el~.
 Some blocks override this default (e.g. see the section [[*early-init.el][early-init.el]]).
 
 This file also is exported to HTML.
-The template used is "readtheorg" from [[https://github.com/fniessen/org-html-themes][org-html-themes]] .
+See [[*org-html-themify][this section]] for my configuration.
 
 NOTE: the code blocks in the sections marked with TODO have ~:tangle no~ in their header
 args so they are not tangled to my ~init.el~.
@@ -265,10 +265,10 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("no-littering" . "6e8950ad296c0f57d80d034eb0b7adf538c02906")
  ("ob-async" . "de1cd6c93242a4cb8773bbe115b7be3d4dd6b97e")
  ("olivetti" . "b76a020aedb57a6a7d0ae61cde13434f5c802a44")
- ("org" . "d21d200bc0611615624a5624c2e19285545d8e48")
+ ("org" . "0b117f72a82143f544ef41cc82696337d496fe97")
  ("org-appear" . "19ea96e6e2ce01b8583b25a6e5579f1be207a119")
  ("org-fragtog" . "0151cabc7aa9f244f82e682b87713b344d780c23")
- ("org-html-themify" . "dd5fea084c1ac9e868c356c59d5355b313aeb90d")
+ ("org-html-themify" . "db0bdeedecb3f311ca39f165abdac809404c6e32")
  ("org-re-reveal" . "d404eb13d9e34354c081870ebdd69711937682b3")
  ("org-reverse-datetree" . "be24274dd62cd3c586cbea99c8f73db251bf319d")
  ("org-superstar-mode" . "7f83636db215bf5a10edbfdf11d12a132864a914")
@@ -1536,10 +1536,10 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
   :hook (org-mode . org-html-themify-mode)
   :init
   (setq org-html-themify-themes
-				'((dark . modus-vivendi)
+        '((dark . modus-vivendi)
           (light . modus-operandi)))
   :config
-	;; otherwise it complains about invalid face
+  ;; otherwise it complains about invalid face
   (require 'hl-line)
 	)
 #+end_src
