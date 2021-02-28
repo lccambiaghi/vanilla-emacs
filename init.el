@@ -148,53 +148,57 @@
 
 (use-package emacs
 	:init
-	(defconst my/default-font-family "Fira Code Retina" )
-	(defconst my/variable-pitch-font-family "Cantarell")
-	
-	;; my/default-font-size is calculated on start according to the primary screen
-	;; size. if screen-size is bigger than 16 inch: 9 else 11.
-	(defconst my/default-font-size
-		(let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(NF-2)/10)^2 + ($NF/10)^2 )/2.54}'")
-					 (command "osascript -e 'tell application \"Finder\" to get bounds of window of desktop' | cut -d',' -f3")
+	(defconst my/default-font-family "fira code retina" )
+	(defconst my/variable-pitch-font-family "cantarell")
+
+	(defun my/get-default-font-size ()
+		"font size is calculated according to the size of the primary screen"
+		(let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(nf-2)/10)^2 + ($nf/10)^2 )/2.54}'")
+					 (command "osascript -e 'tell application \"finder\" to get bounds of window of desktop' | cut -d',' -f3")
 					 (screen-width (string-to-number (shell-command-to-string command))))
       (if (> screen-width 2560) 210 180)))
+	
+	(defconst my/default-font-size (my/get-default-font-size))
 
   ;; Main typeface
-  (set-face-attribute 'default nil :font "Fira Code Retina" :height my/default-font-size)
+  (set-face-attribute 'default nil :font my/default-font-family :height my/default-font-size)
   ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height my/default-font-size)
+  (set-face-attribute 'fixed-pitch nil :font my/default-font-family :height my/default-font-size)
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height my/default-font-size :weight 'regular)
+  (set-face-attribute 'variable-pitch nil :font my/variable-pitch-font-family :height my/default-font-size :weight 'regular)
 	)
 
-(defun my/adjust-font-size (height)
-  "Adjust font size by given height. If height is '0', reset font
+(use-package emacs
+	:init
+	(defun my/adjust-font-size (height)
+		"Adjust font size by given height. If height is '0', reset font
 size. This function also handles icons and modeline font sizes."
-  (interactive "nHeight ('0' to reset): ")
-  (let ((new-height (if (zerop height)
-                        my/default-font-size
-                      (+ height (face-attribute 'default :height)))))
-    (set-face-attribute 'default nil :height new-height)
-    (set-face-attribute 'fixed-pitch nil :height new-height)
-    (set-face-attribute 'variable-pitch nil :height new-height)
-    ;; (set-face-attribute 'mode-line nil :height new-height)
-    ;; (set-face-attribute 'mode-line-inactive nil :height new-height)
-    (message "Font size: %s" new-height)))
+		(interactive "nHeight ('0' to reset): ")
+		(let ((new-height (if (zerop height)
+													(my/get-default-font-size)
+												(+ height (face-attribute 'default :height)))))
+			(set-face-attribute 'default nil :height new-height)
+			(set-face-attribute 'fixed-pitch nil :height new-height)
+			(set-face-attribute 'variable-pitch nil :height new-height)
+			;; (set-face-attribute 'mode-line nil :height new-height)
+			;; (set-face-attribute 'mode-line-inactive nil :height new-height)
+			(message "Font size: %s" new-height)))
 
-(defun my/increase-font-size ()
-  "Increase font size by 0.5 (5 in height)."
-  (interactive)
-  (my/adjust-font-size 5))
+	(defun my/increase-font-size ()
+		"Increase font size by 0.5 (5 in height)."
+		(interactive)
+		(my/adjust-font-size 5))
 
-(defun my/decrease-font-size ()
-  "Decrease font size by 0.5 (5 in height)."
-  (interactive)
-  (my/adjust-font-size -5))
+	(defun my/decrease-font-size ()
+		"Decrease font size by 0.5 (5 in height)."
+		(interactive)
+		(my/adjust-font-size -5))
 
-(defun my/reset-font-size ()
-  "Reset font size according to the `my/default-font-size'."
-  (interactive)
-  (my/adjust-font-size 0))
+	(defun my/reset-font-size ()
+		"Reset font size according to the `my/default-font-size'."
+		(interactive)
+		(my/adjust-font-size 0))
+	)
 
 (when (eq system-type 'darwin)
   (setq mac-command-modifier 'super)     ; command as super
@@ -266,93 +270,94 @@ begin_src jupyter-python in the first few hundred rows"
 															 (org-jupyter-python-mode)))))
 
 (use-package general
-  :demand t
-  :config
-  (general-evil-setup)
+	:demand t
+	:config
+	(general-evil-setup)
 
-  (general-create-definer my/leader-keys
-    :states '(normal insert visual emacs)
-    :keymaps 'override
-    :prefix "SPC"
-    :global-prefix "C-SPC")
+	(general-create-definer my/leader-keys
+		:states '(normal insert visual emacs)
+		:keymaps 'override
+		:prefix "SPC"
+		:global-prefix "C-SPC")
 
-  (general-create-definer my/local-leader-keys
-    :states '(normal visual)
-    :keymaps 'override
-    :prefix ","
-    :global-prefix "SPC m")
+	(general-create-definer my/local-leader-keys
+		:states '(normal visual)
+		:keymaps 'override
+		:prefix ","
+		:global-prefix "SPC m")
 
-  (my/leader-keys
-    "SPC" '(execute-extended-command :which-key "execute command")
-    "`" '((lambda () (interactive) (switch-to-buffer (other-buffer (current-buffer) 1))) :which-key "prev buffer")
+	(my/leader-keys
+		"SPC" '(execute-extended-command :which-key "execute command")
+		"`" '((lambda () (interactive) (switch-to-buffer (other-buffer (current-buffer) 1))) :which-key "prev buffer")
 		
-    ";" '(eval-expression :which-key "eval sexp")
+		";" '(eval-expression :which-key "eval sexp")
 
-    "b" '(:ignore t :which-key "buffer")
-    "br"  'revert-buffer
-    "bd"  'kill-current-buffer
+		"b" '(:ignore t :which-key "buffer")
+		"br"  'revert-buffer
+		"bd"  'kill-current-buffer
 
-    "c" '(:ignore t :which-key "code")
+		"c" '(:ignore t :which-key "code")
 
-    "f" '(:ignore t :which-key "file")
-    "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
-    "ff"  'find-file
-    "fs" 'save-buffer
-    "fr" 'recentf-open-files
-    "fR" '((lambda (new-path)
+		"f" '(:ignore t :which-key "file")
+		"fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
+		"ff"  'find-file
+		"fs" 'save-buffer
+		"fr" 'recentf-open-files
+		"fR" '((lambda (new-path)
 						 (interactive (list (read-file-name "Move file to: ") current-prefix-arg))
 						 (rename-file (buffer-file-name) (expand-file-name new-path))) :wk "move/rename")
 
-    "g" '(:ignore t :which-key "git")
+		"g" '(:ignore t :which-key "git")
 		;; keybindings defined in magit
 
-    "h" '(:ignore t :which-key "describe")
-    "he" 'view-echo-area-messages
-    "hf" 'describe-function
-    "hF" 'describe-face
-    "hl" 'view-lossage
-    "hL" 'find-library
-    "hm" 'describe-mode
-    "hk" 'describe-key
-    "hK" 'describe-keymap
-    "hp" 'describe-package
-    "hv" 'describe-variable
+		"h" '(:ignore t :which-key "describe")
+		"he" 'view-echo-area-messages
+		"hf" 'describe-function
+		"hF" 'describe-face
+		"hl" 'view-lossage
+		"hL" 'find-library
+		"hm" 'describe-mode
+		"hk" 'describe-key
+		"hK" 'describe-keymap
+		"hp" 'describe-package
+		"hv" 'describe-variable
 
-    "o" '(:ignore t :which-key "org")
+		"o" '(:ignore t :which-key "org")
 		;; keybindings defined in org-mode
 
-    "p" '(:ignore t :which-key "project")
+		"p" '(:ignore t :which-key "project")
 		;; keybindings defined in projectile
 
-    "s" '(:ignore t :which-key "search")
+		"s" '(:ignore t :which-key "search")
 		;; keybindings defined in consult
 
-    "t"  '(:ignore t :which-key "toggle")
-    "t d"  '(toggle-debug-on-error :which-key "debug on error")
+		"t"  '(:ignore t :which-key "toggle")
+		"t d"  '(toggle-debug-on-error :which-key "debug on error")
 		"t l" '(display-line-numbers-mode :wk "line numbers")
-    "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
+		"t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
+		"t +"	'(my/increase-font-size :wk "+ font")
+		"t -"	'(my/decrease-font-size :wk "- font")
+		"t 0"	'(my/reset-font-size :wk "reset font")
 
 		"u" '(universal-argument :wk "universal")
 
-    "w" '(:ignore t :which-key "window")
-    "wl"  'windmove-right
-    "wh"  'windmove-left
-    "wk"  'windmove-up
-    "wj"  'windmove-down
-    "wr" 'winner-redo
-    "wd"  'delete-window
+		"w" '(:ignore t :which-key "window")
+		"wl"  'windmove-right
+		"wh"  'windmove-left
+		"wk"  'windmove-up
+		"wj"  'windmove-down
+		"wr" 'winner-redo
+		"wd"  'delete-window
 		"w=" 'balance-windows-area
-    "wD" 'kill-buffer-and-window
-    "wu" 'winner-undo
-    "wr" 'winner-redo
-    "wm"  '(delete-other-windows :wk "maximize"))
+		"wD" 'kill-buffer-and-window
+		"wu" 'winner-undo
+		"wr" 'winner-redo
+		"wm"  '(delete-other-windows :wk "maximize"))
 
-  (my/local-leader-keys
-    "d" '(:ignore t :which-key "debug")
-    "e" '(:ignore t :which-key "eval")
-    "t" '(:ignore t :which-key "test")
-    )
-  )
+	(my/local-leader-keys
+		"d" '(:ignore t :which-key "debug")
+		"e" '(:ignore t :which-key "eval")
+		"t" '(:ignore t :which-key "test")))
 
 (use-package evil
   :demand t
@@ -366,6 +371,8 @@ begin_src jupyter-python in the first few hundred rows"
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   (setq evil-want-Y-yank-to-eol t)
+	(setq evil-respect-visual-line-mode t)
+	(setq evil-undo-system 'undo-fu)
   ;; move to window when splitting
   (setq evil-split-window-below t)
   (setq evil-vsplit-window-right t)
@@ -510,8 +517,8 @@ begin_src jupyter-python in the first few hundred rows"
         org-agenda-files '("~/dropbox/org/personal/birthdays.org" "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
         ;; org-export-in-background t
         org-src-preserve-indentation t ;; do not put two spaces on the left
-				org-startup-indented t
-				;; org-startup-with-inline-images t
+        org-startup-indented t
+        ;; org-startup-with-inline-images t
 				org-hide-emphasis-markers t
         org-catch-invisible-edits 'smart)
 	(setq org-indent-indentation-per-level 1)
@@ -601,7 +608,7 @@ begin_src jupyter-python in the first few hundred rows"
 												do
 												(insert (format "** [[%s::*%s][%s]]\n" file heading heading))))))
 	
-	:config
+  :config
   ;; (efs/org-font-setup)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
@@ -611,11 +618,11 @@ begin_src jupyter-python in the first few hundred rows"
   (add-to-list 'org-structure-template-alist '("jr" . "src jupyter-R"))
   ;; latex
   ;; (setq org-latex-compiler "xelatex")
-	;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
-	(setq org-latex-pdf-process '("tectonic %f"))
+  ;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
+  (setq org-latex-pdf-process '("tectonic %f"))
   (add-to-list 'org-export-backends 'beamer)
-  (setq org-html-htmlize-output-type 'css)
-	(plist-put org-format-latex-options :scale 2.0)
+  ;; (setq org-html-htmlize-output-type 'css)
+  (plist-put org-format-latex-options :scale 2.0)
   )
 
 (use-package org-reverse-datetree
@@ -1034,12 +1041,14 @@ begin_src jupyter-python in the first few hundred rows"
   :hook (org-mode . org-html-themify-mode)
   :init
   (setq org-html-themify-themes
-        '((dark . modus-vivendi)
-          (light . modus-operandi)))
+        '(;; (dark . modus-vivendi)
+          (light . modus-operandi)
+          (dark . modus-operandi)
+					))
   :config
   ;; otherwise it complains about invalid face
   (require 'hl-line)
-	)
+  )
 
 (use-package ox-gfm
   :after org)
@@ -1063,7 +1072,7 @@ begin_src jupyter-python in the first few hundred rows"
 	:hook (org-mode . org-appear-mode)
   :init
   (setq org-appear-autoemphasis  t)
-  ;; (setq org-appear-autolinks t)
+  (setq org-appear-autolinks t)
   (setq org-appear-autosubmarkers t)
 	)
 
@@ -1100,7 +1109,8 @@ begin_src jupyter-python in the first few hundred rows"
 
 (use-package modus-themes
 	:straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
-	:hook (emacs-startup . my/load-modus-theme)
+	:hook ((emacs-startup . my/load-modus-theme)
+				 (modus-themes-after-load-theme . my/fix-fill-column-indicator))
 	:general
 	(my/leader-keys
 		"t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
@@ -1132,6 +1142,7 @@ begin_src jupyter-python in the first few hundred rows"
 					(bg-tab-inactive . "#3a3a5a")
 					(fg-unfocused . "#9a9aab")))
 	(setq modus-themes-slanted-constructs t
+				;; modus-themes-no-mixed-fonts t
 				modus-themes-bold-constructs t
 				modus-themes-fringes 'nil ; {nil,'subtle,'intense}
 				modus-themes-mode-line '3d ; {nil,'3d,'moody}
@@ -1156,21 +1167,23 @@ begin_src jupyter-python in the first few hundred rows"
 								 (lambda ()
 									 (modus-themes-load-operandi)
 									 (with-eval-after-load 'org
-										 (plist-put org-format-latex-options :foreground "black"))
-									 ))
+										 (plist-put org-format-latex-options :foreground "black"))))
 		;; Dark for the night
 		(run-at-time "00:00" (* 60 60 24)
 								 (lambda ()
 									 (modus-themes-load-vivendi)
 									 (with-eval-after-load 'org
-										 (plist-put org-format-latex-options :foreground "whitesmoke"))
-									 ))
+										 (plist-put org-format-latex-options :foreground "whitesmoke"))))
 		(run-at-time "17:00" (* 60 60 24)
 								 (lambda ()
 									 (modus-themes-load-vivendi)
 									 (with-eval-after-load 'org
-										 (plist-put org-format-latex-options :foreground "whitesmoke"))
-									 ))))
+										 (plist-put org-format-latex-options :foreground "whitesmoke")))))
+	(defun my/fix-fill-column-indicator ()
+		(modus-themes-with-colors
+			(custom-set-faces
+			 `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive))))))
+	)
 
 (use-package dashboard
   :after projectile
@@ -1300,7 +1313,10 @@ begin_src jupyter-python in the first few hundred rows"
 (use-package display-fill-column-indicator
   :straight (:type built-in)
   :hook
-  ((prog-mode org-mode) . display-fill-column-indicator-mode))
+  ((prog-mode org-mode) . display-fill-column-indicator-mode)
+  :init
+  (setq display-fill-column-indicator-character "|")
+	)
 
 ;; add a visual intent guide
 (use-package highlight-indent-guides
@@ -1311,7 +1327,8 @@ begin_src jupyter-python in the first few hundred rows"
   ;; (setq highlight-indent-guides-character ?|)
   ;; (setq highlight-indent-guides-character ?❚)
   (setq highlight-indent-guides-character ?‖)
-  (setq highlight-indent-guides-responsive 'stack)
+  ;; (setq highlight-indent-guides-responsive 'stack)
+  (setq highlight-indent-guides-responsive 'top)
 	;; (setq highlight-indent-guides-auto-enabled nil)
 	;; (set-face-background 'highlight-indent-guides-odd-face "darkgray")
   ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
@@ -1389,32 +1406,34 @@ begin_src jupyter-python in the first few hundred rows"
   (embark-collect-mode . embark-consult-preview-minor-mode))
 
 (use-package consult
-  :general
+	:commands (consult-ripgrep)
+	:general
 	(general-nmap
 		:states '(normal insert)
-    "C-p" 'consult-yank-pop)
-  (my/leader-keys
-    "s i" '(consult-isearch :wk "isearch")
-    "s o" '(consult-outline :which-key "outline")
-    "s s" 'consult-line
-    "b b" 'consult-buffer
-    ;; TODO consult mark
-    "f r" 'consult-recent-file
-    "s !" '(consult-flymake :wk "flymake"))
-	(with-eval-after-load 'projectile
-    (my/leader-keys
-      "s p" '((lambda () (interactive) (consult-ripgrep (projectile-project-root))) :wk "ripgrep")))
+		"C-p" 'consult-yank-pop)
+	(my/leader-keys
+		"s i" '(consult-isearch :wk "isearch")
+		"s o" '(consult-outline :which-key "outline")
+		"s s" 'consult-line
+		"s p" '(consult-ripgrep :wk "ripgrep project")
+		"b b" 'consult-buffer
+		;; TODO consult mark
+		"f r" 'consult-recent-file
+		"s !" '(consult-flymake :wk "flymake"))
+	;; (with-eval-after-load 'projectile
+	;;   (my/leader-keys
+	;;     "s p" '((lambda () (interactive) (consult-ripgrep (projectile-project-root))) :wk "ripgrep")))
 	:config
 	(autoload 'projectile-project-root "projectile")
-  (setq consult-project-root-function #'projectile-project-root)
-  ;; :init
-  ;; (setq consult-preview-key "C-l")
-  ;; (setq consult-narrow-key ">")
-  )
+	(setq consult-project-root-function #'projectile-project-root)
+	;; :init
+	;; (setq consult-preview-key "C-l")
+	;; (setq consult-narrow-key ">")
+	)
 
 (use-package consult-selectrum
-  :after selectrum
-  :demand)
+	:after selectrum
+	:demand)
 
 (use-package projectile
   :demand
@@ -1464,7 +1483,7 @@ begin_src jupyter-python in the first few hundred rows"
     (projectile-find-file))
 	(def-projectile-commander-method ?s
     "Ripgrep in project."
-    (projectile-find-file))
+    (consult-ripgrep))
 	(def-projectile-commander-method ?g
     "Git status in project."
     (projectile-vc))
@@ -1627,31 +1646,31 @@ begin_src jupyter-python in the first few hundred rows"
 
 (use-package company
   :demand
-	;; :hook
-	;; (python-mode . (lambda ()
-	;; 								(setq-local company-backends '((company-capf :with company-files)))))
+  ;; :hook
+  ;; (python-mode . (lambda ()
+  ;; 								(setq-local company-backends '((company-capf :with company-files)))))
   :init
-  (setq company-backends '((company-capf company-files)))
   (setq company-minimum-prefix-length 1)
-	(setq company-idle-delay 0.0)
+  (setq company-idle-delay 0.0)
   (setq company-tooltip-align-annotations t)
-	;; don't autocomplete when single candidate
-	(setq company-auto-complete nil)
-	(setq company-auto-complete-chars nil)
-	(setq company-dabbrev-code-other-buffers nil)
-	;; manually configure tng
-	;; (setq company-tng-auto-configure nil)
-	;; (setq company-frontends '(company-tng-frontend
+  ;; don't autocomplete when single candidate
+  (setq company-auto-complete nil)
+  (setq company-auto-complete-chars nil)
+  (setq company-dabbrev-code-other-buffers nil)
+  ;; manually configure tng
+  ;; (setq company-tng-auto-configure nil)
+  ;; (setq company-frontends '(company-tng-frontend
   ;;                           company-pseudo-tooltip-frontend
   ;;                           company-echo-metadata-frontend))
-	;; (setq company-selection-default nil)
+  ;; (setq company-selection-default nil)
+  (setq company-backends '((company-capf company-keywords company-files)))
   :config
   (global-company-mode)
   (with-eval-after-load 'evil
     (add-hook 'company-mode-hook #'evil-normalize-keymaps))
-	;; needed in case we only have one candidate
-	(define-key company-active-map (kbd "C-j") 'company-select-next)
-	)
+  ;; needed in case we only have one candidate
+  (define-key company-active-map (kbd "C-j") 'company-select-next)
+  )
 
   (use-package company-box
     :hook (company-mode . company-box-mode)
@@ -1730,11 +1749,12 @@ begin_src jupyter-python in the first few hundred rows"
   (add-hook 'post-command-hook #'my-yas-try-expanding-auto-snippets)
   )
 
-  (use-package undo-fu
-    :general
-    (:states 'normal
-             "u" 'undo-fu-only-undo
-             "\C-r" 'undo-fu-only-redo))
+(use-package undo-fu
+  :demand
+  :general
+  (:states 'normal
+           "u" 'undo-fu-only-undo
+           "\C-r" 'undo-fu-only-redo))
 
   (use-package vterm
     :config
