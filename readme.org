@@ -407,9 +407,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   (setq-default indent-tabs-mode t)
   (setq-default tab-width 2)
 
-  ;; use a reasonable line length
-  (setq-default fill-column  90)
-	
   ;; Increase the amount of data read from processes
 	(setq read-process-output-max (* 1024 1024)) ; 1mb.
   )
@@ -418,16 +415,20 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 ** Auto-pair parenthesis
 #+begin_src emacs-lisp
 (use-package emacs
-	:init
+  :hook
+  ((org-jupyter-python-mode . (lambda () (set-local-electric-pairs '())))
+   (org-mode . (lambda () (set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
+  :init
   ;; auto-close parentheses
   (electric-pair-mode +1)
-	(setq electric-pair-preserve-balance nil)
+  (setq electric-pair-preserve-balance nil)
   ;; mode-specific local-electric pairs
+  (defvar my/default-electric-pairs electric-pair-pairs)
   (defun set-local-electric-pairs (pairs)
-		"Example usage: 
+    "Example usage: 
     (add-hook 'jupyter-org-interaction-mode '(lambda () (set-local-electric-pairs '())))
     "
-    (setq-local electric-pair-pairs (append electric-pair-pairs pairs))
+    (setq-local electric-pair-pairs (append my/default-electric-pairs pairs))
     (setq-local electric-pair-text-pairs electric-pair-pairs))
 
   ;; disable auto pairing for <
@@ -439,7 +440,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 #+begin_src emacs-lisp
 (use-package emacs
 	:init
-	(defconst my/default-font-family "fira code retina" )
+	(defconst my/default-font-family "fira code" )
 	(defconst my/variable-pitch-font-family "cantarell")
 
 	(defun my/get-default-font-size ()
@@ -447,16 +448,19 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 		(let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(nf-2)/10)^2 + ($nf/10)^2 )/2.54}'")
 					 (command "osascript -e 'tell application \"finder\" to get bounds of window of desktop' | cut -d',' -f3")
 					 (screen-width (string-to-number (shell-command-to-string command))))
-      (if (> screen-width 2560) 210 180)))
+      (if (> screen-width 2560) 180 180)))
 	
 	(defconst my/default-font-size (my/get-default-font-size))
 
+	
   ;; Main typeface
   (set-face-attribute 'default nil :font my/default-font-family :height my/default-font-size)
   ;; Set the fixed pitch face
   (set-face-attribute 'fixed-pitch nil :font my/default-font-family :height my/default-font-size)
   ;; Set the variable pitch face
   (set-face-attribute 'variable-pitch nil :font my/variable-pitch-font-family :height my/default-font-size :weight 'regular)
+
+	
 	)
 #+end_src
 
@@ -586,15 +590,15 @@ Reference: https://nullprogram.com/blog/2013/02/06/
   (define-minor-mode org-jupyter-python-mode
     "Minor mode which is active when an org file has the string 
 begin_src jupyter-python in the first few hundred rows"
-		;; :keymap (let ((map (make-sparse-keymap)))
+    ;; :keymap (let ((map (make-sparse-keymap)))
     ;;             (define-key map (kbd "C-c f") 'insert-foo)
-		;;             map)
-		)
+    ;;             map)
+    )
 
   (add-hook 'org-mode-hook (lambda ()
-														 (when (is-jupyter-python-org-buffer?)
-															 (org-jupyter-python-mode)))))
-
+                             (when (is-jupyter-python-org-buffer?)
+															 (org-jupyter-python-mode))))
+	)
 #+end_src
 
 * Keybindings
@@ -660,7 +664,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 		"o" '(:ignore t :which-key "org")
 		;; keybindings defined in org-mode
 
-		"p" '(:ignore t :which-key "project")
+		;; "p" '(:ignore t :which-key "project")
 		;; keybindings defined in projectile
 
 		"s" '(:ignore t :which-key "search")
@@ -726,7 +730,7 @@ in the rest of the file
 
 #+BEGIN_SRC emacs-lisp
 (use-package evil
-  :demand t
+  :demand
   :general
   (my/leader-keys
     "wv" 'evil-window-vsplit
@@ -800,8 +804,10 @@ in the rest of the file
 #+END_SRC
 
 *** evil-surround
+(
 - Use =S)= to surround something without spaces e.g. ~(sexp)~ 
-- Use =S(= to surround something with spaces e.g. ~( sexp )~ 
+- Use =S(= to surround something with spaces e.g. ~( sexp )~
+)
 
 #+BEGIN_SRC emacs-lisp
 (use-package evil-surround
@@ -859,7 +865,8 @@ Keybindings:
 	(general-nmap
 		"Q" #'evil-mc-undo-all-cursors)
 	:config
-	(global-evil-mc-mode 1))
+	(global-evil-mc-mode 1)
+	)
 #+end_src
 
 ** which-key
@@ -887,69 +894,109 @@ Interesting bits:
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
-  :hook ((org-mode . prettify-symbols-mode)
-         (org-mode . visual-line-mode)
-         (org-mode . variable-pitch-mode)
-         (org-mode . (lambda () (set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
-  :general
-  (my/leader-keys
-    "o a" '(org-agenda-list :wk "agenda")
-    "o A" '(org-agenda :wk "agenda")
-    "o C" '(org-capture :wk "capture")
-    "o l" '(org-todo-list :wk "todo list")
-    "o c" '((lambda () (interactive)
-              (find-file (concat user-emacs-directory "readme.org")))
-            :wk "open config")
-    "o t" '((lambda () (interactive)
-              (find-file (concat org-directory "/personal/todo.org")))
-            :wk "open todos"))
-  (my/local-leader-keys
-    :keymaps 'org-mode-map
-    "a" '(org-archive-subtree :wk "archive subtree")
-    "E" '(org-export-dispatch :wk "export")
+	:hook ((org-mode . prettify-symbols-mode)
+				 (org-mode . visual-line-mode)
+				 (org-mode . variable-pitch-mode))
+	:general
+	(my/leader-keys
+		"o a" '(org-agenda-list :wk "agenda")
+		"o A" '(org-agenda :wk "agenda")
+		"o C" '(org-capture :wk "capture")
+		"o l" '(org-todo-list :wk "todo list")
+		"o c" '((lambda () (interactive)
+							(find-file (concat user-emacs-directory "readme.org")))
+						:wk "open config")
+		"o t" '((lambda () (interactive)
+							(find-file (concat org-directory "/personal/todo.org")))
+						:wk "open todos"))
+	(my/local-leader-keys
+		:keymaps 'org-mode-map
+		"a" '(org-archive-subtree :wk "archive subtree")
+		"E" '(org-export-dispatch :wk "export")
 		"i" '(org-insert-structure-template :wk "insert src")
-    "l" '(:ignore true :wk "link")
-    "l l" '(org-insert-link :wk "insert link")
-    "l s" '(org-store-link :wk "store link")
-    "L" '((lambda () (interactive) (org-latex-preview)) :wk "latex preview")
-    ;; "L" '((lambda () (interactive) (org--latex-preview-region (point-min) (point-max))) :wk "latex")
-    "r" '(org-refile :wk "refile")
-    "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
+		"l" '(:ignore true :wk "link")
+		"l l" '(org-insert-link :wk "insert link")
+		"l s" '(org-store-link :wk "store link")
+		"L" '((lambda () (interactive) (org-latex-preview)) :wk "latex preview")
+		;; "L" '((lambda () (interactive) (org--latex-preview-region (point-min) (point-max))) :wk "latex")
+		"r" '(org-refile :wk "refile")
+		"n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
 		"p" '(org-priority :wk "priority")
-    "s" '(org-sort :wk "sort")
-    "t" '(:ignore true :wk "todo")
-    "t t" '(org-todo :wk "heading todo")
-    "t s" '(org-schedule :wk "schedule")
-    "t d" '(org-deadline :wk "deadline"))
-  (org-mode-map
-   :states 'normal
-   "z i" '(org-toggle-inline-images :wk "inline images"))
-	;; (org-mode-map
-  ;;  :states 'insert
-  ;;  "(" '((lambda () (interactive) (skeleton-pair-insert-maybe))))
-  :init
-  ;; general settings
-  (setq org-directory "~/Dropbox/org"
-        org-image-actual-width nil
-        +org-export-directory "~/Dropbox/org/export"
-        org-default-notes-file "~/Dropbox/org/personal/todo.org"
-        org-id-locations-file "~/Dropbox/org/.orgids"
-        org-agenda-files '("~/dropbox/org/personal/birthdays.org" "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
-        ;; org-export-in-background t
-        org-src-preserve-indentation t ;; do not put two spaces on the left
-        org-startup-indented t
-        ;; org-startup-with-inline-images t
+		"s" '(org-sort :wk "sort")
+		"t" '(:ignore true :wk "todo")
+		"t t" '(org-todo :wk "heading todo")
+		"t s" '(org-schedule :wk "schedule")
+		"t d" '(org-deadline :wk "deadline"))
+	(org-mode-map
+	 :states 'normal
+	 "z i" '(org-toggle-inline-images :wk "inline images"))
+	:init
+	;; general settings
+	(setq org-directory "~/Dropbox/org"
+				org-image-actual-width nil
+				+org-export-directory "~/Dropbox/org/export"
+				org-default-notes-file "~/Dropbox/org/personal/todo.org"
+				org-id-locations-file "~/Dropbox/org/.orgids"
+				org-agenda-files '("~/dropbox/org/personal/birthdays.org"
+													 "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
+				;; org-export-in-background t
+				org-src-preserve-indentation t ;; do not put two spaces on the left
+				org-startup-indented t
+				;; org-startup-with-inline-images t
 				org-hide-emphasis-markers t
-        org-catch-invisible-edits 'smart)
+				org-catch-invisible-edits 'smart)
 	(setq org-indent-indentation-per-level 1)
 	(setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
-  ;; disable modules for faster startup
-  (setq org-modules
-        '(ol-docview
+	;; disable modules for faster startup
+	(setq org-modules
+				'(ol-docview
 					org-habit))
-  (setq org-todo-keywords
-        '((sequence "NEXT(n)" "TODO(t)" "|" "PROG(n)" "|" "DONE(d)" "HOLD(h)")))
-  (setq org-capture-templates
+	(setq org-todo-keywords
+				'((sequence "TODO(t)" "NEXT(n)" "PROG(p)" "|" "HOLD(h)" "DONE(d)")))
+	(setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
+																				 ("#+END_SRC" . "«")
+																				 ("#+begin_src" . "»")
+																				 ("#+end_src" . "«")
+																				 ("lambda"  . "λ")
+																				 ("->" . "→")
+																				 ("->>" . "↠")))
+	(setq prettify-symbols-unprettify-at-point 'right-edge)
+	(setq org-agenda-custom-commands
+				'(("d" "Dashboard"
+					 ((agenda "" ((org-deadline-warning-days 7)))
+						(todo "NEXT"
+									((org-agenda-overriding-header "Next Tasks")))
+						(tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+					("n" "Next Tasks"
+					 ((todo "NEXT"
+									((org-agenda-overriding-header "Next Tasks")))))
+					("w" "Work Tasks" tags-todo "+work")))
+	
+	:config
+	;; (efs/org-font-setup)
+	(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+	(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+	(add-to-list 'org-structure-template-alist '("py" . "src python"))
+	(add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
+	(add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
+	(add-to-list 'org-structure-template-alist '("jr" . "src jupyter-R"))
+	;; fontification
+	(add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+	(add-to-list 'org-src-lang-modes '("jupyter-R" . R))
+	;; latex
+	;; (setq org-latex-compiler "xelatex")
+	;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
+	(setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
+	(add-to-list 'org-export-backends 'beamer)
+	(plist-put org-format-latex-options :scale 1.5)
+	)
+#+END_SRC
+
+** org capture templates
+#+begin_src emacs-lisp
+(use-package org
+:init
+(setq org-capture-templates
         `(("b" "Blog" entry
            (file+headline "personal/todo.org" "Blog")
            ,(concat "* WRITE %^{Title} %^g\n"
@@ -991,27 +1038,21 @@ Interesting bits:
                     "SCHEDULED: %^t\n"
                     ":PROPERTIES:\n:CAPTURED: %U\n:END:\n\n"
                     "%i%?"))))
-  (setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
-                                         ("#+END_SRC" . "«")
-                                         ("#+begin_src" . "»")
-                                         ("#+end_src" . "«")
-																				 ("lambda"  . "λ")
-                                         ("->" . "→")
-                                         ("->>" . "↠")))
-  (setq prettify-symbols-unprettify-at-point 'right-edge)
-  (setq org-agenda-custom-commands
-        '(("d" "Dashboard"
-           ((agenda "" ((org-deadline-warning-days 7)))
-            (todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))
-            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-          ("n" "Next Tasks"
-           ((todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))))
-          ("w" "Work Tasks" tags-todo "+work")))
-  (defun org-toc ()
-    (interactive)
-    (let ((headings (delq nil (cl-loop for f in (f-entries "." (lambda (f) (f-ext? f "org")) t)
+	)
+#+end_src
+
+** org-toc
+This function walks a particular directory searching for ~.org~ files and headings within them.
+It creates a table of contents of that directory, with links.
+It is useful to create an automatic ~index.org~ file for org directories.
+I currently use it for my knowledge library.
+
+#+begin_src emacs-lisp
+(use-package org
+	:init
+	(defun org-toc ()
+		(interactive)
+		(let ((headings (delq nil (cl-loop for f in (f-entries "." (lambda (f) (f-ext? f "org")) t)
 																			 append
 																			 (with-current-buffer (find-file-noselect f)
 																				 (org-map-entries
@@ -1023,38 +1064,55 @@ Interesting bits:
 			(org-mode)
 			(cl-loop for (file . file-headings) in (seq-group-by #'car headings) 
 							 do
-							 (insert (format "* %s \n" file))
+							 (insert (format "* [[%s][%s]] \n" file (file-relative-name file)))
 							 (cl-loop for (file . heading) in file-headings 
 												do
 												(insert (format "** [[%s::*%s][%s]]\n" file heading heading))))))
-	
-  :config
-  ;; (efs/org-font-setup)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
-  (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
-  (add-to-list 'org-structure-template-alist '("jr" . "src jupyter-R"))
-  ;; latex
-  ;; (setq org-latex-compiler "xelatex")
-  ;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
-  (setq org-latex-pdf-process '("tectonic %f"))
-  (add-to-list 'org-export-backends 'beamer)
-  ;; (setq org-html-htmlize-output-type 'css)
-  (plist-put org-format-latex-options :scale 2.0)
-  )
-#+END_SRC
+	)
+#+end_src
 
-** TODO async tangle
+** cycle only one heading 
+#+begin_src emacs-lisp
+(use-package org
+	:init
+	(defun +org-cycle-only-current-subtree-h (&optional arg)
+    "Toggle the local fold at the point, and no deeper.
+`org-cycle's standard behavior is to cycle between three levels: collapsed,
+subtree and whole document. This is slow, especially in larger org buffer. Most
+of the time I just want to peek into the current subtree -- at most, expand
+,*only* the current subtree.
+
+All my (performant) foldings needs are met between this and `org-show-subtree'
+(on zO for evil users), and `org-cycle' on shift-TAB if I need it."
+		(interactive "P")
+		(unless (eq this-command 'org-shifttab)
+			(save-excursion
+				(org-beginning-of-line)
+				(let (invisible-p)
+					(when (and (org-at-heading-p)
+										 (or org-cycle-open-archived-trees
+												 (not (member org-archive-tag (org-get-tags))))
+										 (or (not arg)
+												 (setq invisible-p (outline-invisible-p (line-end-position)))))
+						(unless invisible-p
+              (setq org-cycle-subtree-status 'subtree))
+            (org-cycle-internal-local)
+            t)))))
+  :config
+  ;; Only fold the current tree, rather than recursively
+  (add-hook 'org-tab-first-hook #'+org-cycle-only-current-subtree-h)
+  )
+#+end_src
+
+** async tangle
 Taken from https://github.com/KaratasFurkan/.emacs.d
 
-#+begin_src emacs-lisp :tangle no
-(defun fk/add-local-hook (hook function)
+#+begin_src emacs-lisp
+(defun my/add-local-hook (hook function)
   "Add buffer-local hook."
   (add-hook hook function :local t))
 
-(defun fk/async-process (command &optional name filter)
+(defun my/async-process (command &optional name filter)
   "Start an async process by running the COMMAND string with bash. Return the
 process object for it.
 
@@ -1069,7 +1127,7 @@ FILTER is function that runs after the process is finished, its args should be
    :filter (if filter filter
              (lambda (process output) (message (s-trim output))))))
 
-(defun fk/tangle-config ()
+(defun my/tangle-config ()
   "Export code blocks from the literate config file
 asynchronously."
   (interactive)
@@ -1079,16 +1137,11 @@ asynchronously."
                  (or (not (process-live-p (get-process "tangle-process")))
                      (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
   ;; tangle config asynchronously
-  (fk/async-process
-   (format "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'" config-org config-el)
+  (my/async-process
+   (format "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+           (expand-file-name "readme.org" user-emacs-directory)
+           (expand-file-name "init.el" user-emacs-directory))
    "tangle-process"))
-
-(use-package org
-	:hook
-  (org-mode . (lambda ()
-                (if (equal (buffer-file-name) config-org)
-                    (fk/add-local-hook 'after-save-hook 'fk/tangle-config)))))
-
 #+end_src
 
 ** org reverse datetree
@@ -1102,13 +1155,9 @@ asynchronously."
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode)
   :init
-  (setq org-superstar-headline-bullets-list '("✖" "✚" "◆" "▶" "○")
-        org-superstar-special-todo-items t
-        ;; org-ellipsis "⤵"
-        ;; org-ellipsis "▼"
-        ;; org-ellipsis "..."
-        org-ellipsis " ↴ "
-        )
+  (setq org-superstar-headline-bullets-list '("✖" "✚" "◉" "○" "▶")
+        ;; org-superstar-special-todo-items t
+        org-ellipsis " ↴ ")
   )
 #+END_SRC
 
@@ -1119,16 +1168,16 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
 	:hook ((prog-mode org-mode) . my/hl-todo-init)
 	:init
 	(defun my/hl-todo-init ()
-    (setq-local hl-todo-keyword-faces '(("HOLD" . "#cfdf30")
-                                        ("TODO" . "#ff9977")
-                                        ("NEXT" . "#b6a0ff")
+		(setq-local hl-todo-keyword-faces '(("HOLD" . "#cfdf30")
+																				("TODO" . "#ff9977")
+																				("NEXT" . "#b6a0ff")
 																				("PROG" . "#00d3d0")
 																				("FIXME" . "#ff9977")
 																				("DONE" . "#44bc44")
 																				("REVIEW" . "#6ae4b9")
 																				("DEPRECATED" . "#bfd9ff")))
 		(hl-todo-mode))
-  )
+	)
 #+end_src
 
 ** org babel
@@ -1142,6 +1191,7 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
     "z" '(org-babel-hide-result-toggle :wk "fold result"))
   (my/local-leader-keys
     :keymaps 'org-src-mode-map
+    :states 'normal
     "," '(org-edit-src-exit :wk "exit")) ;;FIXME
   :init
   (setq org-confirm-babel-evaluate nil)
@@ -1160,10 +1210,10 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
 
 ** ob-async
 #+begin_src emacs-lisp
-  (use-package ob-async
-    :hook (org-load . (lambda () (require 'ob-async)))
-    :init
-    (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
+(use-package ob-async
+  :hook (org-load . (lambda () (require 'ob-async)))
+  :init
+  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
 #+end_src
 
 ** ob-jupyter
@@ -1227,13 +1277,13 @@ Note:
       ;; converting to their string representation by
       ;; `org-element-interpret-data' so insert one in these cases.
       (insert "\n")))
-  :config
+  ;; :config
   ;;Remove text/html since it's not human readable
   ;; (delete :text/html jupyter-org-mime-types)
-  ;; (require 'tramp)
-  (with-eval-after-load 'org-src
-    (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
-    (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
+  ;; (with-eval-after-load 'org-src
+  ;;   (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+  ;;   (add-to-list 'org-src-lang-modes '("jupyter-R" . R)))
+	)
 #+end_src
 
 ** org-tree-slide
@@ -1534,7 +1584,8 @@ Taken from DOOM:
             (org-element-property :end context))))))))
 #+end_src
 
-** org-html-themify
+** exporters
+*** org-html-themify
 I use this package to export my config to HTML. I then push it to the ~gh-pages~ branch
 #+begin_src emacs-lisp
 (use-package org-html-themify
@@ -1557,17 +1608,20 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
   )
 #+end_src
 
-** exporters
+*** ox-gfm
 #+BEGIN_SRC emacs-lisp
 (use-package ox-gfm
   :after org)
+#+END_SRC
 
+*** ox-ipynb
+#+BEGIN_SRC emacs-lisp
 (use-package ox-ipynb
   :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
 	:commands (ox-ipynb-export-org-file-to-ipynb-file))
 #+END_SRC
 
-** ox-reveal
+*** ox-reveal
 #+begin_src emacs-lisp
 (use-package org-re-reveal
   :after org
@@ -1580,6 +1634,52 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
         ))
 #+end_src
 
+*** weblorg
+#+begin_src emacs-lisp
+(use-package weblorg)
+
+(use-package templatel)
+
+(use-package htmlize)
+#+end_src
+
+*** LaTeX export
+#+begin_src emacs-lisp
+(use-package org
+	:config
+  (with-eval-after-load 'ox-latex
+    (add-to-list 'org-latex-classes
+                 '("org-plain-latex"
+                   "\\documentclass{article}
+           [NO-DEFAULT-PACKAGES]
+           [PACKAGES]
+           [EXTRA]"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+    (setq org-latex-listings 't)
+    (add-to-list 'org-latex-packages-alist '("" "listings"))
+    (add-to-list 'org-latex-packages-alist '("" "color"))
+    ;; (setq org-latex-listings 'minted)
+    ;; (add-to-list 'org-latex-packages-alist '("newfloat" "minted"))
+		)
+  )
+#+end_src
+
+In the beginning of the org document:
+#+begin_example
+#+SETUPFILE: ../work/latex.setup
+#+end_example
+ 
+*** ox-cv
+#+begin_src emacs-lisp
+(use-package ox-altacv
+  :straight (ox-altacv :type git :host github :repo "lccambiaghi/org-cv")
+  :config (require 'ox-altacv))
+#+end_src
+ 
 ** org-appear
 Automatically disaply emphasis markers and links when the cursor is on them.
 #+begin_src emacs-lisp
@@ -1594,21 +1694,37 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 
 #+end_src
 
-** weblorg
-#+begin_src emacs-lisp
-(use-package weblorg)
-
-(use-package templatel)
-
-(use-package htmlize)
-#+end_src
-
 ** automatic latex preview
 #+begin_src emacs-lisp
 (use-package org-fragtog
 	:hook (org-mode . org-fragtog-mode))
 #+end_src
 
+** org-encrypt
+- Use ~org-encrypt-entry~ on a headline
+- Use ~org-decrypt-entry~ to decrypt
+#+begin_src emacs-lisp
+(use-package org
+  :config
+  (require 'org-crypt)
+  (require 'epa-file)
+  (epa-file-enable)
+  (org-crypt-use-before-save-magic)
+  (setq org-tags-exclude-from-inheritance (quote ("crypt")))
+  (setq org-crypt-key nil)
+  (defun ag/reveal-and-move-back ()
+    (org-reveal)
+    (goto-char ag/old-point))
+  (defun ag/org-reveal-after-save-on ()
+    (setq ag/old-point (point))
+    (add-hook 'after-save-hook 'ag/reveal-and-move-back))
+  (defun ag/org-reveal-after-save-off ()
+    (remove-hook 'after-save-hook 'ag/reveal-and-move-back))
+  (add-hook 'org-babel-pre-tangle-hook 'ag/org-reveal-after-save-on)
+  (add-hook 'org-babel-post-tangle-hook 'ag/org-reveal-after-save-off)
+  )
+#+end_src
+ 
 * UI
 ** all the icons
 #+BEGIN_SRC emacs-lisp
@@ -1686,11 +1802,11 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 				modus-themes-prompts nil ; {nil,'subtle,'intense}
 				modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
 				modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-				modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+				modus-themes-org-blocks 'nil ; {nil,'greyscale,'rainbow}
 				modus-themes-headings  ; Read further below in the manual for this one
-				'((1 . line)
+				'((1 . line-no-bold)
 					(t . rainbow-line-no-bold))
-				modus-themes-variable-pitch-headings nil
+				modus-themes-variable-pitch-headings t
 				modus-themes-scale-headings t
 				modus-themes-scale-1 1.1
 				modus-themes-scale-2 1.15
@@ -1725,7 +1841,7 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 ** dashboard
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
-  :after projectile
+  ;; :after projectile
   ;; :hook
   ;; (dashboard-after-initialize . (lambda () (setq-local cursor-type nil)))
   :demand
@@ -1735,23 +1851,23 @@ Automatically disaply emphasis markers and links when the cursor is on them.
   (setq dashboard-projects-backend 'projectile)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
-	(defun is-after-17-or-weekends? ()
-		(or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
-															 (substring 0 2)
-															 (string-to-number)
-															 (> 16)
-															 )
-													 (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
-															 (member  '("Sat" "Sun")))))
-	;; exclude work items after 17 and on weekends
+  (defun is-after-17-or-weekends? ()
+    (or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
+						(substring 0 2)
+						(string-to-number)
+						(> 16)
+						)
+				(-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
+						(member  '("Sat" "Sun")))))
+  ;; exclude work items after 17 and on weekends
   (run-at-time "00:00" (* 60 60 24)
-							 (lambda ()
-								 (if (is-after-17-or-weekends?)
-									 (setq dashboard-match-agenda-entry "life")
-                   (setq dashboard-match-agenda-entry "work|life"))))
-  (setq dashboard-items '((recents  . 5)
-                          (agenda . 5)
+               (lambda ()
+                 (if (is-after-17-or-weekends?)
+                     (setq dashboard-match-agenda-entry "life|habits")
+                   (setq dashboard-match-agenda-entry "work|life|habits"))))
+  (setq dashboard-items '((agenda . 5)
                           ;; (bookmarks . 5)
+                          (recents  . 5)
                           ;; (projects . 5)
                           ))
   ;; (setq dashboard-startup-banner [VALUE])
@@ -1773,7 +1889,8 @@ Automatically disaply emphasis markers and links when the cursor is on them.
   ;;      (lambda (&rest _) (persp-state-load persp-state-default-file))))))
   :config
   (dashboard-setup-startup-hook)
-	)
+  (set-face-attribute 'dashboard-items-face nil :height my/default-font-size)
+  )
 #+END_SRC
 
 ** centaur tabs
@@ -1885,20 +2002,23 @@ With ~evil~ you can:
 (use-package display-fill-column-indicator
   :straight (:type built-in)
   :hook
-  ((prog-mode org-mode) . display-fill-column-indicator-mode)
+  (prog-mode . display-fill-column-indicator-mode)
   :init
+  (setq-default fill-column  90)
   (setq display-fill-column-indicator-character "|")
 	)
 #+end_src
 
-An alternative:
-#+begin_src emacs-lisp :tangle no
+** Whitespace mode
+#+begin_src emacs-lisp
 (use-package emacs
-	:init
-	(setq-default
-	 whitespace-line-column 90
-   whitespace-style       '(face lines-tail))
-  (add-hook 'org-mode-hook #'whitespace-mode))
+  :hook
+  ((org-jupyter-python-mode . (lambda () (whitespace-mode -1)))
+   (org-mode . whitespace-mode))
+  :init
+  (setq-default
+   whitespace-line-column 90
+   whitespace-style       '(face lines-tail)))
 #+end_src
 
 ** Highlight indentation guides
@@ -1921,11 +2041,60 @@ An alternative:
   )
 #+END_SRC
 
-** TODO Show emoji
+** COMMENT Show emoji
 #+begin_src emacs-lisp
 (use-package emojify
   :disabled t
   :hook (after-init . global-emojify-mode))
+#+end_src
+
+** Enlarge window
+Taken from DOOM
+
+#+begin_src emacs-lisp
+(use-package emacs
+	:general
+  (my/leader-keys
+    "w o" '(doom/window-enlargen :wk "enlargen"))
+	:init
+	(defun doom/window-enlargen (&optional arg)
+		"Enlargen the current window to focus on this one. Does not close other
+windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
+		(interactive "P")
+		(let ((param 'doom--enlargen-last-wconf))
+			(cl-destructuring-bind (window . wconf)
+					(or (frame-parameter nil param)
+							(cons nil nil))
+				(set-frame-parameter
+				 nil param
+				 (if (and (equal window (selected-window))
+									(not arg)
+									wconf)
+						 (ignore
+							(let ((source-window (selected-window)))
+								(set-window-configuration wconf)
+								(when (window-live-p source-window)
+									(select-window source-window))))
+					 (prog1 (cons (selected-window) (or wconf (current-window-configuration)))
+						 (let* ((window (selected-window))
+										(dedicated-p (window-dedicated-p window))
+										(preserved-p (window-parameter window 'window-preserved-size))
+										(ignore-window-parameters t)
+										(window-resize-pixelwise nil)
+										(frame-resize-pixelwise nil))
+							 (unwind-protect
+									 (progn
+										 (when dedicated-p
+											 (set-window-dedicated-p window nil))
+										 (when preserved-p
+											 (set-window-parameter window 'window-preserved-size nil))
+										 (maximize-window window))
+								 (set-window-dedicated-p window dedicated-p)
+								 (when preserved-p
+									 (set-window-parameter window 'window-preserved-size preserved-p))
+								 (add-hook 'doom-switch-window-hook #'doom--enlargened-forget-last-wconf-h)))))))))
+	)
+
 #+end_src
 
 * Completion framework
@@ -2054,6 +2223,7 @@ You can act on candidates with =C-l= and ask to remind bindings with =C-h=
   :demand
   :general
   (my/leader-keys
+		:states 'normal
     "p" '(:keymap projectile-command-map :which-key "project")
     "p a" '(projectile-add-known-project :wk "add known")
     "p t" '(projectile-run-vterm :wk "term"))
@@ -2110,37 +2280,37 @@ TODO:
 - =SPC <tab> o= opens the "org" persp
 - same for main (maybe get ride of new tab)
 #+BEGIN_SRC emacs-lisp
-  (use-package perspective
-    :commands (persp-new persp-switch)
-    :general
-    (my/leader-keys
-      "<tab>" '(:ignore true :wk "tab")
-      "<tab> <tab>" 'persp-switch
-      "<tab> `" 'persp-switch-last
-      "<tab> d" 'persp-kill
-      "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
-      "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
-      "<tab> n" '(my/new-tab :wk "new"))
-    :init
-    (defun my/new-tab ()
-      "Jump to the dashboard buffer, if doesn't exists create one."
-      (interactive)
-      ;; (persp-new (concat "tab " (+ 1 (int (length (persp-names))))))
-      (persp-new "main")
-      (persp-switch "main")
-      (switch-to-buffer dashboard-buffer-name)
-      (dashboard-mode)
-      (dashboard-insert-startupify-lists)
-      (dashboard-refresh-buffer))
-    :config
-    (persp-mode))
+(use-package perspective
+  :commands (persp-new persp-switch)
+  :general
+  (my/leader-keys
+    "<tab>" '(:ignore true :wk "tab")
+    "<tab> <tab>" 'persp-switch
+    "<tab> `" 'persp-switch-last
+    "<tab> d" 'persp-kill
+    "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
+    "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
+    "<tab> n" '(my/new-tab :wk "new"))
+  :init
+  (defun my/new-tab ()
+    "Jump to the dashboard buffer, if doesn't exists create one."
+    (interactive)
+    ;; (persp-new (concat "tab " (+ 1 (int (length (persp-names))))))
+    (persp-new "main")
+    (persp-switch "main")
+    (switch-to-buffer dashboard-buffer-name)
+    (dashboard-mode)
+    (dashboard-insert-startupify-lists)
+    (dashboard-refresh-buffer))
+  :config
+  (persp-mode))
 #+END_SRC
 
 *** persp-projectile
 #+BEGIN_SRC emacs-lisp
 (use-package persp-projectile
+	:after projectile
   :general
-
   (my/leader-keys
     "p p" 'projectile-persp-switch-project
 		;; "<tab> o"	'((lambda () (interactive) (projectile-persp-switch-project "org")) :wk "org")
@@ -2205,6 +2375,10 @@ TODO:
 #+end_src
 
 *** diff-hl
+When an heading includes a change, the~org-ellipsis~ not shown correctly.
+This is caused by an empty line with ~diff-hl~ fringe that gets appended to the heading.
+To work around this and show the ellipsis, you have to add a whitespace in that empty line.
+
 #+begin_src emacs-lisp
 (use-package diff-hl
   :demand
@@ -2326,7 +2500,7 @@ TODO:
   ;;                           company-pseudo-tooltip-frontend
   ;;                           company-echo-metadata-frontend))
   ;; (setq company-selection-default nil)
-  (setq company-backends '((company-capf company-keywords company-files)))
+  (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
   :config
   (global-company-mode)
   (with-eval-after-load 'evil
@@ -2448,10 +2622,10 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 
 ** vterm
 #+BEGIN_SRC emacs-lisp
-  (use-package vterm
-    :config
-    (setq vterm-shell (executable-find "fish")
-          vterm-max-scrollback 10000))
+(use-package vterm
+  :config
+  (setq vterm-shell (executable-find "fish")
+        vterm-max-scrollback 10000))
 #+END_SRC
 
 ** vterm toggle
@@ -2524,6 +2698,32 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 	:mode "\\.toml\\'")
 #+end_src
 
+** TRAMP
+#+begin_src emacs-lisp
+(use-package tramp
+	:demand
+	:init
+	;; Disable version control on tramp buffers to avoid freezes.
+	(setq vc-ignore-dir-regexp
+      (format "\\(%s\\)\\|\\(%s\\)"
+              vc-ignore-dir-regexp
+              tramp-file-name-regexp))
+	(setq tramp-default-method "ssh")
+	(setq tramp-auto-save-directory
+      (expand-file-name "tramp-auto-save" user-emacs-directory))
+	(setq tramp-persistency-file-name
+      (expand-file-name "tramp-connection-history" user-emacs-directory))
+	(setq password-cache-expiry nil)
+	(setq tramp-use-ssh-controlmaster-options nil)
+	(customize-set-variable 'tramp-ssh-controlmaster-options
+                        (concat
+                         "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
+                         "-o ControlMaster=auto -o ControlPersist=yes")))
+
+(use-package docker-tramp
+	:demand)
+#+end_src
+ 
 * Programming languages
 ** lsp mode
 #+BEGIN_SRC emacs-lisp
@@ -2554,6 +2754,12 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 	(setq lsp-keep-workspace-alive nil)
 	(setq lsp-auto-execute-action nil)
 	(setq lsp-before-save-edits nil)
+	;; :config
+	;; (lsp-register-client
+  ;;   (make-lsp-client :new-connection (lsp-tramp-connection "<binary name (e. g. pyls, rls)>")
+  ;;                    :major-modes '(python-mode)
+  ;;                    :remote? t
+  ;;                    :server-id 'pyls-remote))
 	)
 
 (use-package lsp-ui
@@ -2723,6 +2929,8 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 *** jupyter
+- In the REPL you can use =M-p= / =M-n= to navigate previous prompts
+
 #+begin_src emacs-lisp
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
@@ -2783,10 +2991,16 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 ** R
 *** ess
 #+begin_src emacs-lisp
-    (use-package ess
-    :init
+(use-package ess
+	:general
+  (R-mode
+    "'" '(R :wk "R")
+		"l" '(ess-eval-line :wk "eval line")
+		"L" '(ess-eval-region-or-line-and-step :wk "line and step")
+		)
+  :init
   (setq ess-eval-visibly 'nowait)
-(setq ess-R-font-lock-keywords '((ess-R-fl-keyword:keywords . t)
+  (setq ess-R-font-lock-keywords '((ess-R-fl-keyword:keywords . t)
                                    (ess-R-fl-keyword:constants . t)
                                    (ess-R-fl-keyword:modifiers . t)
                                    (ess-R-fl-keyword:fun-defs . t)
@@ -2798,8 +3012,8 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
                                    (ess-fl-keyword:delimiters . t)
                                    (ess-fl-keyword:= . t)
                                    (ess-R-fl-keyword:F&T . t)))
-      )
-    
+  )
+
 #+end_src
 
 ** emacs-lisp
@@ -2946,7 +3160,15 @@ For example, you can mark the outer form with =v a d=.
 ** reddit
 #+begin_src emacs-lisp
 (use-package md4rd
-	:commands (md4rd))
+  :general
+  (my/leader-keys
+    "s r" '(md4rd :wk "reddit"))
+  :init
+  (setq md4rd-subs-active '(emacs apple clojure MachineLearning))
+  :config
+  (add-hook 'md4rd-mode-hook 'md4rd-indent-all-the-lines)
+  (require 'cl)
+  )
 #+end_src
 
 ** web browser
@@ -2975,7 +3197,7 @@ To visit a link, =SPC s l=
 To do:
 - Install dash and docsets
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package dash-at-point
 	:general
   (my/leader-keys
@@ -3199,11 +3421,6 @@ Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
 + One with just the code and the REPL
 + One with everything
 
-*** org-encrypt
-https://beorgapp.com/learning/emacs-encryption/
-*** async org tangling
-https://github.com/mpereira/.emacs.d#asynchronous-org-babel-tangling-and-byte-recompilation
-*** Create TOC for org files
 ** Half done
 *** TODO better ~org-link~
 #+begin_src emacs-lisp :tangle no
@@ -3230,6 +3447,6 @@ https://github.com/mpereira/.emacs.d#asynchronous-org-babel-tangling-and-byte-re
 *** override modus face for highlight in consult-line minibuffer
 * Local variables
 # Local Variables:
-# eval: (add-hook 'after-save-hook (lambda ()(org-babel-tangle)) nil t)
+# eval: (add-hook 'after-save-hook (lambda ()(my/tangle-config)) nil t)
 # company-backends: (company-dabbrev-code company-files company-keywords)
 # End:

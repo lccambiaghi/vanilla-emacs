@@ -122,24 +122,25 @@
   (setq-default indent-tabs-mode t)
   (setq-default tab-width 2)
 
-  ;; use a reasonable line length
-  (setq-default fill-column  90)
-	
   ;; Increase the amount of data read from processes
 	(setq read-process-output-max (* 1024 1024)) ; 1mb.
   )
 
 (use-package emacs
-	:init
+  :hook
+  ((org-jupyter-python-mode . (lambda () (set-local-electric-pairs '())))
+   (org-mode . (lambda () (set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
+  :init
   ;; auto-close parentheses
   (electric-pair-mode +1)
-	(setq electric-pair-preserve-balance nil)
+  (setq electric-pair-preserve-balance nil)
   ;; mode-specific local-electric pairs
+  (defvar my/default-electric-pairs electric-pair-pairs)
   (defun set-local-electric-pairs (pairs)
-		"Example usage: 
+    "Example usage: 
     (add-hook 'jupyter-org-interaction-mode '(lambda () (set-local-electric-pairs '())))
     "
-    (setq-local electric-pair-pairs (append electric-pair-pairs pairs))
+    (setq-local electric-pair-pairs (append my/default-electric-pairs pairs))
     (setq-local electric-pair-text-pairs electric-pair-pairs))
 
   ;; disable auto pairing for <
@@ -148,7 +149,7 @@
 
 (use-package emacs
 	:init
-	(defconst my/default-font-family "fira code retina" )
+	(defconst my/default-font-family "fira code" )
 	(defconst my/variable-pitch-font-family "cantarell")
 
 	(defun my/get-default-font-size ()
@@ -156,16 +157,19 @@
 		(let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(nf-2)/10)^2 + ($nf/10)^2 )/2.54}'")
 					 (command "osascript -e 'tell application \"finder\" to get bounds of window of desktop' | cut -d',' -f3")
 					 (screen-width (string-to-number (shell-command-to-string command))))
-      (if (> screen-width 2560) 210 180)))
+      (if (> screen-width 2560) 180 180)))
 	
 	(defconst my/default-font-size (my/get-default-font-size))
 
+	
   ;; Main typeface
   (set-face-attribute 'default nil :font my/default-font-family :height my/default-font-size)
   ;; Set the fixed pitch face
   (set-face-attribute 'fixed-pitch nil :font my/default-font-family :height my/default-font-size)
   ;; Set the variable pitch face
   (set-face-attribute 'variable-pitch nil :font my/variable-pitch-font-family :height my/default-font-size :weight 'regular)
+
+	
 	)
 
 (use-package emacs
@@ -205,36 +209,36 @@ size. This function also handles icons and modeline font sizes."
   (setq mac-option-modifier 'meta)     ; alt as meta
   (setq mac-control-modifier 'control)) ; control as... control
 
-  (use-package gcmh
-    :demand
-    :config
-    (gcmh-mode 1))
+(use-package gcmh
+  :demand
+  :config
+  (gcmh-mode 1))
 
-  (use-package helpful
-    :after evil
-    :init
-    (setq evil-lookup-func #'helpful-at-point)
-    :bind
-    ([remap describe-function] . helpful-callable)
-    ([remap describe-command] . helpful-command)
-    ([remap describe-variable] . helpful-variable)
-    ([remap describe-key] . helpful-key))
+(use-package helpful
+  :after evil
+  :init
+  (setq evil-lookup-func #'helpful-at-point)
+  :bind
+  ([remap describe-function] . helpful-callable)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . helpful-variable)
+  ([remap describe-key] . helpful-key))
 
-  (use-package eldoc
-    :hook (emacs-lisp-mode cider-mode))
+(use-package eldoc
+  :hook (emacs-lisp-mode cider-mode))
 
-  (use-package exec-path-from-shell
-    :if (memq window-system '(mac ns))
-    :hook (emacs-startup . (lambda ()
-                             (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
-                             (exec-path-from-shell-initialize)))
-    ;; :config
-    ;; (exec-path-from-shell-copy-envs
-    ;;  '("GOPATH" "GO111MODULE" "GOPROXY"
-    ;;    "NPMBIN" "LC_ALL" "LANG" "LC_TYPE"
-    ;;    "SSH_AGENT_PID" "SSH_AUTH_SOCK" "SHELL"
-    ;;    "JAVA_HOME"))
-    )
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns))
+  :hook (emacs-startup . (lambda ()
+                           (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
+                           (exec-path-from-shell-initialize)))
+  ;; :config
+  ;; (exec-path-from-shell-copy-envs
+  ;;  '("GOPATH" "GO111MODULE" "GOPROXY"
+  ;;    "NPMBIN" "LC_ALL" "LANG" "LC_TYPE"
+  ;;    "SSH_AGENT_PID" "SSH_AUTH_SOCK" "SHELL"
+  ;;    "JAVA_HOME"))
+  )
 
 (use-package no-littering
 	:demand
@@ -260,14 +264,15 @@ size. This function also handles icons and modeline font sizes."
   (define-minor-mode org-jupyter-python-mode
     "Minor mode which is active when an org file has the string 
 begin_src jupyter-python in the first few hundred rows"
-		;; :keymap (let ((map (make-sparse-keymap)))
+    ;; :keymap (let ((map (make-sparse-keymap)))
     ;;             (define-key map (kbd "C-c f") 'insert-foo)
-		;;             map)
-		)
+    ;;             map)
+    )
 
   (add-hook 'org-mode-hook (lambda ()
-														 (when (is-jupyter-python-org-buffer?)
-															 (org-jupyter-python-mode)))))
+                             (when (is-jupyter-python-org-buffer?)
+															 (org-jupyter-python-mode))))
+	)
 
 (use-package general
 	:demand t
@@ -325,7 +330,7 @@ begin_src jupyter-python in the first few hundred rows"
 		"o" '(:ignore t :which-key "org")
 		;; keybindings defined in org-mode
 
-		"p" '(:ignore t :which-key "project")
+		;; "p" '(:ignore t :which-key "project")
 		;; keybindings defined in projectile
 
 		"s" '(:ignore t :which-key "search")
@@ -360,7 +365,7 @@ begin_src jupyter-python in the first few hundred rows"
 		"t" '(:ignore t :which-key "test")))
 
 (use-package evil
-  :demand t
+  :demand
   :general
   (my/leader-keys
     "wv" 'evil-window-vsplit
@@ -455,7 +460,8 @@ begin_src jupyter-python in the first few hundred rows"
 	(general-nmap
 		"Q" #'evil-mc-undo-all-cursors)
 	:config
-	(global-evil-mc-mode 1))
+	(global-evil-mc-mode 1)
+	)
 
 (use-package which-key
   :demand t
@@ -467,69 +473,106 @@ begin_src jupyter-python in the first few hundred rows"
   (which-key-mode))
 
 (use-package org
-  :hook ((org-mode . prettify-symbols-mode)
-         (org-mode . visual-line-mode)
-         (org-mode . variable-pitch-mode)
-         (org-mode . (lambda () (set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
-  :general
-  (my/leader-keys
-    "o a" '(org-agenda-list :wk "agenda")
-    "o A" '(org-agenda :wk "agenda")
-    "o C" '(org-capture :wk "capture")
-    "o l" '(org-todo-list :wk "todo list")
-    "o c" '((lambda () (interactive)
-              (find-file (concat user-emacs-directory "readme.org")))
-            :wk "open config")
-    "o t" '((lambda () (interactive)
-              (find-file (concat org-directory "/personal/todo.org")))
-            :wk "open todos"))
-  (my/local-leader-keys
-    :keymaps 'org-mode-map
-    "a" '(org-archive-subtree :wk "archive subtree")
-    "E" '(org-export-dispatch :wk "export")
+	:hook ((org-mode . prettify-symbols-mode)
+				 (org-mode . visual-line-mode)
+				 (org-mode . variable-pitch-mode))
+	:general
+	(my/leader-keys
+		"o a" '(org-agenda-list :wk "agenda")
+		"o A" '(org-agenda :wk "agenda")
+		"o C" '(org-capture :wk "capture")
+		"o l" '(org-todo-list :wk "todo list")
+		"o c" '((lambda () (interactive)
+							(find-file (concat user-emacs-directory "readme.org")))
+						:wk "open config")
+		"o t" '((lambda () (interactive)
+							(find-file (concat org-directory "/personal/todo.org")))
+						:wk "open todos"))
+	(my/local-leader-keys
+		:keymaps 'org-mode-map
+		"a" '(org-archive-subtree :wk "archive subtree")
+		"E" '(org-export-dispatch :wk "export")
 		"i" '(org-insert-structure-template :wk "insert src")
-    "l" '(:ignore true :wk "link")
-    "l l" '(org-insert-link :wk "insert link")
-    "l s" '(org-store-link :wk "store link")
-    "L" '((lambda () (interactive) (org-latex-preview)) :wk "latex preview")
-    ;; "L" '((lambda () (interactive) (org--latex-preview-region (point-min) (point-max))) :wk "latex")
-    "r" '(org-refile :wk "refile")
-    "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
+		"l" '(:ignore true :wk "link")
+		"l l" '(org-insert-link :wk "insert link")
+		"l s" '(org-store-link :wk "store link")
+		"L" '((lambda () (interactive) (org-latex-preview)) :wk "latex preview")
+		;; "L" '((lambda () (interactive) (org--latex-preview-region (point-min) (point-max))) :wk "latex")
+		"r" '(org-refile :wk "refile")
+		"n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
 		"p" '(org-priority :wk "priority")
-    "s" '(org-sort :wk "sort")
-    "t" '(:ignore true :wk "todo")
-    "t t" '(org-todo :wk "heading todo")
-    "t s" '(org-schedule :wk "schedule")
-    "t d" '(org-deadline :wk "deadline"))
-  (org-mode-map
-   :states 'normal
-   "z i" '(org-toggle-inline-images :wk "inline images"))
-	;; (org-mode-map
-  ;;  :states 'insert
-  ;;  "(" '((lambda () (interactive) (skeleton-pair-insert-maybe))))
-  :init
-  ;; general settings
-  (setq org-directory "~/Dropbox/org"
-        org-image-actual-width nil
-        +org-export-directory "~/Dropbox/org/export"
-        org-default-notes-file "~/Dropbox/org/personal/todo.org"
-        org-id-locations-file "~/Dropbox/org/.orgids"
-        org-agenda-files '("~/dropbox/org/personal/birthdays.org" "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
-        ;; org-export-in-background t
-        org-src-preserve-indentation t ;; do not put two spaces on the left
-        org-startup-indented t
-        ;; org-startup-with-inline-images t
+		"s" '(org-sort :wk "sort")
+		"t" '(:ignore true :wk "todo")
+		"t t" '(org-todo :wk "heading todo")
+		"t s" '(org-schedule :wk "schedule")
+		"t d" '(org-deadline :wk "deadline"))
+	(org-mode-map
+	 :states 'normal
+	 "z i" '(org-toggle-inline-images :wk "inline images"))
+	:init
+	;; general settings
+	(setq org-directory "~/Dropbox/org"
+				org-image-actual-width nil
+				+org-export-directory "~/Dropbox/org/export"
+				org-default-notes-file "~/Dropbox/org/personal/todo.org"
+				org-id-locations-file "~/Dropbox/org/.orgids"
+				org-agenda-files '("~/dropbox/org/personal/birthdays.org"
+													 "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
+				;; org-export-in-background t
+				org-src-preserve-indentation t ;; do not put two spaces on the left
+				org-startup-indented t
+				;; org-startup-with-inline-images t
 				org-hide-emphasis-markers t
-        org-catch-invisible-edits 'smart)
+				org-catch-invisible-edits 'smart)
 	(setq org-indent-indentation-per-level 1)
 	(setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
-  ;; disable modules for faster startup
-  (setq org-modules
-        '(ol-docview
+	;; disable modules for faster startup
+	(setq org-modules
+				'(ol-docview
 					org-habit))
-  (setq org-todo-keywords
-        '((sequence "NEXT(n)" "TODO(t)" "|" "PROG(n)" "|" "DONE(d)" "HOLD(h)")))
-  (setq org-capture-templates
+	(setq org-todo-keywords
+				'((sequence "TODO(t)" "NEXT(n)" "PROG(p)" "|" "HOLD(h)" "DONE(d)")))
+	(setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
+																				 ("#+END_SRC" . "«")
+																				 ("#+begin_src" . "»")
+																				 ("#+end_src" . "«")
+																				 ("lambda"  . "λ")
+																				 ("->" . "→")
+																				 ("->>" . "↠")))
+	(setq prettify-symbols-unprettify-at-point 'right-edge)
+	(setq org-agenda-custom-commands
+				'(("d" "Dashboard"
+					 ((agenda "" ((org-deadline-warning-days 7)))
+						(todo "NEXT"
+									((org-agenda-overriding-header "Next Tasks")))
+						(tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+					("n" "Next Tasks"
+					 ((todo "NEXT"
+									((org-agenda-overriding-header "Next Tasks")))))
+					("w" "Work Tasks" tags-todo "+work")))
+	
+	:config
+	;; (efs/org-font-setup)
+	(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+	(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+	(add-to-list 'org-structure-template-alist '("py" . "src python"))
+	(add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
+	(add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
+	(add-to-list 'org-structure-template-alist '("jr" . "src jupyter-R"))
+	;; fontification
+	(add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+	(add-to-list 'org-src-lang-modes '("jupyter-R" . R))
+	;; latex
+	;; (setq org-latex-compiler "xelatex")
+	;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
+	(setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
+	(add-to-list 'org-export-backends 'beamer)
+	(plist-put org-format-latex-options :scale 1.5)
+	)
+
+(use-package org
+:init
+(setq org-capture-templates
         `(("b" "Blog" entry
            (file+headline "personal/todo.org" "Blog")
            ,(concat "* WRITE %^{Title} %^g\n"
@@ -571,27 +614,13 @@ begin_src jupyter-python in the first few hundred rows"
                     "SCHEDULED: %^t\n"
                     ":PROPERTIES:\n:CAPTURED: %U\n:END:\n\n"
                     "%i%?"))))
-  (setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
-                                         ("#+END_SRC" . "«")
-                                         ("#+begin_src" . "»")
-                                         ("#+end_src" . "«")
-																				 ("lambda"  . "λ")
-                                         ("->" . "→")
-                                         ("->>" . "↠")))
-  (setq prettify-symbols-unprettify-at-point 'right-edge)
-  (setq org-agenda-custom-commands
-        '(("d" "Dashboard"
-           ((agenda "" ((org-deadline-warning-days 7)))
-            (todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))
-            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-          ("n" "Next Tasks"
-           ((todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))))
-          ("w" "Work Tasks" tags-todo "+work")))
-  (defun org-toc ()
-    (interactive)
-    (let ((headings (delq nil (cl-loop for f in (f-entries "." (lambda (f) (f-ext? f "org")) t)
+	)
+
+(use-package org
+	:init
+	(defun org-toc ()
+		(interactive)
+		(let ((headings (delq nil (cl-loop for f in (f-entries "." (lambda (f) (f-ext? f "org")) t)
 																			 append
 																			 (with-current-buffer (find-file-noselect f)
 																				 (org-map-entries
@@ -603,27 +632,76 @@ begin_src jupyter-python in the first few hundred rows"
 			(org-mode)
 			(cl-loop for (file . file-headings) in (seq-group-by #'car headings) 
 							 do
-							 (insert (format "* %s \n" file))
+							 (insert (format "* [[%s][%s]] \n" file (file-relative-name file)))
 							 (cl-loop for (file . heading) in file-headings 
 												do
 												(insert (format "** [[%s::*%s][%s]]\n" file heading heading))))))
-	
+	)
+
+(use-package org
+	:init
+	(defun +org-cycle-only-current-subtree-h (&optional arg)
+    "Toggle the local fold at the point, and no deeper.
+`org-cycle's standard behavior is to cycle between three levels: collapsed,
+subtree and whole document. This is slow, especially in larger org buffer. Most
+of the time I just want to peek into the current subtree -- at most, expand
+*only* the current subtree.
+
+All my (performant) foldings needs are met between this and `org-show-subtree'
+(on zO for evil users), and `org-cycle' on shift-TAB if I need it."
+		(interactive "P")
+		(unless (eq this-command 'org-shifttab)
+			(save-excursion
+				(org-beginning-of-line)
+				(let (invisible-p)
+					(when (and (org-at-heading-p)
+										 (or org-cycle-open-archived-trees
+												 (not (member org-archive-tag (org-get-tags))))
+										 (or (not arg)
+												 (setq invisible-p (outline-invisible-p (line-end-position)))))
+						(unless invisible-p
+              (setq org-cycle-subtree-status 'subtree))
+            (org-cycle-internal-local)
+            t)))))
   :config
-  ;; (efs/org-font-setup)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
-  (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
-  (add-to-list 'org-structure-template-alist '("jr" . "src jupyter-R"))
-  ;; latex
-  ;; (setq org-latex-compiler "xelatex")
-  ;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
-  (setq org-latex-pdf-process '("tectonic %f"))
-  (add-to-list 'org-export-backends 'beamer)
-  ;; (setq org-html-htmlize-output-type 'css)
-  (plist-put org-format-latex-options :scale 2.0)
+  ;; Only fold the current tree, rather than recursively
+  (add-hook 'org-tab-first-hook #'+org-cycle-only-current-subtree-h)
   )
+
+(defun my/add-local-hook (hook function)
+  "Add buffer-local hook."
+  (add-hook hook function :local t))
+
+(defun my/async-process (command &optional name filter)
+  "Start an async process by running the COMMAND string with bash. Return the
+process object for it.
+
+NAME is name for the process. Default is \"async-process\".
+
+FILTER is function that runs after the process is finished, its args should be
+\"(process output)\". Default is just messages the output."
+  (make-process
+   :command `("bash" "-c" ,command)
+   :name (if name name
+           "async-process")
+   :filter (if filter filter
+             (lambda (process output) (message (s-trim output))))))
+
+(defun my/tangle-config ()
+  "Export code blocks from the literate config file
+asynchronously."
+  (interactive)
+  ;; prevent emacs from killing until tangle-process finished
+  (add-to-list 'kill-emacs-query-functions
+               (lambda ()
+                 (or (not (process-live-p (get-process "tangle-process")))
+                     (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
+  ;; tangle config asynchronously
+  (my/async-process
+   (format "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+           (expand-file-name "readme.org" user-emacs-directory)
+           (expand-file-name "init.el" user-emacs-directory))
+   "tangle-process"))
 
 (use-package org-reverse-datetree
 :after org)
@@ -631,29 +709,25 @@ begin_src jupyter-python in the first few hundred rows"
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode)
   :init
-  (setq org-superstar-headline-bullets-list '("✖" "✚" "◆" "▶" "○")
-        org-superstar-special-todo-items t
-        ;; org-ellipsis "⤵"
-        ;; org-ellipsis "▼"
-        ;; org-ellipsis "..."
-        org-ellipsis " ↴ "
-        )
+  (setq org-superstar-headline-bullets-list '("✖" "✚" "◉" "○" "▶")
+        ;; org-superstar-special-todo-items t
+        org-ellipsis " ↴ ")
   )
 
 (use-package hl-todo
 	:hook ((prog-mode org-mode) . my/hl-todo-init)
 	:init
 	(defun my/hl-todo-init ()
-    (setq-local hl-todo-keyword-faces '(("HOLD" . "#cfdf30")
-                                        ("TODO" . "#ff9977")
-                                        ("NEXT" . "#b6a0ff")
+		(setq-local hl-todo-keyword-faces '(("HOLD" . "#cfdf30")
+																				("TODO" . "#ff9977")
+																				("NEXT" . "#b6a0ff")
 																				("PROG" . "#00d3d0")
 																				("FIXME" . "#ff9977")
 																				("DONE" . "#44bc44")
 																				("REVIEW" . "#6ae4b9")
 																				("DEPRECATED" . "#bfd9ff")))
 		(hl-todo-mode))
-  )
+	)
 
 (use-package org
   :general
@@ -664,6 +738,7 @@ begin_src jupyter-python in the first few hundred rows"
     "z" '(org-babel-hide-result-toggle :wk "fold result"))
   (my/local-leader-keys
     :keymaps 'org-src-mode-map
+    :states 'normal
     "," '(org-edit-src-exit :wk "exit")) ;;FIXME
   :init
   (setq org-confirm-babel-evaluate nil)
@@ -679,10 +754,10 @@ begin_src jupyter-python in the first few hundred rows"
 ;; (use-package ob-mermaid
 ;;   :custom (ob-mermaid-cli-path "~/.asdf/shims/mmdc"))
 
-  (use-package ob-async
-    :hook (org-load . (lambda () (require 'ob-async)))
-    :init
-    (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
+(use-package ob-async
+  :hook (org-load . (lambda () (require 'ob-async)))
+  :init
+  (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
 
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
@@ -738,13 +813,13 @@ begin_src jupyter-python in the first few hundred rows"
       ;; converting to their string representation by
       ;; `org-element-interpret-data' so insert one in these cases.
       (insert "\n")))
-  :config
+  ;; :config
   ;;Remove text/html since it's not human readable
   ;; (delete :text/html jupyter-org-mime-types)
-  ;; (require 'tramp)
-  (with-eval-after-load 'org-src
-    (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
-    (add-to-list 'org-src-lang-modes '("jupyter-R" . R))))
+  ;; (with-eval-after-load 'org-src
+  ;;   (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+  ;;   (add-to-list 'org-src-lang-modes '("jupyter-R" . R)))
+	)
 
 (use-package org-tree-slide
 	:after org
@@ -1067,6 +1142,38 @@ begin_src jupyter-python in the first few hundred rows"
         org-re-reveal-external-plugins  '((progress . "{ src: '%s/plugin/toc-progress/toc-progress.js', async: true, callback: function() { toc_progress.initialize(); toc_progress.create();} }"))
         ))
 
+(use-package weblorg)
+
+(use-package templatel)
+
+(use-package htmlize)
+
+(use-package org
+	:config
+  (with-eval-after-load 'ox-latex
+    (add-to-list 'org-latex-classes
+                 '("org-plain-latex"
+                   "\\documentclass{article}
+           [NO-DEFAULT-PACKAGES]
+           [PACKAGES]
+           [EXTRA]"
+                   ("\\section{%s}" . "\\section*{%s}")
+                   ("\\subsection{%s}" . "\\subsection*{%s}")
+                   ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                   ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                   ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+    (setq org-latex-listings 't)
+    (add-to-list 'org-latex-packages-alist '("" "listings"))
+    (add-to-list 'org-latex-packages-alist '("" "color"))
+    ;; (setq org-latex-listings 'minted)
+    ;; (add-to-list 'org-latex-packages-alist '("newfloat" "minted"))
+		)
+  )
+
+(use-package ox-altacv
+  :straight (ox-altacv :type git :host github :repo "lccambiaghi/org-cv")
+  :config (require 'ox-altacv))
+
 (use-package org-appear
   :straight (org-appear :type git :host github :repo "awth13/org-appear")
 	:hook (org-mode . org-appear-mode)
@@ -1076,18 +1183,32 @@ begin_src jupyter-python in the first few hundred rows"
   (setq org-appear-autosubmarkers t)
 	)
 
-(use-package weblorg)
-
-(use-package templatel)
-
-(use-package htmlize)
-
 (use-package org-fragtog
 	:hook (org-mode . org-fragtog-mode))
 
-  (use-package all-the-icons)
+(use-package org
+  :config
+  (require 'org-crypt)
+  (require 'epa-file)
+  (epa-file-enable)
+  (org-crypt-use-before-save-magic)
+  (setq org-tags-exclude-from-inheritance (quote ("crypt")))
+  (setq org-crypt-key nil)
+  (defun ag/reveal-and-move-back ()
+    (org-reveal)
+    (goto-char ag/old-point))
+  (defun ag/org-reveal-after-save-on ()
+    (setq ag/old-point (point))
+    (add-hook 'after-save-hook 'ag/reveal-and-move-back))
+  (defun ag/org-reveal-after-save-off ()
+    (remove-hook 'after-save-hook 'ag/reveal-and-move-back))
+  (add-hook 'org-babel-pre-tangle-hook 'ag/org-reveal-after-save-on)
+  (add-hook 'org-babel-post-tangle-hook 'ag/org-reveal-after-save-off)
+  )
 
-  (use-package doom-modeline
+(use-package all-the-icons)
+
+(use-package doom-modeline
     :demand
     :init
     (setq doom-modeline-buffer-encoding nil)
@@ -1150,11 +1271,11 @@ begin_src jupyter-python in the first few hundred rows"
 				modus-themes-prompts nil ; {nil,'subtle,'intense}
 				modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
 				modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-				modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+				modus-themes-org-blocks 'nil ; {nil,'greyscale,'rainbow}
 				modus-themes-headings  ; Read further below in the manual for this one
-				'((1 . line)
+				'((1 . line-no-bold)
 					(t . rainbow-line-no-bold))
-				modus-themes-variable-pitch-headings nil
+				modus-themes-variable-pitch-headings t
 				modus-themes-scale-headings t
 				modus-themes-scale-1 1.1
 				modus-themes-scale-2 1.15
@@ -1186,7 +1307,7 @@ begin_src jupyter-python in the first few hundred rows"
 	)
 
 (use-package dashboard
-  :after projectile
+  ;; :after projectile
   ;; :hook
   ;; (dashboard-after-initialize . (lambda () (setq-local cursor-type nil)))
   :demand
@@ -1196,23 +1317,23 @@ begin_src jupyter-python in the first few hundred rows"
   (setq dashboard-projects-backend 'projectile)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
-	(defun is-after-17-or-weekends? ()
-		(or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
-															 (substring 0 2)
-															 (string-to-number)
-															 (> 16)
-															 )
-													 (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
-															 (member  '("Sat" "Sun")))))
-	;; exclude work items after 17 and on weekends
+  (defun is-after-17-or-weekends? ()
+    (or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
+						(substring 0 2)
+						(string-to-number)
+						(> 16)
+						)
+				(-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
+						(member  '("Sat" "Sun")))))
+  ;; exclude work items after 17 and on weekends
   (run-at-time "00:00" (* 60 60 24)
-							 (lambda ()
-								 (if (is-after-17-or-weekends?)
-									 (setq dashboard-match-agenda-entry "life")
-                   (setq dashboard-match-agenda-entry "work|life"))))
-  (setq dashboard-items '((recents  . 5)
-                          (agenda . 5)
+               (lambda ()
+                 (if (is-after-17-or-weekends?)
+                     (setq dashboard-match-agenda-entry "life|habits")
+                   (setq dashboard-match-agenda-entry "work|life|habits"))))
+  (setq dashboard-items '((agenda . 5)
                           ;; (bookmarks . 5)
+                          (recents  . 5)
                           ;; (projects . 5)
                           ))
   ;; (setq dashboard-startup-banner [VALUE])
@@ -1234,7 +1355,8 @@ begin_src jupyter-python in the first few hundred rows"
   ;;      (lambda (&rest _) (persp-state-load persp-state-default-file))))))
   :config
   (dashboard-setup-startup-hook)
-	)
+  (set-face-attribute 'dashboard-items-face nil :height my/default-font-size)
+  )
 
 (use-package centaur-tabs
   :hook (emacs-startup . centaur-tabs-mode)
@@ -1255,17 +1377,17 @@ begin_src jupyter-python in the first few hundred rows"
   (centaur-tabs-group-by-projectile-project)
   )
 
-  (use-package centered-cursor-mode
-    :general (my/leader-keys "t -" (lambda () (interactive) (centered-cursor-mode 'toggle))))
+(use-package centered-cursor-mode
+  :general (my/leader-keys "t -" (lambda () (interactive) (centered-cursor-mode 'toggle))))
 
-  (use-package hide-mode-line
-    :commands (hide-mode-line-mode))
+(use-package hide-mode-line
+  :commands (hide-mode-line-mode))
 
-  (setq display-buffer-alist
-        `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
-           (display-buffer-reuse-mode-window display-buffer-below-selected)
-           (window-height . 0.33)
-           (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+(setq display-buffer-alist
+      `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
+         (display-buffer-reuse-mode-window display-buffer-below-selected)
+         (window-height . 0.33)
+         (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
 
 (use-package winum
 :general
@@ -1276,11 +1398,11 @@ begin_src jupyter-python in the first few hundred rows"
 :config
 (winum-mode))
 
-  (use-package transpose-frame
-    :general
-    (my/leader-keys
-      "w t" '(transpose-frame :wk "transpose")
-      "w f" '(rotate-frame :wk "flip")))
+(use-package transpose-frame
+  :general
+  (my/leader-keys
+    "w t" '(transpose-frame :wk "transpose")
+    "w f" '(rotate-frame :wk "flip")))
 
 (use-package persistent-scratch
 	:hook
@@ -1302,21 +1424,31 @@ begin_src jupyter-python in the first few hundred rows"
   :config
 	(persistent-scratch-setup-default))
 
-  (use-package olivetti
-    :general
-    (my/leader-keys
-      "t o" '(olivetti-mode :wk "olivetti"))
-    :init
-    (setq olivetti-body-width 100)
-    (setq olivetti-recall-visual-line-mode-entry-state t))
+(use-package olivetti
+  :general
+  (my/leader-keys
+    "t o" '(olivetti-mode :wk "olivetti"))
+  :init
+  (setq olivetti-body-width 100)
+  (setq olivetti-recall-visual-line-mode-entry-state t))
 
 (use-package display-fill-column-indicator
   :straight (:type built-in)
   :hook
-  ((prog-mode org-mode) . display-fill-column-indicator-mode)
+  (prog-mode . display-fill-column-indicator-mode)
   :init
+  (setq-default fill-column  90)
   (setq display-fill-column-indicator-character "|")
 	)
+
+(use-package emacs
+  :hook
+  ((org-jupyter-python-mode . (lambda () (whitespace-mode -1)))
+   (org-mode . whitespace-mode))
+  :init
+  (setq-default
+   whitespace-line-column 90
+   whitespace-style       '(face lines-tail)))
 
 ;; add a visual intent guide
 (use-package highlight-indent-guides
@@ -1335,39 +1467,78 @@ begin_src jupyter-python in the first few hundred rows"
   ;; (set-face-foreground 'highlight-indent-guides-character-face "dimgray")
   )
 
-(use-package emojify
-  :disabled t
-  :hook (after-init . global-emojify-mode))
+(use-package emacs
+	:general
+  (my/leader-keys
+    "w o" '(doom/window-enlargen :wk "enlargen"))
+	:init
+	(defun doom/window-enlargen (&optional arg)
+		"Enlargen the current window to focus on this one. Does not close other
+windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
+		(interactive "P")
+		(let ((param 'doom--enlargen-last-wconf))
+			(cl-destructuring-bind (window . wconf)
+					(or (frame-parameter nil param)
+							(cons nil nil))
+				(set-frame-parameter
+				 nil param
+				 (if (and (equal window (selected-window))
+									(not arg)
+									wconf)
+						 (ignore
+							(let ((source-window (selected-window)))
+								(set-window-configuration wconf)
+								(when (window-live-p source-window)
+									(select-window source-window))))
+					 (prog1 (cons (selected-window) (or wconf (current-window-configuration)))
+						 (let* ((window (selected-window))
+										(dedicated-p (window-dedicated-p window))
+										(preserved-p (window-parameter window 'window-preserved-size))
+										(ignore-window-parameters t)
+										(window-resize-pixelwise nil)
+										(frame-resize-pixelwise nil))
+							 (unwind-protect
+									 (progn
+										 (when dedicated-p
+											 (set-window-dedicated-p window nil))
+										 (when preserved-p
+											 (set-window-parameter window 'window-preserved-size nil))
+										 (maximize-window window))
+								 (set-window-dedicated-p window dedicated-p)
+								 (when preserved-p
+									 (set-window-parameter window 'window-preserved-size preserved-p))
+								 (add-hook 'doom-switch-window-hook #'doom--enlargened-forget-last-wconf-h)))))))))
+	)
 
-  (use-package selectrum
-    :demand
-    :general
-    (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
-                              "C-k" 'selectrum-previous-candidate)
-    :config
-    (selectrum-mode t)
-    )
+(use-package selectrum
+  :demand
+  :general
+  (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
+                            "C-k" 'selectrum-previous-candidate)
+  :config
+  (selectrum-mode t)
+  )
 
-  (use-package selectrum-prescient
-    :after selectrum
-    :demand
-    :config
-    (prescient-persist-mode t)
-    (selectrum-prescient-mode t)
-    )
+(use-package selectrum-prescient
+  :after selectrum
+  :demand
+  :config
+  (prescient-persist-mode t)
+  (selectrum-prescient-mode t)
+  )
 
-  (use-package company-prescient
-    :after company
-    :demand
-    :config
-    (company-prescient-mode t))
+(use-package company-prescient
+  :after company
+  :demand
+  :config
+  (company-prescient-mode t))
 
-  (use-package marginalia
-    :after selectrum
-    :demand
-    :init
-    (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-    :config (marginalia-mode t))
+(use-package marginalia
+  :after selectrum
+  :demand
+  :init
+  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  :config (marginalia-mode t))
 
 (use-package embark
   :general
@@ -1439,6 +1610,7 @@ begin_src jupyter-python in the first few hundred rows"
   :demand
   :general
   (my/leader-keys
+		:states 'normal
     "p" '(:keymap projectile-command-map :which-key "project")
     "p a" '(projectile-add-known-project :wk "add known")
     "p t" '(projectile-run-vterm :wk "term"))
@@ -1489,34 +1661,34 @@ begin_src jupyter-python in the first few hundred rows"
     (projectile-vc))
   )
 
-  (use-package perspective
-    :commands (persp-new persp-switch)
-    :general
-    (my/leader-keys
-      "<tab>" '(:ignore true :wk "tab")
-      "<tab> <tab>" 'persp-switch
-      "<tab> `" 'persp-switch-last
-      "<tab> d" 'persp-kill
-      "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
-      "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
-      "<tab> n" '(my/new-tab :wk "new"))
-    :init
-    (defun my/new-tab ()
-      "Jump to the dashboard buffer, if doesn't exists create one."
-      (interactive)
-      ;; (persp-new (concat "tab " (+ 1 (int (length (persp-names))))))
-      (persp-new "main")
-      (persp-switch "main")
-      (switch-to-buffer dashboard-buffer-name)
-      (dashboard-mode)
-      (dashboard-insert-startupify-lists)
-      (dashboard-refresh-buffer))
-    :config
-    (persp-mode))
+(use-package perspective
+  :commands (persp-new persp-switch)
+  :general
+  (my/leader-keys
+    "<tab>" '(:ignore true :wk "tab")
+    "<tab> <tab>" 'persp-switch
+    "<tab> `" 'persp-switch-last
+    "<tab> d" 'persp-kill
+    "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
+    "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
+    "<tab> n" '(my/new-tab :wk "new"))
+  :init
+  (defun my/new-tab ()
+    "Jump to the dashboard buffer, if doesn't exists create one."
+    (interactive)
+    ;; (persp-new (concat "tab " (+ 1 (int (length (persp-names))))))
+    (persp-new "main")
+    (persp-switch "main")
+    (switch-to-buffer dashboard-buffer-name)
+    (dashboard-mode)
+    (dashboard-insert-startupify-lists)
+    (dashboard-refresh-buffer))
+  :config
+  (persp-mode))
 
 (use-package persp-projectile
+	:after projectile
   :general
-
   (my/leader-keys
     "p p" 'projectile-persp-switch-project
 		;; "<tab> o"	'((lambda () (interactive) (projectile-persp-switch-project "org")) :wk "org")
@@ -1552,15 +1724,15 @@ begin_src jupyter-python in the first few hundred rows"
     "zz" #'evil-scroll-line-to-center)
   )
 
-  (use-package git-timemachine
-    :hook (git-time-machine-mode . evil-normalize-keymaps)
-    :init (setq git-timemachine-show-minibuffer-details t)
-    :general
-    (general-nmap "SPC g t" 'git-timemachine-toggle)
-    (git-timemachine-mode-map
-     "C-k" 'git-timemachine-show-previous-revision
-     "C-j" 'git-timemachine-show-next-revision
-     "q" 'git-timemachine-quit))
+(use-package git-timemachine
+  :hook (git-time-machine-mode . evil-normalize-keymaps)
+  :init (setq git-timemachine-show-minibuffer-details t)
+  :general
+  (general-nmap "SPC g t" 'git-timemachine-toggle)
+  (git-timemachine-mode-map
+   "C-k" 'git-timemachine-show-previous-revision
+   "C-j" 'git-timemachine-show-next-revision
+   "q" 'git-timemachine-quit))
 
 (use-package diff-hl
   :demand
@@ -1580,69 +1752,69 @@ begin_src jupyter-python in the first few hundred rows"
   (global-diff-hl-mode)
   )
 
-  (use-package smerge-mode
-    :straight (:type built-in)
-		:after hydra
-    :general
-    (my/leader-keys "g m" 'hydra-smerge/body)
-		:hook
-		(magit-diff-visit-file . (lambda ()
-                             (when smerge-mode
-                               (smerge-hydra/body))))
-    :init
-    (defhydra smerge-hydra (:hint nil
-                                  :pre (smerge-mode 1)
-                                  ;; Disable `smerge-mode' when quitting hydra if
-                                  ;; no merge conflicts remain.
-                                  :post (smerge-auto-leave))
-      "
-                                                    ╭────────┐
-  Movement   Keep           Diff              Other │ smerge │
-  ╭─────────────────────────────────────────────────┴────────╯
-     ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
-     ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
-     ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
-     ^_j_ ↓^     [_a_] all        [_H_] hightlight
-     ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
-     ^_G_^                                            │ [_q_] quit"
-      ("g" (progn (goto-char (point-min)) (smerge-next)))
-      ("G" (progn (goto-char (point-max)) (smerge-prev)))
-      ("C-j" smerge-next)
-      ("C-k" smerge-prev)
-      ("j" next-line)
-      ("k" previous-line)
-      ("b" smerge-keep-base)
-      ("u" smerge-keep-upper)
-      ("l" smerge-keep-lower)
-      ("a" smerge-keep-all)
-      ("RET" smerge-keep-current)
-      ("\C-m" smerge-keep-current)
-      ("<" smerge-diff-base-upper)
-      ("=" smerge-diff-upper-lower)
-      (">" smerge-diff-base-lower)
-      ("H" smerge-refine)
-      ("E" smerge-ediff)
-      ("C" smerge-combine-with-next)
-      ("r" smerge-resolve)
-      ("R" smerge-kill-current)
-      ("q" nil :color blue)))
+(use-package smerge-mode
+  :straight (:type built-in)
+	      :after hydra
+  :general
+  (my/leader-keys "g m" 'hydra-smerge/body)
+	      :hook
+	      (magit-diff-visit-file . (lambda ()
+                           (when smerge-mode
+                             (smerge-hydra/body))))
+  :init
+  (defhydra smerge-hydra (:hint nil
+                                :pre (smerge-mode 1)
+                                ;; Disable `smerge-mode' when quitting hydra if
+                                ;; no merge conflicts remain.
+                                :post (smerge-auto-leave))
+    "
+                                                  ╭────────┐
+Movement   Keep           Diff              Other │ smerge │
+╭─────────────────────────────────────────────────┴────────╯
+   ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
+   ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
+   ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
+   ^_j_ ↓^     [_a_] all        [_H_] hightlight
+   ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
+   ^_G_^                                            │ [_q_] quit"
+    ("g" (progn (goto-char (point-min)) (smerge-next)))
+    ("G" (progn (goto-char (point-max)) (smerge-prev)))
+    ("C-j" smerge-next)
+    ("C-k" smerge-prev)
+    ("j" next-line)
+    ("k" previous-line)
+    ("b" smerge-keep-base)
+    ("u" smerge-keep-upper)
+    ("l" smerge-keep-lower)
+    ("a" smerge-keep-all)
+    ("RET" smerge-keep-current)
+    ("\C-m" smerge-keep-current)
+    ("<" smerge-diff-base-upper)
+    ("=" smerge-diff-upper-lower)
+    (">" smerge-diff-base-lower)
+    ("H" smerge-refine)
+    ("E" smerge-ediff)
+    ("C" smerge-combine-with-next)
+    ("r" smerge-resolve)
+    ("R" smerge-kill-current)
+    ("q" nil :color blue)))
 
 (use-package hydra
   :demand)
 
-  (use-package rainbow-delimiters
-    :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
-           (clojure-mode . rainbow-delimiters-mode)))
+(use-package rainbow-delimiters
+  :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+         (clojure-mode . rainbow-delimiters-mode)))
 
-  (use-package tree-sitter
-    :hook (python-mode . (lambda ()
-                           (require 'tree-sitter)
-                           (require 'tree-sitter-langs)
-                           (require 'tree-sitter-hl)
-                           (tree-sitter-hl-mode))))
+(use-package tree-sitter
+  :hook (python-mode . (lambda ()
+                         (require 'tree-sitter)
+                         (require 'tree-sitter-langs)
+                         (require 'tree-sitter-hl)
+                         (tree-sitter-hl-mode))))
 
-  (use-package tree-sitter-langs
-    :after tree-sitter)
+(use-package tree-sitter-langs
+  :after tree-sitter)
 
 (use-package company
   :demand
@@ -1663,7 +1835,7 @@ begin_src jupyter-python in the first few hundred rows"
   ;;                           company-pseudo-tooltip-frontend
   ;;                           company-echo-metadata-frontend))
   ;; (setq company-selection-default nil)
-  (setq company-backends '((company-capf company-keywords company-files)))
+  (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
   :config
   (global-company-mode)
   (with-eval-after-load 'evil
@@ -1672,50 +1844,50 @@ begin_src jupyter-python in the first few hundred rows"
   (define-key company-active-map (kbd "C-j") 'company-select-next)
   )
 
-  (use-package company-box
-    :hook (company-mode . company-box-mode)
-    :config
-    (setq company-box-show-single-candidate t
-          company-box-backends-colors nil
-          company-box-max-candidates 50
-          company-box-icons-alist 'company-box-icons-all-the-icons
-          company-box-icons-all-the-icons
-          (let ((all-the-icons-scale-factor 0.8))
-            `((Unknown       . ,(all-the-icons-material "find_in_page"             :face 'all-the-icons-purple))
-              (Text          . ,(all-the-icons-material "text_fields"              :face 'all-the-icons-green))
-              (Method        . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (Function      . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (Constructor   . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (Field         . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (Variable      . ,(all-the-icons-material "adjust"                   :face 'all-the-icons-blue))
-              (Class         . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
-              (Interface     . ,(all-the-icons-material "settings_input_component" :face 'all-the-icons-red))
-              (Module        . ,(all-the-icons-material "view_module"              :face 'all-the-icons-red))
-              (Property      . ,(all-the-icons-material "settings"                 :face 'all-the-icons-red))
-              (Unit          . ,(all-the-icons-material "straighten"               :face 'all-the-icons-red))
-              (Value         . ,(all-the-icons-material "filter_1"                 :face 'all-the-icons-red))
-              (Enum          . ,(all-the-icons-material "plus_one"                 :face 'all-the-icons-red))
-              (Keyword       . ,(all-the-icons-material "filter_center_focus"      :face 'all-the-icons-red))
-              (Snippet       . ,(all-the-icons-material "short_text"               :face 'all-the-icons-red))
-              (Color         . ,(all-the-icons-material "color_lens"               :face 'all-the-icons-red))
-              (File          . ,(all-the-icons-material "insert_drive_file"        :face 'all-the-icons-red))
-              (Reference     . ,(all-the-icons-material "collections_bookmark"     :face 'all-the-icons-red))
-              (Folder        . ,(all-the-icons-material "folder"                   :face 'all-the-icons-red))
-              (EnumMember    . ,(all-the-icons-material "people"                   :face 'all-the-icons-red))
-              (Constant      . ,(all-the-icons-material "pause_circle_filled"      :face 'all-the-icons-red))
-              (Struct        . ,(all-the-icons-material "streetview"               :face 'all-the-icons-red))
-              (Event         . ,(all-the-icons-material "event"                    :face 'all-the-icons-red))
-              (Operator      . ,(all-the-icons-material "control_point"            :face 'all-the-icons-red))
-              (TypeParameter . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
-              (Template      . ,(all-the-icons-material "short_text"               :face 'all-the-icons-green))
-              (ElispFunction . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-              (ElispVariable . ,(all-the-icons-material "check_circle"             :face 'all-the-icons-blue))
-              (ElispFeature  . ,(all-the-icons-material "stars"                    :face 'all-the-icons-orange))
-              (ElispFace     . ,(all-the-icons-material "format_paint"             :face 'all-the-icons-pink)))))
+(use-package company-box
+  :hook (company-mode . company-box-mode)
+  :config
+  (setq company-box-show-single-candidate t
+        company-box-backends-colors nil
+        company-box-max-candidates 50
+        company-box-icons-alist 'company-box-icons-all-the-icons
+        company-box-icons-all-the-icons
+        (let ((all-the-icons-scale-factor 0.8))
+          `((Unknown       . ,(all-the-icons-material "find_in_page"             :face 'all-the-icons-purple))
+            (Text          . ,(all-the-icons-material "text_fields"              :face 'all-the-icons-green))
+            (Method        . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+            (Function      . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+            (Constructor   . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+            (Field         . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+            (Variable      . ,(all-the-icons-material "adjust"                   :face 'all-the-icons-blue))
+            (Class         . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+            (Interface     . ,(all-the-icons-material "settings_input_component" :face 'all-the-icons-red))
+            (Module        . ,(all-the-icons-material "view_module"              :face 'all-the-icons-red))
+            (Property      . ,(all-the-icons-material "settings"                 :face 'all-the-icons-red))
+            (Unit          . ,(all-the-icons-material "straighten"               :face 'all-the-icons-red))
+            (Value         . ,(all-the-icons-material "filter_1"                 :face 'all-the-icons-red))
+            (Enum          . ,(all-the-icons-material "plus_one"                 :face 'all-the-icons-red))
+            (Keyword       . ,(all-the-icons-material "filter_center_focus"      :face 'all-the-icons-red))
+            (Snippet       . ,(all-the-icons-material "short_text"               :face 'all-the-icons-red))
+            (Color         . ,(all-the-icons-material "color_lens"               :face 'all-the-icons-red))
+            (File          . ,(all-the-icons-material "insert_drive_file"        :face 'all-the-icons-red))
+            (Reference     . ,(all-the-icons-material "collections_bookmark"     :face 'all-the-icons-red))
+            (Folder        . ,(all-the-icons-material "folder"                   :face 'all-the-icons-red))
+            (EnumMember    . ,(all-the-icons-material "people"                   :face 'all-the-icons-red))
+            (Constant      . ,(all-the-icons-material "pause_circle_filled"      :face 'all-the-icons-red))
+            (Struct        . ,(all-the-icons-material "streetview"               :face 'all-the-icons-red))
+            (Event         . ,(all-the-icons-material "event"                    :face 'all-the-icons-red))
+            (Operator      . ,(all-the-icons-material "control_point"            :face 'all-the-icons-red))
+            (TypeParameter . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+            (Template      . ,(all-the-icons-material "short_text"               :face 'all-the-icons-green))
+            (ElispFunction . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+            (ElispVariable . ,(all-the-icons-material "check_circle"             :face 'all-the-icons-blue))
+            (ElispFeature  . ,(all-the-icons-material "stars"                    :face 'all-the-icons-orange))
+            (ElispFace     . ,(all-the-icons-material "format_paint"             :face 'all-the-icons-pink)))))
 
-    ;; Disable tab-bar in company-box child frames
-    (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
-    )
+  ;; Disable tab-bar in company-box child frames
+  (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
+  )
 
 (use-package inheritenv
   :straight (inheritenv :type git :host github :repo "purcell/inheritenv"))
@@ -1756,10 +1928,10 @@ begin_src jupyter-python in the first few hundred rows"
            "u" 'undo-fu-only-undo
            "\C-r" 'undo-fu-only-redo))
 
-  (use-package vterm
-    :config
-    (setq vterm-shell (executable-find "fish")
-          vterm-max-scrollback 10000))
+(use-package vterm
+  :config
+  (setq vterm-shell (executable-find "fish")
+        vterm-max-scrollback 10000))
 
 (use-package vterm-toggle
   :general
@@ -1795,14 +1967,37 @@ begin_src jupyter-python in the first few hundred rows"
   (evil-collection-define-key 'normal 'dired-mode-map
     "H" 'dired-hide-dotfiles-mode))
 
-  (use-package restart-emacs
-    :general
-    (my/leader-keys
-      "R" '(restart-emacs :wk "restart"))
-    )
+(use-package restart-emacs
+  :general
+  (my/leader-keys
+    "R" '(restart-emacs :wk "restart"))
+  )
 
 (use-package toml-mode
 	:mode "\\.toml\\'")
+
+(use-package tramp
+	:demand
+	:init
+	;; Disable version control on tramp buffers to avoid freezes.
+	(setq vc-ignore-dir-regexp
+      (format "\\(%s\\)\\|\\(%s\\)"
+              vc-ignore-dir-regexp
+              tramp-file-name-regexp))
+	(setq tramp-default-method "ssh")
+	(setq tramp-auto-save-directory
+      (expand-file-name "tramp-auto-save" user-emacs-directory))
+	(setq tramp-persistency-file-name
+      (expand-file-name "tramp-connection-history" user-emacs-directory))
+	(setq password-cache-expiry nil)
+	(setq tramp-use-ssh-controlmaster-options nil)
+	(customize-set-variable 'tramp-ssh-controlmaster-options
+                        (concat
+                         "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
+                         "-o ControlMaster=auto -o ControlPersist=yes")))
+
+(use-package docker-tramp
+	:demand)
 
 (use-package lsp-mode
 	:commands (lsp lsp-deferred)
@@ -1831,6 +2026,12 @@ begin_src jupyter-python in the first few hundred rows"
 	(setq lsp-keep-workspace-alive nil)
 	(setq lsp-auto-execute-action nil)
 	(setq lsp-before-save-edits nil)
+	;; :config
+	;; (lsp-register-client
+  ;;   (make-lsp-client :new-connection (lsp-tramp-connection "<binary name (e. g. pyls, rls)>")
+  ;;                    :major-modes '(python-mode)
+  ;;                    :remote? t
+  ;;                    :server-id 'pyls-remote))
 	)
 
 (use-package lsp-ui
@@ -1845,86 +2046,86 @@ begin_src jupyter-python in the first few hundred rows"
 	(setq lsp-ui-peek-fontify 'always)
 	)
 
-  (use-package dap-mode
-    :hook
-    (dap-terminated . my/hide-debug-windows)
-    :general
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-      "d d" '(dap-debug :wk "debug")
-      "d b" '(dap-breakpoint-toggle :wk "breakpoint")
-      "d c" '(dap-continue :wk "continue")
-      "d n" '(dap-next :wk "next")
-      "d e" '(dap-eval-thing-at-point :wk "eval")
-      "d i" '(dap-step-in :wk "step in")
-      "d q" '(dap-disconnect :wk "quit")
-      "d r" '(dap-ui-repl :wk "repl")
-      "d h" '(dap-hydra :wk "hydra"))
-    :init
-    ;; (setq dap-auto-configure-features '(locals repl))
-    (setq dap-auto-configure-features '(repl))
-    (setq dap-python-debugger 'debugpy)
-    ;; show stdout
-    (setq dap-auto-show-output t)
-    (setq dap-output-window-max-height 50)
-    (setq dap-output-window-min-height 50)
-    ;; hide stdout window  when done
-    (defun my/hide-debug-windows (session)
-      "Hide debug windows when all debug sessions are dead."
-      (unless (-filter 'dap--session-running (dap--get-sessions))
-        (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))))
-    (defun my/dap-python--executable-find (orig-fun &rest args)
-      (executable-find "python"))
-    :config
-    ;; configure windows
-    (require 'dap-ui)
-    (setq dap-ui-buffer-configurations
-          `(;; (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.50)))
-            ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
-            ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
-            (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.50)))))
-    (dap-ui-mode 1)
-    ;; python virtualenv
-    (require 'dap-python)
-    (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
-    ;; debug templates
-    (defvar dap-script-args (list :type "python"
-                                  :args []
-                                  :cwd "${workspaceFolder}"
-                                  :justMyCode :json-false
-                                  :request "launch"
-                                  :debugger 'debugpy
-                                  :name "dap-debug-script"))
-    (defvar dap-test-args (list :type "python-test-at-point"
-                                :args ""
+(use-package dap-mode
+  :hook
+  (dap-terminated . my/hide-debug-windows)
+  :general
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "d d" '(dap-debug :wk "debug")
+    "d b" '(dap-breakpoint-toggle :wk "breakpoint")
+    "d c" '(dap-continue :wk "continue")
+    "d n" '(dap-next :wk "next")
+    "d e" '(dap-eval-thing-at-point :wk "eval")
+    "d i" '(dap-step-in :wk "step in")
+    "d q" '(dap-disconnect :wk "quit")
+    "d r" '(dap-ui-repl :wk "repl")
+    "d h" '(dap-hydra :wk "hydra"))
+  :init
+  ;; (setq dap-auto-configure-features '(locals repl))
+  (setq dap-auto-configure-features '(repl))
+  (setq dap-python-debugger 'debugpy)
+  ;; show stdout
+  (setq dap-auto-show-output t)
+  (setq dap-output-window-max-height 50)
+  (setq dap-output-window-min-height 50)
+  ;; hide stdout window  when done
+  (defun my/hide-debug-windows (session)
+    "Hide debug windows when all debug sessions are dead."
+    (unless (-filter 'dap--session-running (dap--get-sessions))
+      (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))))
+  (defun my/dap-python--executable-find (orig-fun &rest args)
+    (executable-find "python"))
+  :config
+  ;; configure windows
+  (require 'dap-ui)
+  (setq dap-ui-buffer-configurations
+        `(;; (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.50)))
+          ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
+          ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
+          (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.50)))))
+  (dap-ui-mode 1)
+  ;; python virtualenv
+  (require 'dap-python)
+  (advice-add 'dap-python--pyenv-executable-find :around #'my/dap-python--executable-find)
+  ;; debug templates
+  (defvar dap-script-args (list :type "python"
+                                :args []
+                                :cwd "${workspaceFolder}"
                                 :justMyCode :json-false
-                                ;; :cwd "${workspaceFolder}"
                                 :request "launch"
-                                :module "pytest"
                                 :debugger 'debugpy
-                                :name "dap-debug-test-at-point"))
-    (defvar empties-forecast (list
-                              :name "empties forecast"
-                              :type "python"
+                                :name "dap-debug-script"))
+  (defvar dap-test-args (list :type "python-test-at-point"
+                              :args ""
+                              :justMyCode :json-false
+                              ;; :cwd "${workspaceFolder}"
                               :request "launch"
-                              :program "./src/empties/forecasting/predict.py"
-                              :env '(("NO_JSON_LOG" . "true"))
-                              :args ["--source01" "./data/empties-history-sample.parquet"
-                                     "--source02" "./data/model_selection.files"
-                                     "--source03" "./data/booking-feature-sample.parquet"
-                                     "--source04" "./data/holiday-2019-05-24-1558683595"
-                                     "--output-data" "./data/predictions.parquet"
-                                     "--output-metrics" "./data/metrics.json"]
-                              ))
-    (dap-register-debug-template "dap-debug-script" dap-script-args)
-    (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
-    ;; bind the templates
-    (my/local-leader-keys
-      :keymaps 'python-mode-map
-      "d t" '((lambda () (interactive) (dap-debug dap-test-args)) :wk "test")
-      "d s" '((lambda () (interactive) (dap-debug dap-script-args)) :wk "script")
-      )
+                              :module "pytest"
+                              :debugger 'debugpy
+                              :name "dap-debug-test-at-point"))
+  (defvar empties-forecast (list
+                            :name "empties forecast"
+                            :type "python"
+                            :request "launch"
+                            :program "./src/empties/forecasting/predict.py"
+                            :env '(("NO_JSON_LOG" . "true"))
+                            :args ["--source01" "./data/empties-history-sample.parquet"
+                                   "--source02" "./data/model_selection.files"
+                                   "--source03" "./data/booking-feature-sample.parquet"
+                                   "--source04" "./data/holiday-2019-05-24-1558683595"
+                                   "--output-data" "./data/predictions.parquet"
+                                   "--output-metrics" "./data/metrics.json"]
+                            ))
+  (dap-register-debug-template "dap-debug-script" dap-script-args)
+  (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
+  ;; bind the templates
+  (my/local-leader-keys
+    :keymaps 'python-mode-map
+    "d t" '((lambda () (interactive) (dap-debug dap-test-args)) :wk "test")
+    "d s" '((lambda () (interactive) (dap-debug dap-script-args)) :wk "script")
     )
+  )
 
 (use-package python-mode
   :hook ((envrc-mode . (lambda ()
@@ -1945,12 +2146,12 @@ begin_src jupyter-python in the first few hundred rows"
         python-shell-completion-string-code
         "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
 
-  (use-package lsp-pyright
-    :init
-    (setq lsp-pyright-typechecking-mode "basic") ;; too much noise in "real" projects
-    :hook (python-mode . (lambda ()
-                           (require 'lsp-pyright)
-                           (lsp-deferred))))
+(use-package lsp-pyright
+  :init
+  (setq lsp-pyright-typechecking-mode "basic") ;; too much noise in "real" projects
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-pyright)
+                         (lsp-deferred))))
 
 (use-package python-pytest
   :general
@@ -1970,16 +2171,16 @@ begin_src jupyter-python in the first few hundred rows"
   (advice-add 'python-pytest--run :around #'my/pytest-use-venv)
   )
 
-  (use-package flymake
-    :straight (:type built-in)
-    :hook (emacs-lisp-mode . flymake-mode)
-    :init
-    (setq python-flymake-command (executable-find "flake8"))
-    (setq flymake-fringe-indicator-position 'right-fringe)
-    :general
-    (general-nmap "] !" 'flymake-goto-next-error)
-    (general-nmap "[ !" 'flymake-goto-prev-error)
-    )
+(use-package flymake
+  :straight (:type built-in)
+  :hook (emacs-lisp-mode . flymake-mode)
+  :init
+  (setq python-flymake-command (executable-find "flake8"))
+  (setq flymake-fringe-indicator-position 'right-fringe)
+  :general
+  (general-nmap "] !" 'flymake-goto-next-error)
+  (general-nmap "[ !" 'flymake-goto-prev-error)
+  )
 
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
@@ -2030,10 +2231,16 @@ begin_src jupyter-python in the first few hundred rows"
       "=" '(blacken-buffer :wk "format"))
 	)
 
-    (use-package ess
-    :init
+(use-package ess
+	:general
+  (R-mode
+    "'" '(R :wk "R")
+		"l" '(ess-eval-line :wk "eval line")
+		"L" '(ess-eval-region-or-line-and-step :wk "line and step")
+		)
+  :init
   (setq ess-eval-visibly 'nowait)
-(setq ess-R-font-lock-keywords '((ess-R-fl-keyword:keywords . t)
+  (setq ess-R-font-lock-keywords '((ess-R-fl-keyword:keywords . t)
                                    (ess-R-fl-keyword:constants . t)
                                    (ess-R-fl-keyword:modifiers . t)
                                    (ess-R-fl-keyword:fun-defs . t)
@@ -2045,7 +2252,7 @@ begin_src jupyter-python in the first few hundred rows"
                                    (ess-fl-keyword:delimiters . t)
                                    (ess-fl-keyword:= . t)
                                    (ess-R-fl-keyword:F&T . t)))
-      )
+  )
 
 (use-package elisp-mode
   :straight (:type built-in)
@@ -2136,10 +2343,10 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
   ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
   )
 
-  ;; keep the file indented
-  (use-package aggressive-indent
-    :hook ((clojure-mode . aggressive-indent-mode)
-           (emacs-lisp-mode . aggressive-indent-mode)))
+;; keep the file indented
+(use-package aggressive-indent
+  :hook ((clojure-mode . aggressive-indent-mode)
+         (emacs-lisp-mode . aggressive-indent-mode)))
 
 (use-package markdown-mode
   :commands (markdown-mode gfm-mode)
@@ -2149,7 +2356,15 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
   :init (setq markdown-command "multimarkdown"))
 
 (use-package md4rd
-	:commands (md4rd))
+  :general
+  (my/leader-keys
+    "s r" '(md4rd :wk "reddit"))
+  :init
+  (setq md4rd-subs-active '(emacs apple clojure MachineLearning))
+  :config
+  (add-hook 'md4rd-mode-hook 'md4rd-indent-all-the-lines)
+  (require 'cl)
+  )
 
 (use-package xwwp
   :straight (xwwp :type git :host github :repo "canatella/xwwp")
@@ -2165,10 +2380,4 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
   ;; (setq xwwp-follow-link-completion-system 'ivy)
   ;; :bind (:map xwidget-webkit-mode-map
   ;;             ("v" . xwwp-follow-link))
-	)
-
-(use-package dash-at-point
-	:general
-  (my/leader-keys
-    "s d" '(dash-at-point :which-key "search dash"))
 	)
