@@ -6,7 +6,13 @@
 #+HTML_HEAD: <script async src="//static.getclicky.com/js"></script>
 
 * Introduction
+:PROPERTIES:
+:CUSTOM_ID: h:49282F28-9E13-48D2-A565-1605B1CC57B8
+:END:
 ** This file
+:PROPERTIES:
+:CUSTOM_ID: h:D9ED3ADB-810A-4A1C-A1D3-5397874AFAC7
+:END:
 This file (~readme.org~) is my literate emacs configuration. 
 Every time I save the file, the code blocks get tangled.
 By default, they get tangled (in sequence) to ~./init.el~.
@@ -18,6 +24,9 @@ See [[*org-html-themify][this section]] for my configuration.
 NOTE: the code blocks in the sections marked with TODO have ~:tangle no~ in their header
 args so they are not tangled to my ~init.el~.
 ** Why vanilla?
+:PROPERTIES:
+:CUSTOM_ID: h:40A8BDAE-F8E3-4DB3-AC8C-7E5067B7EE4D
+:END:
 I used [[https://github.com/hlissner/doom-emacs][DOOM emacs]] for an year and I was an happy user.
 One day I woke up with the wish to understand Emacs a little more.
 
@@ -28,12 +37,18 @@ After about a week (12/01/2021) I had restored my configuration and in the proce
   
 It is still a long journey but I am glad I started it.
 ** Structure of this configuration
+:PROPERTIES:
+:CUSTOM_ID: h:CEDB99C8-27AD-4118-8C8D-29A5882E47AE
+:END:
 - In the second section some optimization of startup time, mostly stolen from smart people.
 - In the third section we bootstrap ~straight~ and  ~use-package~, our package managers
 - In the fourth section we configure ~emacs~ with sane defaults and extend some its core features (e.g. ~help-mode~)
 - In the fifth section we set up ~general~, which we use to manage our keybindings and lazy loading of packages. Afterwards we configure ~evil~, for modal editing.
 - The remaining sections declare my personal configuration of UI and core packages, leveraging the great tools described in this list.
 ** Notable sections
+:PROPERTIES:
+:CUSTOM_ID: h:5752563C-7D7B-4AC2-866D-F0887C7B80AE
+:END:
 I am particularly proud of some sections in this configuration, because of one or more of these reasons:
 - They improve my productivity considerably
 - They are non-standard solutions (or at least hard to find online)
@@ -49,6 +64,7 @@ Here they are, without any ranking:
 - [[*ob-jupyter][ob-jupyter]]
 - [[*org-tree-slide][org-tree-slide]]
 - [[*evil-org-mode][evil-org-mode]]
+- [[#h:AC175A47-E576-4AA6-A9C7-709129F4C56F][use org-id in links]] 
 - [[*org-html-themify][org-html-themify]]
 - [[*Modus themes][Modus themes]]
 - [[*dashboard][dashboard]]
@@ -66,7 +82,13 @@ Here they are, without any ranking:
 - [[*jupyter][jupyter]]
 - [[*evil-lisp state][evil-lisp state]] 
 * Startup
+:PROPERTIES:
+:CUSTOM_ID: h:EC68944C-F745-45D8-9905-420E0813DBAF
+:END:
 ** early-init.el
+:PROPERTIES:
+:CUSTOM_ID: h:7DBC58C1-3944-437C-87F9-95C9202BD34E
+:END:
 Taken from DOOM's early init
 #+BEGIN_SRC emacs-lisp :tangle early-init.el
   ;; NOTE: early-init.el is now generated from readme.org.  Please edit that file instead
@@ -106,6 +128,9 @@ Taken from DOOM's early init
 #+END_SRC
 
 ** Startup optimization
+:PROPERTIES:
+:CUSTOM_ID: h:E6162DC2-7E1C-4843-8448-FF104A444B40
+:END:
 Taken from DOOM's init
 #+BEGIN_SRC emacs-lisp
 ;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
@@ -136,7 +161,13 @@ Taken from DOOM's init
 #+END_SRC
 
 * Package manager
+:PROPERTIES:
+:CUSTOM_ID: h:376622D2-A6B7-4050-97C6-413B0D77B89C
+:END:
 ** bootstrap straight and straight-use-package
+:PROPERTIES:
+:CUSTOM_ID: h:686F7A63-013E-48ED-AC56-DF39BD398E20
+:END:
 Some rules/conventions:
 - Prefer ~:init~ to ~:custom~. Prefer multiple ~setq~ expressions to one.
 - Default to ~:defer t~, use ~:demand~ to force loading
@@ -171,6 +202,9 @@ Some rules/conventions:
 #+END_SRC
 
 ** straight lockfile
+:PROPERTIES:
+:CUSTOM_ID: h:D0E05B42-6CEF-45A0-ACF9-E5F14F6DFE76
+:END:
 We can run ~M-x straight-freeze-versions~ to write the file ~straight/versions/default.el~.
 The content of the file can then be kept in a code block, under version control.
 The code block can then be tangle again to ~straight/versions/default.el~.
@@ -320,6 +354,9 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
 #+end_src
 
 ** Enable use-package statistics
+:PROPERTIES:
+:CUSTOM_ID: h:F75CE115-0722-49E4-9BD8-8A57BADAD080
+:END:
 If you'd like to see how many packages you've loaded, what stage of initialization they've reached, and how much aggregate time they've spent (roughly), you can enable ~use-package-compute-statistics~ after loading use-package but before any use-package forms, and then run the command M-x ~use-package-report~ to see the results. The buffer displayed is a tabulated list. You can use S in a column to sort the rows based on it.
 
 #+BEGIN_SRC emacs-lisp
@@ -332,7 +369,13 @@ From the report:
 - projectile 0.18
   
 * Emacs
+:PROPERTIES:
+:CUSTOM_ID: h:BB41A3C4-8047-40D7-B99D-1BFDAC930D25
+:END:
 ** Sane defaults
+:PROPERTIES:
+:CUSTOM_ID: h:94661C0F-79D0-4CD4-AA3F-CADB0E79398C
+:END:
 Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathancox.org
 
 To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/ with =e=
@@ -416,18 +459,21 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 #+END_SRC
 
 ** Auto-pair parenthesis
+:PROPERTIES:
+:CUSTOM_ID: h:BE3F251D-5F39-4337-B27C-CFB81EE9A504
+:END:
 #+begin_src emacs-lisp
 (use-package emacs
   :hook
-  ((org-jupyter-python-mode . (lambda () (set-local-electric-pairs '())))
-   (org-mode . (lambda () (set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
+  ((org-jupyter-python-mode . (lambda () (my/set-local-electric-pairs '())))
+   (org-mode . (lambda () (my/set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
   :init
   ;; auto-close parentheses
   (electric-pair-mode +1)
   (setq electric-pair-preserve-balance nil)
   ;; mode-specific local-electric pairs
   (defvar my/default-electric-pairs electric-pair-pairs)
-  (defun set-local-electric-pairs (pairs)
+  (defun my/set-local-electric-pairs (pairs)
     "Example usage: 
     (add-hook 'jupyter-org-interaction-mode '(lambda () (set-local-electric-pairs '())))
     "
@@ -440,6 +486,9 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 #+end_src
 
 ** Font
+:PROPERTIES:
+:CUSTOM_ID: h:3CDD0539-5A95-468C-85F0-71B391D7115D
+:END:
 #+begin_src emacs-lisp
 (use-package emacs
 	:init
@@ -468,6 +517,9 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 #+end_src
 
 ** Increase font size
+:PROPERTIES:
+:CUSTOM_ID: h:D9DB7FA2-18C6-46A9-9567-1FEFADD523AC
+:END:
 #+begin_src emacs-lisp
 (use-package emacs
 	:init
@@ -503,6 +555,9 @@ size. This function also handles icons and modeline font sizes."
 #+end_src
 
 ** macOS
+:PROPERTIES:
+:CUSTOM_ID: h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B
+:END:
 #+BEGIN_SRC emacs-lisp
 (when (eq system-type 'darwin)
   (setq mac-command-modifier 'super)     ; command as super
@@ -511,6 +566,9 @@ size. This function also handles icons and modeline font sizes."
 #+END_SRC
 
 ** Garbage collector magic hack
+:PROPERTIES:
+:CUSTOM_ID: h:A17DC2B8-4E73-4F43-BD6E-07ADAEC9A3A7
+:END:
 Used by DOOM to manage garbage collection
 #+BEGIN_SRC emacs-lisp
   (use-package gcmh
@@ -520,6 +578,9 @@ Used by DOOM to manage garbage collection
 #+END_SRC
 
 ** helpful
+:PROPERTIES:
+:CUSTOM_ID: h:273CA7B2-AE07-4571-AB4A-92523B11DB41
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
     :after evil
@@ -533,12 +594,18 @@ Used by DOOM to manage garbage collection
 #+END_SRC
 
 ** eldoc
+:PROPERTIES:
+:CUSTOM_ID: h:FC10A86D-86E6-45C2-8759-ADE233B0D80C
+:END:
 #+begin_src emacs-lisp
   (use-package eldoc
     :hook (emacs-lisp-mode cider-mode))
 #+end_src
 
 ** exec path from shell
+:PROPERTIES:
+:CUSTOM_ID: h:B1611A44-8567-4370-80B4-9D904434E274
+:END:
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
     :if (memq window-system '(mac ns))
@@ -555,6 +622,9 @@ Used by DOOM to manage garbage collection
 #+end_src
 
 ** no littering
+:PROPERTIES:
+:CUSTOM_ID: h:2DB2921D-434E-4321-A15E-4B3329ABC946
+:END:
 #+begin_src emacs-lisp
 (use-package no-littering
 	:demand
@@ -566,6 +636,9 @@ Used by DOOM to manage garbage collection
 #+end_src
 
 ** server mode
+:PROPERTIES:
+:CUSTOM_ID: h:5F50A0A6-0C8E-4804-BBF5-A8D9B1372F12
+:END:
 #+begin_src emacs-lisp
 (use-package emacs
 	:init
@@ -575,6 +648,9 @@ Used by DOOM to manage garbage collection
 #+end_src
 
 ** minor modes
+:PROPERTIES:
+:CUSTOM_ID: h:9372E70D-27A4-413D-A299-26500491FEC4
+:END:
 Reference: https://nullprogram.com/blog/2013/02/06/
 - Mode names should end in -mode
 - The command for toggling the mode should be the same name
@@ -582,6 +658,9 @@ Reference: https://nullprogram.com/blog/2013/02/06/
 - Mode’s toggle hook should be called mode-hook.
 - The rest of define-minor-mode is a body for arbitrary Lisp, like a defun. It’s run every time the mode is toggled off or on, so it’s like a built-in hook function
 *** org-jupyter-python-mode
+:PROPERTIES:
+:CUSTOM_ID: h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E
+:END:
 #+begin_src emacs-lisp
 (use-package emacs
   :init
@@ -605,7 +684,13 @@ begin_src jupyter-python in the first few hundred rows"
 #+end_src
 
 * Keybindings
+:PROPERTIES:
+:CUSTOM_ID: h:A992628D-9095-4392-9C96-2633E8DDDE08
+:END:
 ** general
+:PROPERTIES:
+:CUSTOM_ID: h:403F77CB-A591-4431-B568-CD802876F770
+:END:
 In this block we load ~general~ and define bindings for generic commands e.g. ~find-file~.
 The commands provided by packages should be binded in the ~use-package~ block, thanks to the ~:general~ keyword.
 NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword in the ~use-package~ blocks won't work.
@@ -703,7 +788,13 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
 #+END_SRC
 
 ** evil
+:PROPERTIES:
+:CUSTOM_ID: h:D32C2E37-37BE-4033-B9A5-270D47570991
+:END:
 *** evil mode
+:PROPERTIES:
+:CUSTOM_ID: h:331844DD-1F0E-4348-84F5-F53350749226
+:END:
 Some interesting vim nouns:
 - =_= :: first character in the line (synonym to =^=)
 - =g_= :: last character on the line (synonym to =$=)
@@ -764,6 +855,9 @@ in the rest of the file
 #+END_SRC
 
 *** evil-collection
+:PROPERTIES:
+:CUSTOM_ID: h:04B5B86D-5E51-41A8-ACE5-D07EBCDBA4E7
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package evil-collection
   :after evil
@@ -775,6 +869,9 @@ in the rest of the file
 #+END_SRC
 
 *** evil-goggles
+:PROPERTIES:
+:CUSTOM_ID: h:DF40753F-AE4C-4A22-90B1-7468A5C86485
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package evil-goggles
   :after evil
@@ -787,6 +884,9 @@ in the rest of the file
 #+END_SRC
 
 *** evil-snipe
+:PROPERTIES:
+:CUSTOM_ID: h:142C0F28-5AE4-4034-B61C-3CE4D1E6B2BB
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package evil-snipe
 	:after evil
@@ -797,6 +897,9 @@ in the rest of the file
 #+END_SRC
 
 *** evil-nerd-commenter
+:PROPERTIES:
+:CUSTOM_ID: h:1FF5CDDF-D69C-46D3-A5CD-97C058F5E8BA
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package evil-nerd-commenter
   :general
@@ -807,6 +910,9 @@ in the rest of the file
 #+END_SRC
 
 *** evil-surround
+:PROPERTIES:
+:CUSTOM_ID: h:0F159B03-E7CB-4AC7-8871-BED1534559E6
+:END:
 (
 - Use =S)= to surround something without spaces e.g. ~(sexp)~ 
 - Use =S(= to surround something with spaces e.g. ~( sexp )~
@@ -824,6 +930,9 @@ in the rest of the file
 #+END_SRC
 
 *** evil-indent-plus
+:PROPERTIES:
+:CUSTOM_ID: h:F5CFE676-28DE-4B1F-BDDF-3DA431FAB728
+:END:
 To select a function in ~python~:
 - Stand on a line in the body of the function (root, not an if)
 - Select with =vik= 
@@ -843,6 +952,9 @@ To select a function in ~python~:
 #+end_src
 
 *** evil-iedit-state
+:PROPERTIES:
+:CUSTOM_ID: h:4055D055-3521-41DE-8BC5-0196F89BB3F8
+:END:
 Keybindings:
 - =TAB= :: toggle occurrence
 - =n= / =N= :: next/prev occurrence
@@ -859,6 +971,9 @@ Keybindings:
 #+end_src
 
 *** evil-mc
+:PROPERTIES:
+:CUSTOM_ID: h:B26642F5-695F-4475-92B5-2EB9B1C1A96A
+:END:
 #+begin_src emacs-lisp
 (use-package evil-mc
 	:general
@@ -873,6 +988,9 @@ Keybindings:
 #+end_src
 
 ** which-key
+:PROPERTIES:
+:CUSTOM_ID: h:4F5BF801-2E48-44B3-8822-240BC6D08732
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
   :demand t
@@ -885,7 +1003,13 @@ Keybindings:
 #+END_SRC
 
 * Org
+:PROPERTIES:
+:CUSTOM_ID: h:B1DBE90D-B6C9-4BD4-B15B-185FE238D236
+:END:
 ** org mode
+:PROPERTIES:
+:CUSTOM_ID: h:934C85A9-D8DB-455F-A19C-570300047FD5
+:END:
 Interesting bits:
 - If you use + in lists it will show up as below:
   + subitem
@@ -996,6 +1120,9 @@ Interesting bits:
 #+END_SRC
 
 ** org capture templates
+:PROPERTIES:
+:CUSTOM_ID: h:7B2FC50C-4C28-4E16-96B9-CF3CB51DBE08
+:END:
 #+begin_src emacs-lisp
 (use-package org
 :init
@@ -1045,6 +1172,9 @@ Interesting bits:
 #+end_src
 
 ** org-toc
+:PROPERTIES:
+:CUSTOM_ID: h:7715C1A7-7228-4A41-92DB-7F3F1D3A88C4
+:END:
 This function walks a particular directory searching for ~.org~ files and headings within them.
 It creates a table of contents of that directory, with links.
 It is useful to create an automatic ~index.org~ file for org directories.
@@ -1053,7 +1183,7 @@ I currently use it for my knowledge library.
 #+begin_src emacs-lisp
 (use-package org
 	:init
-	(defun org-toc ()
+	(defun my/org-toc ()
 		(interactive)
 		(let ((headings (delq nil (cl-loop for f in (f-entries "." (lambda (f) (f-ext? f "org")) t)
 																			 append
@@ -1075,6 +1205,9 @@ I currently use it for my knowledge library.
 #+end_src
 
 ** cycle only one heading 
+:PROPERTIES:
+:CUSTOM_ID: h:06CE7B8F-EFC7-4216-99C5-DE419A649C83
+:END:
 #+begin_src emacs-lisp
 (use-package org
 	:init
@@ -1108,6 +1241,9 @@ All my (performant) foldings needs are met between this and `org-show-subtree'
 #+end_src
 
 ** async tangle
+:PROPERTIES:
+:CUSTOM_ID: h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F
+:END:
 Taken from https://github.com/KaratasFurkan/.emacs.d
 
 #+begin_src emacs-lisp
@@ -1148,12 +1284,18 @@ asynchronously."
 #+end_src
 
 ** org reverse datetree
+:PROPERTIES:
+:CUSTOM_ID: h:5640311D-E41F-495D-BF61-9A1CE260B67D
+:END:
 #+begin_src emacs-lisp
 (use-package org-reverse-datetree
 :after org)
 #+end_src
 
 ** org-superstar
+:PROPERTIES:
+:CUSTOM_ID: h:9F509775-5901-47BA-AE19-C193598F3FE8
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode)
@@ -1165,6 +1307,9 @@ asynchronously."
 #+END_SRC
 
 ** highlight todo
+:PROPERTIES:
+:CUSTOM_ID: h:6944ED2A-A880-48CC-A6F6-86847D15BF65
+:END:
 Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..).
 #+begin_src emacs-lisp
 (use-package hl-todo
@@ -1184,6 +1329,9 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
 #+end_src
 
 ** org babel
+:PROPERTIES:
+:CUSTOM_ID: h:9C85D837-71F4-4205-B1DD-5ECBE3FD4B11
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package org
   :general
@@ -1212,6 +1360,9 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
 #+END_SRC
 
 ** ob-async
+:PROPERTIES:
+:CUSTOM_ID: h:D407A727-7E47-48F6-AA29-F487A8890F43
+:END:
 #+begin_src emacs-lisp
 (use-package ob-async
   :hook (org-load . (lambda () (require 'ob-async)))
@@ -1220,6 +1371,9 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
 #+end_src
 
 ** ob-jupyter
+:PROPERTIES:
+:CUSTOM_ID: h:600809B3-9B92-43F9-9A99-3D007CEE044D
+:END:
 Note:
 - We can only load ~ob-jupyter~ when we have ~jupyter~ on our ~PATH~.
   + We assume ~jupyter~ is always installed in a virtual env associated with an ~.envrc~ file
@@ -1290,6 +1444,9 @@ Note:
 #+end_src
 
 ** org-tree-slide
+:PROPERTIES:
+:CUSTOM_ID: h:0642C8C0-3B4E-4C72-BD41-40F58FFAB736
+:END:
 #+begin_src emacs-lisp
 (use-package org-tree-slide
 	:after org
@@ -1353,6 +1510,9 @@ Note:
 #+end_src
 
 ** evil-org-mode
+:PROPERTIES:
+:CUSTOM_ID: h:FB4154EE-27F2-4B52-B0BB-5F95D7920EAD
+:END:
 Taken from DOOM:
 - nice ~+org/insert-item-below~ and ~+org/dwim-at-point~ functions
 - ~evil~ bindings for ~org-agenda~
@@ -1588,7 +1748,13 @@ Taken from DOOM:
 #+end_src
 
 ** exporters
+:PROPERTIES:
+:CUSTOM_ID: h:EB525EBF-91AA-4A9F-8D49-5D1DFFE670FB
+:END:
 *** org-html-themify
+:PROPERTIES:
+:CUSTOM_ID: h:89A2FA66-9647-4BF8-A45C-EA61D5D95FDC
+:END:
 I use this package to export my config to HTML. I then push it to the ~gh-pages~ branch
 #+begin_src emacs-lisp
 (use-package org-html-themify
@@ -1613,12 +1779,18 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
 #+end_src
 
 *** ox-gfm
+:PROPERTIES:
+:CUSTOM_ID: h:021F6686-3272-4900-BB50-CB98C5C5C2BA
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package ox-gfm
   :after org)
 #+END_SRC
 
 *** ox-ipynb
+:PROPERTIES:
+:CUSTOM_ID: h:F97C3D33-1B2E-4D80-BD51-E4052A5535DE
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package ox-ipynb
   :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
@@ -1626,6 +1798,9 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
 #+END_SRC
 
 *** ox-reveal
+:PROPERTIES:
+:CUSTOM_ID: h:6181675A-C397-4449-A8D9-AFDAECD6D4EE
+:END:
 #+begin_src emacs-lisp
 (use-package org-re-reveal
   :after org
@@ -1639,6 +1814,9 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
 #+end_src
 
 *** weblorg
+:PROPERTIES:
+:CUSTOM_ID: h:8739EFFA-1436-4DF9-AD0D-AD0C94144A40
+:END:
 #+begin_src emacs-lisp
 (use-package weblorg)
 
@@ -1648,6 +1826,9 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
 #+end_src
 
 *** LaTeX export
+:PROPERTIES:
+:CUSTOM_ID: h:A590CE55-C9B6-4559-BA39-0C4833030010
+:END:
 #+begin_src emacs-lisp
 (use-package org
 	:config
@@ -1678,6 +1859,9 @@ In the beginning of the org document:
 #+end_example
  
 *** ox-cv
+:PROPERTIES:
+:CUSTOM_ID: h:9AB653A8-CACD-45B4-A330-7EB2421370E6
+:END:
 #+begin_src emacs-lisp
 (use-package ox-altacv
   :straight (ox-altacv :type git :host github :repo "lccambiaghi/org-cv")
@@ -1685,6 +1869,9 @@ In the beginning of the org document:
 #+end_src
  
 ** org-appear
+:PROPERTIES:
+:CUSTOM_ID: h:474F4B7B-336B-48A8-B888-B46584E331AC
+:END:
 Automatically disaply emphasis markers and links when the cursor is on them.
 #+begin_src emacs-lisp
 (use-package org-appear
@@ -1699,12 +1886,18 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 #+end_src
 
 ** automatic latex preview
+:PROPERTIES:
+:CUSTOM_ID: h:040DD3F1-043C-403F-A145-813BA69FC42E
+:END:
 #+begin_src emacs-lisp
 (use-package org-fragtog
 	:hook (org-mode . org-fragtog-mode))
 #+end_src
 
 ** org-encrypt
+:PROPERTIES:
+:CUSTOM_ID: h:65931801-3A7E-4828-B052-F978731F3004
+:END:
 - Use ~org-encrypt-entry~ on a headline
 - Use ~org-decrypt-entry~ to decrypt
 #+begin_src emacs-lisp
@@ -1730,7 +1923,18 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 #+end_src
  
 ** use org-id in links
+:PROPERTIES:
+:CUSTOM_ID: h:AC175A47-E576-4AA6-A9C7-709129F4C56F
+:END:
 Taken from https://writequit.org/articles/emacs-org-mode-generate-ids.html
+
+Problem: when exporting org files to HTML, the header anchors are volatile.
+Once I publish a new HTML version of this file, the previous version's links are no longer valid.
+
+This function adds ~CUSTOM_ID~ property to all headings in a file (one-time).
+We can then use this to link to that heading forever.
+
+Adding it as a ~after-save-hook~  automatically adds a ~CUSTOM_ID~ to newly created headers.
 
 #+begin_src emacs-lisp
 (use-package org
@@ -1768,23 +1972,25 @@ Taken from https://writequit.org/articles/emacs-org-mode-generate-ids.html
   :config
   (require 'org-id)
   (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
-
-  ;; (add-hook 'org-mode-hook
-  ;;           (lambda ()
-  ;;             (add-hook 'before-save-hook
-  ;;                       (lambda ()
-  ;;                         (when (and (eq major-mode 'org-mode)
-  ;;                                    (eq buffer-read-only nil))
-  ;;                           (my/org-add-ids-to-headlines-in-file))))))
   )
 #+end_src
+
 * UI
+:PROPERTIES:
+:CUSTOM_ID: h:239ABF35-3C15-416B-8C10-353F711E5541
+:END:
 ** all the icons
+:PROPERTIES:
+:CUSTOM_ID: h:502F0F06-A555-40FF-8ADA-0A7AA9E67D7E
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package all-the-icons)
 #+END_SRC
 
 ** doom modeline
+:PROPERTIES:
+:CUSTOM_ID: h:77D92E3F-D17F-408C-A168-928D64D1AEF8
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package doom-modeline
     :demand
@@ -1800,6 +2006,9 @@ Taken from https://writequit.org/articles/emacs-org-mode-generate-ids.html
 #+END_SRC
 
 ** Fancy titlebar for macOS
+:PROPERTIES:
+:CUSTOM_ID: h:73688165-BE4C-411D-904C-2DD65E56766E
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package emacs
 	:init
@@ -1811,6 +2020,9 @@ Taken from https://writequit.org/articles/emacs-org-mode-generate-ids.html
 #+END_SRC
 
 ** Modus themes
+:PROPERTIES:
+:CUSTOM_ID: h:5F1EC880-5646-4E50-A460-C2F23BD864FC
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package modus-themes
 	:straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
@@ -1892,6 +2104,9 @@ Taken from https://writequit.org/articles/emacs-org-mode-generate-ids.html
 #+END_SRC
 
 ** dashboard
+:PROPERTIES:
+:CUSTOM_ID: h:2F4C0A6C-96BE-4818-B794-D1593C23FB00
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
   ;; :after projectile
@@ -1947,6 +2162,9 @@ Taken from https://writequit.org/articles/emacs-org-mode-generate-ids.html
 #+END_SRC
 
 ** centaur tabs
+:PROPERTIES:
+:CUSTOM_ID: h:44BB321D-0EB1-4E28-AD98-55621DC07597
+:END:
 #+begin_src emacs-lisp
 (use-package centaur-tabs
   :hook (emacs-startup . centaur-tabs-mode)
@@ -1969,18 +2187,27 @@ Taken from https://writequit.org/articles/emacs-org-mode-generate-ids.html
 #+end_src
 
 ** centered cursor mode
+:PROPERTIES:
+:CUSTOM_ID: h:26FC27A5-5E20-4440-BA86-48FAA8707D00
+:END:
 #+begin_src emacs-lisp
   (use-package centered-cursor-mode
     :general (my/leader-keys "t -" (lambda () (interactive) (centered-cursor-mode 'toggle))))
 #+end_src
 
 ** hide mode line
+:PROPERTIES:
+:CUSTOM_ID: h:89BB7025-084D-4465-897D-C731EB02161A
+:END:
 #+begin_src emacs-lisp
   (use-package hide-mode-line
     :commands (hide-mode-line-mode))
 #+end_src
 
 ** popup management
+:PROPERTIES:
+:CUSTOM_ID: h:91E3AC2B-6981-4915-8508-4CA5D7182939
+:END:
 Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+begin_src emacs-lisp
   (setq display-buffer-alist
@@ -1991,6 +2218,9 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+end_src
 
 ** winum
+:PROPERTIES:
+:CUSTOM_ID: h:991499E8-6FF8-41DB-B533-6D627602DFD4
+:END:
 #+begin_src emacs-lisp
 (use-package winum
 :general
@@ -2003,6 +2233,9 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+end_src
 
 ** transpose frame
+:PROPERTIES:
+:CUSTOM_ID: h:9E3C0942-1D8C-403F-9D44-5BEDA2966C58
+:END:
 #+begin_src emacs-lisp
   (use-package transpose-frame
     :general
@@ -2012,6 +2245,9 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+end_src
 
 ** persistent scratch
+:PROPERTIES:
+:CUSTOM_ID: h:FF4B176D-E133-4013-9926-87F9A20E3BBD
+:END:
 #+begin_src emacs-lisp
 (use-package persistent-scratch
 	:hook
@@ -2035,6 +2271,9 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+end_src
 
 ** olivetti mode
+:PROPERTIES:
+:CUSTOM_ID: h:78EE4DFB-9A75-4BB0-BD4D-CFF94ACE3CF6
+:END:
 #+begin_src emacs-lisp
   (use-package olivetti
     :general
@@ -2046,6 +2285,9 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+end_src
 
 ** Fill column indicator
+:PROPERTIES:
+:CUSTOM_ID: h:A7A49256-4E2B-45CD-A898-347C37867645
+:END:
 With ~evil~ you can:
 - ~gww~ to fill the line
 - ~gqq~ to fill the line and move to the end of it
@@ -2063,6 +2305,9 @@ With ~evil~ you can:
 #+end_src
 
 ** Whitespace mode
+:PROPERTIES:
+:CUSTOM_ID: h:EE0D61ED-C9F2-47DE-9DEC-78C2F995B06A
+:END:
 #+begin_src emacs-lisp
 (use-package emacs
   :hook
@@ -2075,6 +2320,9 @@ With ~evil~ you can:
 #+end_src
 
 ** Highlight indentation guides
+:PROPERTIES:
+:CUSTOM_ID: h:98E70637-DC1F-4528-B848-C12D5092BD7A
+:END:
 #+BEGIN_SRC emacs-lisp
 ;; add a visual intent guide
 (use-package highlight-indent-guides
@@ -2095,6 +2343,9 @@ With ~evil~ you can:
 #+END_SRC
 
 ** COMMENT Show emoji
+:PROPERTIES:
+:CUSTOM_ID: h:CDFFE28E-AD1A-4C9D-9B70-EF7D1E22CE56
+:END:
 #+begin_src emacs-lisp
 (use-package emojify
   :disabled t
@@ -2102,6 +2353,9 @@ With ~evil~ you can:
 #+end_src
 
 ** Enlarge window
+:PROPERTIES:
+:CUSTOM_ID: h:2D8DEB14-A1F1-4B46-B08A-CF97A0A9B237
+:END:
 Taken from DOOM
 
 #+begin_src emacs-lisp
@@ -2151,7 +2405,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 #+end_src
 
 * Completion framework
+:PROPERTIES:
+:CUSTOM_ID: h:06E0EA9F-7CF4-4B99-8A4A-2C63A4F8A6B6
+:END:
 ** selectrum
+:PROPERTIES:
+:CUSTOM_ID: h:7AC334FB-E159-43C3-B4BD-9D8FDC07900C
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package selectrum
     :demand
@@ -2164,6 +2424,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 #+END_SRC
 
 ** prescient
+:PROPERTIES:
+:CUSTOM_ID: h:A05881AE-31E0-498C-B107-0FBD5E1103BF
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package selectrum-prescient
     :after selectrum
@@ -2181,6 +2444,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 #+END_SRC
 
 ** marginalia
+:PROPERTIES:
+:CUSTOM_ID: h:37ACBBF7-989F-4A57-9454-06B79B8EB4F0
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package marginalia
     :after selectrum
@@ -2191,6 +2457,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 #+END_SRC
 
 ** embark
+:PROPERTIES:
+:CUSTOM_ID: h:D28488FC-484F-4AD9-8989-736BE88C9AA2
+:END:
 Taken from https://github.com/oantolin/embark
 
 You can act on candidates with =C-l= and ask to remind bindings with =C-h=
@@ -2224,6 +2493,9 @@ You can act on candidates with =C-l= and ask to remind bindings with =C-h=
 #+END_SRC
 
 ** embark-consult
+:PROPERTIES:
+:CUSTOM_ID: h:002E04ED-FEBA-4058-8570-561963C2450F
+:END:
 #+begin_src emacs-lisp
 (use-package embark-consult
   :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
@@ -2236,6 +2508,9 @@ You can act on candidates with =C-l= and ask to remind bindings with =C-h=
 #+end_src
 
 ** consult
+:PROPERTIES:
+:CUSTOM_ID: h:E08EB7E2-CBD9-460C-B77E-9EFF7846C249
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package consult
 	:commands (consult-ripgrep)
@@ -2269,8 +2544,17 @@ You can act on candidates with =C-l= and ask to remind bindings with =C-h=
 #+END_SRC
 
 * Core packages
+:PROPERTIES:
+:CUSTOM_ID: h:EB91F91E-8984-4806-8254-B0487044D30C
+:END:
 ** project
+:PROPERTIES:
+:CUSTOM_ID: h:0F53A833-88C3-4AEC-A469-E15AD657BEB0
+:END:
 *** projectile
+:PROPERTIES:
+:CUSTOM_ID: h:788EC6E4-44DD-4E93-A1FC-517CA9213396
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package projectile
   :demand
@@ -2329,6 +2613,9 @@ You can act on candidates with =C-l= and ask to remind bindings with =C-h=
 #+END_SRC
  
 *** perspective
+:PROPERTIES:
+:CUSTOM_ID: h:6E4E5BD6-1930-4DCE-8E26-5ADAC2B9A152
+:END:
 TODO:
 - =SPC <tab> o= opens the "org" persp
 - same for main (maybe get ride of new tab)
@@ -2360,6 +2647,9 @@ TODO:
 #+END_SRC
 
 *** persp-projectile
+:PROPERTIES:
+:CUSTOM_ID: h:85ED0544-8351-4B05-843D-8BB9F3454041
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package persp-projectile
 	:after projectile
@@ -2377,7 +2667,13 @@ TODO:
 #+END_SRC
 
 ** git
+:PROPERTIES:
+:CUSTOM_ID: h:0D3218A4-4F45-4C20-9320-087750D5A961
+:END:
 *** magit
+:PROPERTIES:
+:CUSTOM_ID: h:61B8B839-46CA-4AE6-AD57-A6D291E7C225
+:END:
 50/72 rule for commit messages: https://www.midori-global.com/blog/2018/04/02/git-50-72-rule
 
 #+BEGIN_SRC emacs-lisp
@@ -2407,6 +2703,9 @@ TODO:
 #+END_SRC
 
 *** TODO forge
+:PROPERTIES:
+:CUSTOM_ID: h:6776E02F-A2E6-4BBA-91A1-81EEE4CFB3AB
+:END:
 #+BEGIN_SRC emacs-lisp :tangle no
 ;; NOTE: Make sure to configure a GitHub token before using this package!
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
@@ -2415,6 +2714,9 @@ TODO:
 #+END_SRC
 
 *** git-timemachine
+:PROPERTIES:
+:CUSTOM_ID: h:5CA4BCDE-A8D6-472F-9FA1-FA5514CC9388
+:END:
 #+begin_src emacs-lisp
   (use-package git-timemachine
     :hook (git-time-machine-mode . evil-normalize-keymaps)
@@ -2428,6 +2730,9 @@ TODO:
 #+end_src
 
 *** diff-hl
+:PROPERTIES:
+:CUSTOM_ID: h:DA2BAD8C-A37A-4A89-BEE0-A7FB367CD345
+:END:
 When an heading includes a change, the~org-ellipsis~ not shown correctly.
 This is caused by an empty line with ~diff-hl~ fringe that gets appended to the heading.
 To work around this and show the ellipsis, you have to add a whitespace in that empty line.
@@ -2453,6 +2758,9 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
 #+end_src
 
 *** hydra-smerge
+:PROPERTIES:
+:CUSTOM_ID: h:DADD41F3-F805-4E89-9EDB-B21350A81A19
+:END:
 #+begin_src emacs-lisp
   (use-package smerge-mode
     :straight (:type built-in)
@@ -2503,12 +2811,18 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
 #+end_src
 
 ** hydra
+:PROPERTIES:
+:CUSTOM_ID: h:6C6EA9DD-42EE-49CD-A7FC-5BE9FAB42F7F
+:END:
 #+begin_src emacs-lisp
 (use-package hydra
   :demand)
 #+end_src
 
 ** rainbow parenthesis
+:PROPERTIES:
+:CUSTOM_ID: h:D5084868-D46D-4AC7-ACE4-A7EDB10703EE
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
     :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
@@ -2516,6 +2830,9 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
 #+END_SRC
 
 ** syntax highlighting
+:PROPERTIES:
+:CUSTOM_ID: h:1FD9CDF3-4C5D-450E-99DE-034077C3D8BC
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package tree-sitter
     :hook (python-mode . (lambda ()
@@ -2529,6 +2846,9 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
 #+END_SRC
 
 ** company-mode
+:PROPERTIES:
+:CUSTOM_ID: h:0A172DDA-7B18-46EF-87C6-33D12234AEEC
+:END:
 ~company-tng-mode~ (tab-n-go):
 - Select candidates with =C-j= / =C-k= or =<tab>= / =S-<tab>=
 - don't press =RET= to confirm
@@ -2564,6 +2884,9 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
 #+END_SRC
 
 ** company box
+:PROPERTIES:
+:CUSTOM_ID: h:179D6081-F535-4869-BBF1-E92D005C5EBE
+:END:
 Taken from DOOM
 #+begin_src emacs-lisp
   (use-package company-box
@@ -2613,6 +2936,9 @@ Taken from DOOM
 #+end_src
 
 ** envrc
+:PROPERTIES:
+:CUSTOM_ID: h:65206410-8DD7-499E-AA70-6D9C781C0E0D
+:END:
 Running ~direnv~ is expensive so I only do it when it is necessary. I need it in two situations:
 - ~python-mode~
 - ~ob-jupyter~
@@ -2635,6 +2961,9 @@ In the [[*ob-jupyter][ob-jupyter]] section I then load ~ob-jupyter~ only when ~e
 #+end_src
 
 ** yasnippet
+:PROPERTIES:
+:CUSTOM_ID: h:8E2A5EAF-B690-457E-86E7-9070B51297A7
+:END:
 We use =C-<tab>= to expand snippets instead of =<tab>= .
 
 You can have ~#condition: 'auto~ for the snippet to auto-expand.
@@ -2664,6 +2993,9 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+end_src
 
 ** undo fu
+:PROPERTIES:
+:CUSTOM_ID: h:FEB4E3B3-47E7-4AAE-ADD7-524A57387301
+:END:
 #+begin_src emacs-lisp
 (use-package undo-fu
   :demand
@@ -2674,6 +3006,9 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+end_src
 
 ** vterm
+:PROPERTIES:
+:CUSTOM_ID: h:55C74553-9DAF-49E6-955A-C772FD7B4402
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package vterm
   :config
@@ -2682,6 +3017,9 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+END_SRC
 
 ** vterm toggle
+:PROPERTIES:
+:CUSTOM_ID: h:1162BDDB-9DC6-4750-8EF8-9C5D2AF51892
+:END:
 #+begin_src emacs-lisp
 (use-package vterm-toggle
   :general
@@ -2690,6 +3028,9 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+end_src
 
 ** dired
+:PROPERTIES:
+:CUSTOM_ID: h:BA5D7535-070B-494B-A27C-6B9FFC3CC88E
+:END:
 - Jump to current file with =SPC f j=
 - With a ~dired~ buffer open, use ~dired-other-window~ to open another folder where you want to move/copy files from/to
 - Hide details with ~(~
@@ -2737,6 +3078,9 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+END_SRC
 
 ** restart-emacs
+:PROPERTIES:
+:CUSTOM_ID: h:4C37CFFC-D045-47B4-BFDC-801977247199
+:END:
 #+begin_src emacs-lisp
   (use-package restart-emacs
     :general
@@ -2746,12 +3090,18 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+end_src
 
 ** toml mode
+:PROPERTIES:
+:CUSTOM_ID: h:4474E2AE-F934-48CD-ACB8-5729B7C26F0A
+:END:
 #+begin_src emacs-lisp
 (use-package toml-mode
 	:mode "\\.toml\\'")
 #+end_src
 
 ** TRAMP
+:PROPERTIES:
+:CUSTOM_ID: h:48EFC0F4-8C5C-47CF-A464-420A618A01C2
+:END:
 #+begin_src emacs-lisp
 (use-package tramp
 	:demand
@@ -2778,7 +3128,13 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+end_src
  
 * Programming languages
+:PROPERTIES:
+:CUSTOM_ID: h:844F8FAD-8F11-4727-BAC4-25B449C56B51
+:END:
 ** lsp mode
+:PROPERTIES:
+:CUSTOM_ID: h:28CB5546-FBE4-481D-B620-623006DC0FDA
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
 	:commands (lsp lsp-deferred)
@@ -2829,6 +3185,9 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+END_SRC
 
 ** dap-mode
+:PROPERTIES:
+:CUSTOM_ID: h:85405E87-7858-4F5C-A229-B72E70F68597
+:END:
 #+BEGIN_SRC emacs-lisp
   (use-package dap-mode
     :hook
@@ -2913,7 +3272,13 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+END_SRC
 
 ** Python
+:PROPERTIES:
+:CUSTOM_ID: h:541B5295-9C9C-4138-8A42-EA8DC9D4FD87
+:END:
 *** python mode
+:PROPERTIES:
+:CUSTOM_ID: h:95658AC9-ADFE-4134-81C4-DEC01069B716
+:END:
 #+BEGIN_SRC emacs-lisp
 (use-package python-mode
   :hook ((envrc-mode . (lambda ()
@@ -2936,6 +3301,9 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 #+END_SRC
 
 *** lsp-pyright
+:PROPERTIES:
+:CUSTOM_ID: h:373160D0-6591-4D96-9928-33EE610CEACE
+:END:
 Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configuration
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-pyright
@@ -2947,6 +3315,9 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+END_SRC
 
 *** pytest
+:PROPERTIES:
+:CUSTOM_ID: h:8C50BED5-6727-41D9-83BE-E5ADB96D7C88
+:END:
 #+begin_src emacs-lisp
 (use-package python-pytest
   :general
@@ -2968,6 +3339,9 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 *** flymake 
+:PROPERTIES:
+:CUSTOM_ID: h:F49B684F-1911-45E1-99AB-79EB14913FFC
+:END:
 #+begin_src emacs-lisp
   (use-package flymake
     :straight (:type built-in)
@@ -2982,6 +3356,9 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 *** jupyter
+:PROPERTIES:
+:CUSTOM_ID: h:388AA3FF-BC18-4628-93DC-9292B568AE9F
+:END:
 - In the REPL you can use =M-p= / =M-n= to navigate previous prompts
 
 #+begin_src emacs-lisp
@@ -3023,6 +3400,9 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 *** auto-import
+:PROPERTIES:
+:CUSTOM_ID: h:CD1D1A97-50EC-4B72-814C-3BC0297C42B1
+:END:
 #+begin_src emacs-lisp
 (use-package pyimport
   :general
@@ -3032,6 +3412,9 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 *** blacken
+:PROPERTIES:
+:CUSTOM_ID: h:2DC8F5D9-BD12-4CEA-9CBD-34B4CAC53495
+:END:
 #+begin_src emacs-lisp
 (use-package blacken
 	:general
@@ -3042,7 +3425,13 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 ** R
+:PROPERTIES:
+:CUSTOM_ID: h:74BD1AAB-0C5A-4BF2-927E-D11FEEA4C08A
+:END:
 *** ess
+:PROPERTIES:
+:CUSTOM_ID: h:06BE4AA2-688D-4748-BF6D-9656EF6ED767
+:END:
 #+begin_src emacs-lisp
 (use-package ess
 	:general
@@ -3070,7 +3459,13 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 ** emacs-lisp
+:PROPERTIES:
+:CUSTOM_ID: h:6956B874-2F21-42A1-8343-C4BF7B1123C9
+:END:
 *** elisp-mode
+:PROPERTIES:
+:CUSTOM_ID: h:6C6EF70D-C129-41EA-ABA0-78FA6C329B96
+:END:
 #+begin_src emacs-lisp
 (use-package elisp-mode
   :straight (:type built-in)
@@ -3087,6 +3482,9 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 *** evil-lisp state
+:PROPERTIES:
+:CUSTOM_ID: h:C59E740E-F00B-4D2F-B5A3-36C3B99BCD5E
+:END:
 + Enter ~lisp-state~ with =SPC l .=
 + Navigate symbols with =j= and =k=
 + Navigate forms with =h= and =l=
@@ -3107,14 +3505,26 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 ** Nix
+:PROPERTIES:
+:CUSTOM_ID: h:88E57F7B-DA1F-4BC1-BAD3-5BA459D054B7
+:END:
 *** nix mode
+:PROPERTIES:
+:CUSTOM_ID: h:D9238686-7FDE-406A-BAE1-DF8293A02647
+:END:
 #+begin_src emacs-lisp
 (use-package nix-mode
 :mode "\\.nix\\'")
 #+end_src
 
 ** Clojure
+:PROPERTIES:
+:CUSTOM_ID: h:2A226DAE-B566-464B-AF20-4BE86E554DC6
+:END:
 *** Clojure mode
+:PROPERTIES:
+:CUSTOM_ID: h:C757468F-281B-4A9D-84AF-26B9B656F01C
+:END:
 #+begin_src emacs-lisp
 (use-package clojure-mode
   :mode "\\.clj$"
@@ -3123,6 +3533,9 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 #+end_src
 
 *** Cider
+:PROPERTIES:
+:CUSTOM_ID: h:3D8B9BAA-05E9-4F0B-8988-4B56882BB607
+:END:
 #+begin_src emacs-lisp
 (use-package cider
   :hook ((cider-repl-mode . evil-normalize-keymaps)
@@ -3163,6 +3576,9 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
 #+end_src
 
 *** ob-clojure
+:PROPERTIES:
+:CUSTOM_ID: h:3B21567B-6B7B-4747-B44B-AA2480FA49E5
+:END:
 #+begin_src emacs-lisp
 (use-package org
 :config
@@ -3171,6 +3587,9 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
 #+end_src
 
 *** evil-cleverparens
+:PROPERTIES:
+:CUSTOM_ID: h:02F42E4A-7DB4-4150-AA74-22CB3FE7636C
+:END:
 This package provides additional text objects for LISPs.
 For example, you can mark the outer form with =v a d=.
 #+begin_src emacs-lisp
@@ -3191,6 +3610,9 @@ For example, you can mark the outer form with =v a d=.
 #+end_src
 
 *** aggressive-indent
+:PROPERTIES:
+:CUSTOM_ID: h:804F32D8-081E-427C-8949-90D3ECF5879F
+:END:
 #+begin_src emacs-lisp
   ;; keep the file indented
   (use-package aggressive-indent
@@ -3199,7 +3621,13 @@ For example, you can mark the outer form with =v a d=.
 #+end_src
 
 ** markdown
+:PROPERTIES:
+:CUSTOM_ID: h:C643DC36-8F5E-40E4-B8BB-126F341491FD
+:END:
 *** markdown-mode
+:PROPERTIES:
+:CUSTOM_ID: h:78EA0AF3-721E-4005-A742-287C4DAED7CD
+:END:
 #+begin_src emacs-lisp
 (use-package markdown-mode
   :commands (markdown-mode gfm-mode)
@@ -3210,7 +3638,13 @@ For example, you can mark the outer form with =v a d=.
 #+end_src
 
 * Gimmicks
+:PROPERTIES:
+:CUSTOM_ID: h:7D94EA42-5F85-4E18-9029-19BAD69FBF85
+:END:
 ** reddit
+:PROPERTIES:
+:CUSTOM_ID: h:B616A404-0B56-4C56-9A8C-343E212F536A
+:END:
 #+begin_src emacs-lisp
 (use-package md4rd
   :general
@@ -3225,6 +3659,9 @@ For example, you can mark the outer form with =v a d=.
 #+end_src
 
 ** web browser
+:PROPERTIES:
+:CUSTOM_ID: h:6B214C3A-22E3-47D0-9DD7-F379E07CF960
+:END:
 Use =SPC s w= to search the web! You can also visit a URL in the buffer.
 With the web browser open, scroll with =j= / =k= .
 To visit a link, =SPC s l= 
@@ -3246,7 +3683,10 @@ To visit a link, =SPC s l=
 	)
 #+end_src
 
-** TODO dash docsets
+** COMMENT dash docsets
+:PROPERTIES:
+:CUSTOM_ID: h:F60C9AFB-AF3C-434D-B2C9-14741185D0DB
+:END:
 To do:
 - Install dash and docsets
 
@@ -3258,7 +3698,10 @@ To do:
 	)
 #+end_src
 
-** TODO nano-emacs / sanity.el
+** COMMENT nano-emacs / sanity.el
+:PROPERTIES:
+:CUSTOM_ID: h:878D29DE-5721-42BD-850E-81D0A47580D3
+:END:
 Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
 
 #+begin_src emacs-lisp :tangle no
@@ -3467,39 +3910,46 @@ Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
                       :inverse-video nil))
 #+end_src
 
-* TODO missing / to fix
+* COMMENT missing / to fix
+:PROPERTIES:
+:CUSTOM_ID: h:742F97D8-9FC2-4ED4-9985-A23192D75550
+:END:
 ** Missing
+:PROPERTIES:
+:CUSTOM_ID: h:5F1CF6F3-5BEE-41BB-8EAD-E6077A12920C
+:END:
 *** Make different font configurations (toggle big font)
+:PROPERTIES:
+:CUSTOM_ID: h:48656013-A692-467F-93DB-9E09967DE531
+:END:
 *** Make different window configurations for dap-mode
+:PROPERTIES:
+:CUSTOM_ID: h:42BF8EDB-1ABA-4DA9-A362-4D595791FA69
+:END:
 + One with just the code and the REPL
 + One with everything
 
-** Half done
-*** TODO better ~org-link~
-#+begin_src emacs-lisp :tangle no
-(defun hoperyto/org-id-complete-link-description (link desc)
-  (if (and (string-prefix-p "id:" link)
-           (or (not desc) (string= "" desc)))
-      (let* ((id (string-remove-prefix "id:" link)))
-        (save-excursion
-          (org-id-goto id)
-          (nth 4 (org-heading-components))))
-    desc))
-
-;; Store id based link to org entry at point via C-c l
-(setq org-id-link-to-org-use-id t)
-
-;; Set org entry heading/title as default description for id:<id> type links
-(setq org-link-make-description-function #'hoperyto/org-id-complete-link-description)
-#+end_src
-
 ** To fix
+:PROPERTIES:
+:CUSTOM_ID: h:92086A48-355B-426E-AB82-DB73FAA11A1C
+:END:
 *** ~evil-scroll-down~ throwing error when ~centaur-tabs-mode~ is active
-*** ~org-ellipsis~ not shown in heading when ~git-gutter-fringe-mode~ is active
+:PROPERTIES:
+:CUSTOM_ID: h:FBB8E012-86B0-47A6-9730-20549072456B
+:END:
 *** ~helpful-variable~ sometimes throws syntax error
-*** override modus face for highlight in consult-line minibuffer
-* Local variables
+:PROPERTIES:
+:CUSTOM_ID: h:9ABC9A4D-D71E-49E7-9C13-34DF1FFB2836
+:END:
+*** Can't export both light and dark themes, one of the two has wrong rainbow delimiters 
+:PROPERTIES:
+:CUSTOM_ID: h:6E70D3BF-8DDD-429F-92B8-BCBFCB42F94C
+:END:
+* COMMENT Local variables
+:PROPERTIES:
+:CUSTOM_ID: h:8CE072CD-CA85-4E53-B672-E0AC74E4E4EC
+:END:
 # Local Variables:
-# eval: (add-hook 'after-save-hook (lambda ()(my/tangle-config)) nil t)
+# eval: (add-hook 'after-save-hook (lambda ()(progn (my/org-add-ids-to-headlines-in-file) (my/tangle-config))) nil t)
 # company-backends: (company-dabbrev-code company-files company-keywords)
 # End:

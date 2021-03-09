@@ -128,15 +128,15 @@
 
 (use-package emacs
   :hook
-  ((org-jupyter-python-mode . (lambda () (set-local-electric-pairs '())))
-   (org-mode . (lambda () (set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
+  ((org-jupyter-python-mode . (lambda () (my/set-local-electric-pairs '())))
+   (org-mode . (lambda () (my/set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
   :init
   ;; auto-close parentheses
   (electric-pair-mode +1)
   (setq electric-pair-preserve-balance nil)
   ;; mode-specific local-electric pairs
   (defvar my/default-electric-pairs electric-pair-pairs)
-  (defun set-local-electric-pairs (pairs)
+  (defun my/set-local-electric-pairs (pairs)
     "Example usage: 
     (add-hook 'jupyter-org-interaction-mode '(lambda () (set-local-electric-pairs '())))
     "
@@ -618,7 +618,7 @@ begin_src jupyter-python in the first few hundred rows"
 
 (use-package org
 	:init
-	(defun org-toc ()
+	(defun my/org-toc ()
 		(interactive)
 		(let ((headings (delq nil (cl-loop for f in (f-entries "." (lambda (f) (f-ext? f "org")) t)
 																			 append
@@ -1242,14 +1242,6 @@ asynchronously."
   :config
   (require 'org-id)
   (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
-
-  ;; (add-hook 'org-mode-hook
-  ;;           (lambda ()
-  ;;             (add-hook 'before-save-hook
-  ;;                       (lambda ()
-  ;;                         (when (and (eq major-mode 'org-mode)
-  ;;                                    (eq buffer-read-only nil))
-  ;;                           (my/org-add-ids-to-headlines-in-file))))))
   )
 
 (use-package all-the-icons)
