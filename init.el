@@ -197,8 +197,8 @@ size. This function also handles icons and modeline font sizes."
 			(set-face-attribute 'default nil :height new-height)
 			(set-face-attribute 'fixed-pitch nil :height new-height)
 			(set-face-attribute 'variable-pitch nil :height new-height)
-			;; (set-face-attribute 'mode-line nil :height new-height)
-			;; (set-face-attribute 'mode-line-inactive nil :height new-height)
+			(set-face-attribute 'mode-line nil :height new-height)
+			(set-face-attribute 'mode-line-inactive nil :height new-height)
 			(message "Font size: %s" new-height)))
 
 	(defun lc/increase-font-size ()
@@ -217,10 +217,12 @@ size. This function also handles icons and modeline font sizes."
 		(lc/adjust-font-size 0))
 	)
 
-(when (eq system-type 'darwin)
-  (setq mac-command-modifier 'super)     ; command as super
-  (setq mac-option-modifier 'meta)     ; alt as meta
-  (setq mac-control-modifier 'control)) ; control as... control
+(use-package emacs
+  :init
+  (when (eq system-type 'darwin)
+    (setq mac-command-modifier 'super)     ; command as super
+    (setq mac-option-modifier 'meta)     ; alt as meta
+    (setq mac-control-modifier 'control)))
 
 (use-package gcmh
   :demand
@@ -289,94 +291,102 @@ size. This function also handles icons and modeline font sizes."
                 (lambda (c) (eq c ?<))))
 
 (use-package general
-	:demand t
-	:config
-	(general-evil-setup)
+  :demand t
+  :config
+  (general-evil-setup)
 
-	(general-create-definer lc/leader-keys
-		:states '(normal insert visual emacs)
-		:keymaps 'override
-		:prefix "SPC"
-		:global-prefix "C-SPC")
+  (general-create-definer lc/leader-keys
+    :states '(normal insert visual emacs)
+    :keymaps 'override
+    :prefix "SPC"
+    :global-prefix "C-SPC")
 
-	(general-create-definer lc/local-leader-keys
-		:states '(normal visual)
-		:keymaps 'override
-		:prefix ","
-		:global-prefix "SPC m")
+  (general-create-definer lc/local-leader-keys
+    :states '(normal visual)
+    :keymaps 'override
+    :prefix ","
+    :global-prefix "SPC m")
 
-	(lc/leader-keys
-		"SPC" '(execute-extended-command :which-key "execute command")
-		"`" '((lambda () (interactive) (switch-to-buffer (other-buffer (current-buffer) 1))) :which-key "prev buffer")
-		
-		";" '(eval-expression :which-key "eval sexp")
+  (lc/leader-keys
+    "SPC" '(execute-extended-command :which-key "execute command")
+    "`" '((lambda () (interactive) (switch-to-buffer (other-buffer (current-buffer) 1))) :which-key "prev buffer")
+    
+    ";" '(eval-expression :which-key "eval sexp")
 
-		"b" '(:ignore t :which-key "buffer")
-		"br"  'revert-buffer
-		"bd"  'kill-current-buffer
+    "b" '(:ignore t :which-key "buffer")
+    "br"  'revert-buffer
+    ;; "bs" '((lambda () (interactive)
+    ;;          (pop-to-buffer "*scratch*"))
+    ;;        :wk "scratch")
+    "bd"  'kill-current-buffer
 
-		"c" '(:ignore t :which-key "code")
+    "c" '(:ignore t :which-key "code")
 
-		"f" '(:ignore t :which-key "file")
-		"fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
-		"ff"  'find-file
-		"fs" 'save-buffer
-		"fr" 'recentf-open-files
-		"fR" '((lambda (new-path)
-						 (interactive (list (read-file-name "Move file to: ") current-prefix-arg))
-						 (rename-file (buffer-file-name) (expand-file-name new-path))) :wk "move/rename")
+    "f" '(:ignore t :which-key "file")
+    "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
+    "ff"  'find-file
+    "fs" 'save-buffer
+    "fr" 'recentf-open-files
+    "fR" '((lambda (new-path)
+             (interactive (list (read-file-name "Move file to: ") current-prefix-arg))
+             (rename-file (buffer-file-name) (expand-file-name new-path)))
+					 :wk "move/rename")
 
-		"g" '(:ignore t :which-key "git")
-		;; keybindings defined in magit
+    "g" '(:ignore t :which-key "git")
+    ;; keybindings defined in magit
 
-		"h" '(:ignore t :which-key "describe")
-		"he" 'view-echo-area-messages
-		"hf" 'describe-function
-		"hF" 'describe-face
-		"hl" 'view-lossage
-		"hL" 'find-library
-		"hm" 'describe-mode
-		"hk" 'describe-key
-		"hK" 'describe-keymap
-		"hp" 'describe-package
-		"hv" 'describe-variable
+    "h" '(:ignore t :which-key "describe")
+    "he" 'view-echo-area-messages
+    "hf" 'describe-function
+    "hF" 'describe-face
+    "hl" 'view-lossage
+    "hL" 'find-library
+    "hm" 'describe-mode
+    "hk" 'describe-key
+    "hK" 'describe-keymap
+    "hp" 'describe-package
+    "hv" 'describe-variable
 
-		"o" '(:ignore t :which-key "org")
-		;; keybindings defined in org-mode
+    "o" '(:ignore t :which-key "org")
+    ;; keybindings defined in org-mode
 
-		;; "p" '(:ignore t :which-key "project")
-		;; keybindings defined in projectile
+    ;; "p" '(:ignore t :which-key "project")
+    ;; keybindings defined in projectile
 
-		"s" '(:ignore t :which-key "search")
-		;; keybindings defined in consult
+    "s" '(:ignore t :which-key "search")
+    ;; keybindings defined in consult
 
-		"t"  '(:ignore t :which-key "toggle")
-		"t d"  '(toggle-debug-on-error :which-key "debug on error")
-		"t l" '(display-line-numbers-mode :wk "line numbers")
-		"t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
-		"t +"	'(lc/increase-font-size :wk "+ font")
-		"t -"	'(lc/decrease-font-size :wk "- font")
-		"t 0"	'(lc/reset-font-size :wk "reset font")
+    "t"  '(:ignore t :which-key "toggle")
+    "t d"  '(toggle-debug-on-error :which-key "debug on error")
+    "t l" '(display-line-numbers-mode :wk "line numbers")
+    "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
+    "t +"	'(lc/increase-font-size :wk "+ font")
+    "t -"	'(lc/decrease-font-size :wk "- font")
+    "t 0"	'(lc/reset-font-size :wk "reset font")
 
-		"u" '(universal-argument :wk "universal")
+    "u" '(universal-argument :wk "universal")
 
-		"w" '(:ignore t :which-key "window")
-		"wl"  'windmove-right
-		"wh"  'windmove-left
-		"wk"  'windmove-up
-		"wj"  'windmove-down
-		"wr" 'winner-redo
-		"wd"  'delete-window
-		"w=" 'balance-windows-area
-		"wD" 'kill-buffer-and-window
-		"wu" 'winner-undo
-		"wr" 'winner-redo
-		"wm"  '(delete-other-windows :wk "maximize"))
+    "w" '(:ignore t :which-key "window")
+    "wl"  'windmove-right
+    "wh"  'windmove-left
+    "wk"  'windmove-up
+    "wj"  'windmove-down
+    "wr" 'winner-redo
+    "wd"  'delete-window
+    "w=" 'balance-windows-area
+    "wD" 'kill-buffer-and-window
+    "wu" 'winner-undo
+    "wr" 'winner-redo
+    "wm"  '(delete-other-windows :wk "maximize")
 
-	(lc/local-leader-keys
-		"d" '(:ignore t :which-key "debug")
-		"e" '(:ignore t :which-key "eval")
-		"t" '(:ignore t :which-key "test")))
+    "x" '(:ignore t :which-key "browser")
+    ;; keybindings defined in xwwp
+    )
+
+  (lc/local-leader-keys
+    "d" '(:ignore t :which-key "debug")
+    "e" '(:ignore t :which-key "eval")
+    "t" '(:ignore t :which-key "test")))
 
 (use-package evil
   :demand
@@ -487,102 +497,137 @@ size. This function also handles icons and modeline font sizes."
   (which-key-mode))
 
 (use-package org
-	:hook ((org-mode . prettify-symbols-mode)
-				 (org-mode . visual-line-mode)
-				 (org-mode . variable-pitch-mode))
-	:general
-	(lc/leader-keys
-		"o a" '(org-agenda-list :wk "agenda")
-		"o A" '(org-agenda :wk "agenda")
-		"o C" '(org-capture :wk "capture")
-		"o l" '(org-todo-list :wk "todo list")
-		"o c" '((lambda () (interactive)
-							(find-file (concat user-emacs-directory "readme.org")))
-						:wk "open config")
-		"o t" '((lambda () (interactive)
-							(find-file (concat org-directory "/personal/todo.org")))
-						:wk "open todos"))
-	(lc/local-leader-keys
-		:keymaps 'org-mode-map
-		"a" '(org-archive-subtree :wk "archive subtree")
-		"E" '(org-export-dispatch :wk "export")
-		"i" '(org-insert-structure-template :wk "insert src")
-		"l" '(:ignore true :wk "link")
-		"l l" '(org-insert-link :wk "insert link")
-		"l s" '(org-store-link :wk "store link")
-		"L" '((lambda () (interactive) (org-latex-preview)) :wk "latex preview")
-		;; "L" '((lambda () (interactive) (org--latex-preview-region (point-min) (point-max))) :wk "latex")
-		"r" '(org-refile :wk "refile")
-		"n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
-		"p" '(org-priority :wk "priority")
-		"s" '(org-sort :wk "sort")
-		"t" '(:ignore true :wk "todo")
-		"t t" '(org-todo :wk "heading todo")
-		"t s" '(org-schedule :wk "schedule")
-		"t d" '(org-deadline :wk "deadline"))
-	(org-mode-map
-	 :states 'normal
-	 "z i" '(org-toggle-inline-images :wk "inline images"))
-	:init
-	;; general settings
-	(setq org-directory "~/Dropbox/org"
-				org-image-actual-width nil
-				+org-export-directory "~/Dropbox/org/export"
-				org-default-notes-file "~/Dropbox/org/personal/todo.org"
-				org-id-locations-file "~/Dropbox/org/.orgids"
-				org-agenda-files '("~/dropbox/org/personal/birthdays.org"
-													 "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
-				;; org-export-in-background t
-				org-src-preserve-indentation t ;; do not put two spaces on the left
-				org-startup-indented t
-				;; org-startup-with-inline-images t
-				org-hide-emphasis-markers t
-				org-catch-invisible-edits 'smart)
-	(setq org-indent-indentation-per-level 1)
-	(setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
-	;; disable modules for faster startup
-	(setq org-modules
-				'(ol-docview
-					org-habit))
-	(setq org-todo-keywords
-				'((sequence "TODO(t)" "NEXT(n)" "PROG(p)" "|" "HOLD(h)" "DONE(d)")))
-	(setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
-																				 ("#+END_SRC" . "«")
-																				 ("#+begin_src" . "»")
-																				 ("#+end_src" . "«")
-																				 ("lambda"  . "λ")
-																				 ("->" . "→")
-																				 ("->>" . "↠")))
-	(setq prettify-symbols-unprettify-at-point 'right-edge)
-	(setq org-agenda-custom-commands
-				'(("d" "Dashboard"
-					 ((agenda "" ((org-deadline-warning-days 7)))
-						(todo "NEXT"
-									((org-agenda-overriding-header "Next Tasks")))
-						(tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-					("n" "Next Tasks"
-					 ((todo "NEXT"
-									((org-agenda-overriding-header "Next Tasks")))))
-					("w" "Work Tasks" tags-todo "+work")))
-	
-	:config
-	;; (efs/org-font-setup)
-	(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-	(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-	(add-to-list 'org-structure-template-alist '("py" . "src python"))
-	(add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
-	(add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
-	(add-to-list 'org-structure-template-alist '("jr" . "src jupyter-R"))
-	;; fontification
-	(add-to-list 'org-src-lang-modes '("jupyter-python" . python))
-	(add-to-list 'org-src-lang-modes '("jupyter-R" . R))
-	;; latex
-	;; (setq org-latex-compiler "xelatex")
-	;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
-	(setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
-	(add-to-list 'org-export-backends 'beamer)
-	(plist-put org-format-latex-options :scale 1.5)
-	)
+  :hook ((org-mode . prettify-symbols-mode)
+         (org-mode . visual-line-mode)
+         (org-mode . variable-pitch-mode))
+  :general
+  (lc/leader-keys
+    "o a" '(org-agenda-list :wk "agenda")
+    "o A" '(org-agenda :wk "agenda")
+    "o C" '(org-capture :wk "capture")
+    "o l" '(org-todo-list :wk "todo list")
+    "o c" '((lambda () (interactive)
+              (find-file (concat user-emacs-directory "readme.org")))
+            :wk "open config")
+    "o t" '((lambda () (interactive)
+              (find-file (concat org-directory "/personal/todo.org")))
+            :wk "open todos"))
+  (lc/local-leader-keys
+    :keymaps 'org-mode-map
+    "a" '(org-archive-subtree :wk "archive subtree")
+    "E" '(org-export-dispatch :wk "export")
+    "i" '(org-insert-structure-template :wk "insert src")
+    "l" '(:ignore true :wk "link")
+    "l l" '(org-insert-link :wk "insert link")
+    "l s" '(org-store-link :wk "store link")
+    "L" '((lambda () (interactive) (org-latex-preview)) :wk "latex preview")
+    ;; "L" '((lambda () (interactive) (org--latex-preview-region (point-min) (point-max))) :wk "latex")
+    "r" '(org-refile :wk "refile")
+    "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
+    "p" '(org-priority :wk "priority")
+    "s" '(org-sort :wk "sort")
+    "t" '(:ignore true :wk "todo")
+    "t t" '(org-todo :wk "heading todo")
+    "t s" '(org-schedule :wk "schedule")
+    "t d" '(org-deadline :wk "deadline"))
+  (org-mode-map
+   :states 'normal
+   "z i" '(org-toggle-inline-images :wk "inline images"))
+  :init
+  ;; general settings
+  (setq org-directory "~/Dropbox/org"
+        org-image-actual-width nil
+        +org-export-directory "~/Dropbox/org/export"
+        org-default-notes-file "~/Dropbox/org/personal/todo.org"
+        org-id-locations-file "~/Dropbox/org/.orgids"
+        org-agenda-files '("~/dropbox/org/personal/birthdays.org"
+                           "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
+        ;; org-export-in-background t
+        org-src-preserve-indentation t ;; do not put two spaces on the left
+        org-startup-indented t
+        ;; org-startup-with-inline-images t
+        org-hide-emphasis-markers t
+        org-catch-invisible-edits 'smart)
+  (setq org-indent-indentation-per-level 1)
+  (setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
+  ;; disable modules for faster startup
+  (setq org-modules
+        '(ol-docview
+          org-habit))
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "PROG(p)" "|" "HOLD(h)" "DONE(d)")))
+  (setq-default prettify-symbols-alist '(("#+BEGIN_SRC" . "»")
+                                         ("#+END_SRC" . "«")
+                                         ("#+begin_src" . "»")
+                                         ("#+end_src" . "«")
+                                         ("lambda"  . "λ")
+                                         ("->" . "→")
+                                         ("->>" . "↠")))
+  (setq prettify-symbols-unprettify-at-point 'right-edge)
+  (setq org-agenda-custom-commands
+        '(("d" "Dashboard"
+           ((agenda "" ((org-deadline-warning-days 7)))
+            (todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))
+            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+          ("n" "Next Tasks"
+           ((todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))))
+          ("w" "Work Tasks" tags-todo "+work")))
+  (setq org-image-actual-width 300)
+  :config
+  ;; (efs/org-font-setup)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("clj" . "src clojure"))
+  (add-to-list 'org-structure-template-alist '("jp" . "src jupyter-python"))
+  (add-to-list 'org-structure-template-alist '("jr" . "src jupyter-R"))
+  ;; fontification
+  (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
+  (add-to-list 'org-src-lang-modes '("jupyter-R" . R))
+  ;; latex
+  ;; (setq org-latex-compiler "xelatex")
+  ;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
+  (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
+  (add-to-list 'org-export-backends 'beamer)
+  (plist-put org-format-latex-options :scale 1.5)
+  )
+
+(use-package org
+  :config
+  ;; temporary hack until straight.el supports building org properly
+  (defun org-git-version ()
+    "The Git version of org-mode.
+  Inserted by installing org-mode or when a release is made."
+    ;; (require 'git)
+    ;; (let ((git-repo (expand-file-name
+    ;;                  "straight/repos/org/" user-emacs-directory)))
+    ;;   (string-trim
+    ;;    (git-run "describe"
+    ;;             "--match=release\*"
+    ;;             "--abbrev=6"
+    ;;             "HEAD")))
+		"9.2.4")
+
+  (defun org-release ()
+    "The release version of org-mode.
+  Inserted by installing org-mode or when a release is made."
+    ;; (require 'git)
+    ;; (let ((git-repo (expand-file-name
+    ;;                  "straight/repos/org/" user-emacs-directory)))
+    ;;   (string-trim
+    ;;    (string-remove-prefix
+    ;;     "release_"
+    ;;     (git-run "describe"
+    ;;              "--match=release\*"
+    ;;              "--abbrev=0"
+    ;;              "HEAD"))))
+		"9.2.4"
+		)
+
+  ;; (provide 'org-version)
+  )
 
 (use-package org
 :init
@@ -779,7 +824,7 @@ asynchronously."
     "+" '(jupyter-org-insert-src-block :wk "block above")
     "?" '(jupyter-inspect-at-point :wk "inspect")
     "x" '(jupyter-org-kill-block-and-results :wk "kill block"))
-  :hook ((jupyter-org-interaction-mode . (lambda () (set-local-electric-pairs '((?' . ?')))))
+  :hook ((jupyter-org-interaction-mode . (lambda () (lc/set-local-electric-pairs '((?' . ?')))))
          (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
                                            (when (derived-mode-p 'org-mode)
                                              ;; (setq-local company-backends '((company-capf)))
@@ -1126,18 +1171,20 @@ asynchronously."
   :hook (org-mode . org-html-themify-mode)
   :init
   (setq org-html-themify-themes
-        '(;; (light . modus-operandi)
-					;; (dark . modus-vivendi)
-          (light . modus-operandi)
-          (dark . modus-operandi)
-					))
+        (if (eq lc/theme 'light)
+            '((light . modus-operandi)
+              (dark . modus-operandi))
+          '((light . modus-vivendi)
+            (dark . modus-vivendi))))
   :config
   ;; otherwise it complains about invalid face
   (require 'hl-line)
   )
 
 (use-package ox-gfm
-  :after org)
+	:after org
+	:demand
+	)
 
 (use-package ox-ipynb
   :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
@@ -1297,7 +1344,7 @@ asynchronously."
 				modus-themes-prompts nil ; {nil,'subtle,'intense}
 				modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
 				modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-				modus-themes-org-blocks 'nil ; {nil,'greyscale,'rainbow}
+				modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
 				modus-themes-headings  ; Read further below in the manual for this one
 				'((1 . line-no-bold)
 					(t . rainbow-line-no-bold))
@@ -1313,16 +1360,19 @@ asynchronously."
 		(run-at-time "07:00" (* 60 60 24)
 								 (lambda ()
 									 (modus-themes-load-operandi)
+									 (setq lc/theme 'light)
 									 (with-eval-after-load 'org
 										 (plist-put org-format-latex-options :foreground "black"))))
 		;; Dark for the night
 		(run-at-time "00:00" (* 60 60 24)
 								 (lambda ()
+									 (setq lc/theme 'dark)
 									 (modus-themes-load-vivendi)
 									 (with-eval-after-load 'org
 										 (plist-put org-format-latex-options :foreground "whitesmoke"))))
 		(run-at-time "17:00" (* 60 60 24)
 								 (lambda ()
+									 (setq lc/theme 'dark)
 									 (modus-themes-load-vivendi)
 									 (with-eval-after-load 'org
 										 (plist-put org-format-latex-options :foreground "whitesmoke")))))
@@ -1334,8 +1384,8 @@ asynchronously."
 
 (use-package dashboard
   ;; :after projectile
-  ;; :hook
-  ;; (dashboard-after-initialize . (lambda () (setq-local cursor-type nil)))
+  :hook
+  (dashboard-after-initialize . (lambda () (internal-show-cursor nil nil)))
   :demand
   :init
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
@@ -1345,12 +1395,11 @@ asynchronously."
   (setq dashboard-set-file-icons t)
   (defun is-after-17-or-weekends? ()
     (or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
-						(substring 0 2)
-						(string-to-number)
-						(> 16)
-						)
-				(-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
-						(member  '("Sat" "Sun")))))
+            (substring 0 2)
+            (string-to-number)
+            (> 16))
+        (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
+            (member  '("Sat" "Sun")))))
   ;; exclude work items after 17 and on weekends
   (run-at-time "00:00" (* 60 60 24)
                (lambda ()
@@ -1359,26 +1408,30 @@ asynchronously."
                    (setq dashboard-match-agenda-entry "work|life|habits"))))
   (setq dashboard-items '((agenda . 5)
                           ;; (bookmarks . 5)
-                          (recents  . 5)
-                          ;; (projects . 5)
+                          ;; (recents  . 5)
+                          (projects . 5)
                           ))
+  (setq dashboard-banner-logo-title nil)
+  (setq dashboard-set-footer nil)
   ;; (setq dashboard-startup-banner [VALUE])
-	;; (setq dashboard-navigator-buttons
-  ;;  `((;; Github
-  ;;     (,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
-  ;;      "Github"
-  ;;      "Browse github"
-  ;;      (lambda (&rest _) (browse-url "https://github.com/")))
-  ;;     ;; Codebase
-  ;;     ;; (,(all-the-icons-faicon "briefcase" :height 1.1 :v-adjust -0.1)
-  ;;     ;;  "Codebase"
-  ;;     ;;  "My assigned tickets"
-  ;;     ;;  (lambda (&rest _) (browse-url "https://hipo.codebasehq.com/tickets")))
-  ;;     ;; Perspective
-  ;;     (,(all-the-icons-octicon "history" :height 1.1 :v-adjust 0.0)
-  ;;      "Reload last session"
-  ;;      "Reload last session"
-  ;;      (lambda (&rest _) (persp-state-load persp-state-default-file))))))
+  (setq dashboard-set-navigator t)
+  (setq dashboard-navigator-buttons
+        `((;; Github
+           (,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+            "Github"
+            "Go to wondercast"
+            (lambda (&rest _) (browse-url "https://github.com/Maersk-Global/wondercast")))
+           ;; Codebase
+           (,(all-the-icons-faicon "briefcase" :height 1.1 :v-adjust -0.1)
+            "JIRA"
+            "Go to Kanban"
+            (lambda (&rest _) (browse-url "https://jira.maerskdev.net/secure/RapidBoard.jspa?rapidView=6378&projectKey=AVOC&quickFilter=15697")))
+           ;; Perspective
+           ;; (,(all-the-icons-octicon "history" :height 1.1 :v-adjust 0.0)
+           ;;  "Reload last session"
+           ;;  "Reload last session"
+           ;;  (lambda (&rest _) (persp-state-load persp-state-default-file)))
+           )))
   :config
   (dashboard-setup-startup-hook)
   (set-face-attribute 'dashboard-items-face nil :height (lc/get-font-size))
@@ -1431,16 +1484,16 @@ asynchronously."
     "w f" '(rotate-frame :wk "flip")))
 
 (use-package persistent-scratch
-	:hook
+  :hook
   (org-mode . (lambda ()
                 "only set initial-major-mode after loading org"
                 (setq initial-major-mode 'org-mode)))
-	:general
-	(lc/leader-keys
+  :general
+  (lc/leader-keys
     "bs" '((lambda ()
              "Load persistent-scratch if not already loaded"
-						 (interactive)
-						 (progn 
+             (interactive)
+             (progn 
                (unless (boundp 'persistent-scratch-mode)
                  (require 'persistent-scratch))
                (pop-to-buffer "*scratch*")))
@@ -1448,7 +1501,7 @@ asynchronously."
   :init
   (setq persistent-scratch-autosave-interval 60)
   :config
-	(persistent-scratch-setup-default))
+  (persistent-scratch-setup-default))
 
 (use-package olivetti
   :general
@@ -1697,9 +1750,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "<tab> d" 'persp-kill
     "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
     "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
-    "<tab> n" '(lc/new-tab :wk "new"))
+    "<tab> m" '(lc/main-tab :wk "main"))
   :init
-  (defun lc/new-tab ()
+  (defun lc/main-tab ()
     "Jump to the dashboard buffer, if doesn't exists create one."
     (interactive)
     ;; (persp-new (concat "tab " (+ 1 (int (length (persp-names))))))
@@ -1825,6 +1878,8 @@ Movement   Keep           Diff              Other │ smerge │
     ("R" smerge-kill-current)
     ("q" nil :color blue)))
 
+(use-package git)
+
 (use-package hydra
   :demand)
 
@@ -1926,19 +1981,16 @@ Movement   Keep           Diff              Other │ smerge │
   )
 
 (use-package yasnippet
-	:general
-	(yas-minor-mode-map
-	 :states 'insert
+  :general
+  (yas-minor-mode-map
+   :states 'insert
    "<tab>" 'nil
    "C-<tab>" 'yas-expand)
   :hook
-  ((text-mode . yas-minor-mode)
-   (prog-mode . yas-minor-mode)
-	 (dap-ui-repl-mode . yas-minor-mode)
-   (org-mode . yas-minor-mode))
-	:init
+  ((prog-mode org-mode dap-ui-repl-mode vterm-mode) . yas-minor-mode)
+  :init
   ;; (setq yas-prompt-functions '(yas-ido-prompt))
-	(defun lc/yas-try-expanding-auto-snippets ()
+  (defun lc/yas-try-expanding-auto-snippets ()
     (when (and (boundp 'yas-minor-mode) yas-minor-mode)
       (let ((yas-buffer-local-condition ''(require-snippet-condition . auto)))
         (yas-expand))))
@@ -1973,6 +2025,7 @@ Movement   Keep           Diff              Other │ smerge │
     "f d" 'dired
     "f j" 'dired-jump)
 	:init
+	(setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
 	(setq dired-dwim-target t))
 
 (use-package dired-single
@@ -2025,6 +2078,9 @@ Movement   Keep           Diff              Other │ smerge │
 (use-package docker-tramp
 	:demand)
 
+(use-package yaml-mode
+  :mode ((rx ".yml" eos) . yaml-mode))
+
 (use-package lsp-mode
 	:commands (lsp lsp-deferred)
 	:hook
@@ -2065,6 +2121,14 @@ Movement   Keep           Diff              Other │ smerge │
 	:general
 	(lsp-mode-map
 	 :states 'normal "gD" 'lsp-ui-peek-find-references)
+	(lsp-ui-peek-mode-map
+	 :states 'normal
+	 "C-j" 'lsp-ui-peek--select-next
+	 "C-k" 'lsp-ui-peek--select-prev)
+	(outline-mode-map
+	 :states 'normal
+	 "C-j" 'nil
+	 "C-k" 'nil)
 	:init
 	(setq lsp-ui-doc-show-with-cursor nil)
 	(setq lsp-ui-doc-show-with-mouse nil)
@@ -2074,7 +2138,8 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package dap-mode
   :hook
-  (dap-terminated . lc/hide-debug-windows)
+  ((dap-terminated . lc/hide-debug-windows)
+	 (dap-ui-repl-mode . (lambda () (setq-local truncate-lines t))))
   :general
   (lc/local-leader-keys
     :keymaps 'python-mode-map
@@ -2093,8 +2158,9 @@ Movement   Keep           Diff              Other │ smerge │
   (setq dap-python-debugger 'debugpy)
   ;; show stdout
   (setq dap-auto-show-output t)
-  (setq dap-output-window-max-height 50)
-  (setq dap-output-window-min-height 50)
+  (setq dap-output-window-max-height 20)
+  (setq dap-output-window-min-height 10)
+  (setq dap-overlays-use-overlays nil)
   ;; hide stdout window  when done
   (defun lc/hide-debug-windows (session)
     "Hide debug windows when all debug sessions are dead."
@@ -2158,8 +2224,11 @@ Movement   Keep           Diff              Other │ smerge │
                          (when (executable-find "ipython")
                            (setq python-shell-interpreter (executable-find "ipython"))))))
 	:general
-	(python-mode-map :states 'normal "gz" nil)
-	:init
+	(python-mode-map
+	 :states 'normal
+   "gz" nil
+	 "C-j" nil)
+  :init
   (setq python-indent-offset 0)
   :config
   (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
@@ -2286,11 +2355,16 @@ Movement   Keep           Diff              Other │ smerge │
   (lc/local-leader-keys
     :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
     "e l" '(eval-last-sexp :wk "last sexp")
-		"e b" '(eval-buffer :wk "buffer"))
+    "e b" '(eval-buffer :wk "buffer"))
   (lc/local-leader-keys
     :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
     :states 'visual
-    "e" '(eval-region :wk "sexp"))
+    ;; "e" '(eval-region :wk "region")
+    "e" '((lambda (start end)
+            (interactive (list (region-beginning) (region-end)))
+            (eval-region start end t))
+          :wk "region")
+    )
   )
 
 (use-package evil-lisp-state
@@ -2381,29 +2455,44 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "multimarkdown"))
 
-(use-package md4rd
-  :general
-  (lc/leader-keys
-    "s r" '(md4rd :wk "reddit"))
-  :init
-  (setq md4rd-subs-active '(emacs apple clojure MachineLearning))
-  :config
-  (add-hook 'md4rd-mode-hook 'md4rd-indent-all-the-lines)
-  (require 'cl)
-  )
-
 (use-package xwwp
   :straight (xwwp :type git :host github :repo "canatella/xwwp")
-	:commands (xwwp)
-	:general
+  :commands (xwwp)
+  :general
   (lc/leader-keys
-    "s w" '((lambda () (interactive)
-							(let ((current-prefix-arg 4)) ;; emulate C-u universal arg
+    "x x" '((lambda () (interactive)
+              (let ((current-prefix-arg 4)) ;; emulate C-u universal arg
                 (call-interactively 'xwwp)))
             :wk "search or visit")
-    "s l" '(xwwp-follow-link :wk "link"))
+    "x l" '(xwwp-follow-link :wk "link")
+    "x b" '(xwidget-webkit-back :wk "back"))
+  :init
   ;; :custom
   ;; (setq xwwp-follow-link-completion-system 'ivy)
   ;; :bind (:map xwidget-webkit-mode-map
   ;;             ("v" . xwwp-follow-link))
-	)
+  )
+
+(use-package elfeed
+  :straight (elfeed :type git :host github :repo "skeeto/elfeed")
+  :hook (elfeed-search-mode . elfeed-update)
+  :general
+  (lc/leader-keys
+    "s r" '(elfeed :wk "elfeed"))
+  (general-nmap
+		:keymaps 'elfeed-search-mode-map
+   "x" 'lc/elfeed-xwwp-open)
+  :init
+  (defun lc/elfeed-xwwp-open (&optional use-generic-p)
+    "open with eww"
+    (interactive "P")
+    (let ((entries (elfeed-search-selected)))
+      (cl-loop for entry in entries
+               do (elfeed-untag entry 'unread)
+               when (elfeed-entry-link entry)
+               do (lc/xwwp-full-window it))
+      (mapc #'elfeed-search-update-entry entries)
+      (unless (use-region-p) (forward-line))))
+  :config
+  (setq elfeed-feeds'(("https://www.reddit.com/r/emacs.rss?sort=new" reddit emacs)
+                      ("https://www.reddit.com/search.rss?q=url%3A%28youtu.be+OR+youtube.com%29&sort=top&t=week&include_over_18=1&type=link" reddit youtube popular))))
