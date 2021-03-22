@@ -477,6 +477,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   ;; enable winner mode globally for undo/redo window layout changes
   (winner-mode t)
 
+  (show-paren-mode t)
+
   ;; less noise when compiling elisp
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
 
@@ -1081,8 +1083,6 @@ Interesting bits:
 - you can cycle to next TODO state with ~org-shiftright~
 - You can access custom agenda views with ~org-agenda~, mapped to =SPC o A=
 - Yo insert a src block use =, i= and then type initials e.g. ~jp~  for ~jupyter-python~
-- When using ==== ~evil-indent~ goes back to the beginning of the code block
-  + When not on a headline, =<tab>= indents the line
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
@@ -1091,8 +1091,7 @@ Interesting bits:
          (org-mode . variable-pitch-mode))
   :general
   (lc/leader-keys
-    "o a" '(org-agenda-list :wk "agenda")
-    "o A" '(org-agenda :wk "agenda")
+    "f t" '(org-babel-tangle :wk "tangle")
     "o C" '(org-capture :wk "capture")
     "o l" '(org-todo-list :wk "todo list")
     "o c" '((lambda () (interactive)
@@ -1129,8 +1128,6 @@ Interesting bits:
         +org-export-directory "~/Dropbox/org/export"
         org-default-notes-file "~/Dropbox/org/personal/todo.org"
         org-id-locations-file "~/Dropbox/org/.orgids"
-        org-agenda-files '("~/dropbox/org/personal/birthdays.org"
-                           "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
         ;; org-export-in-background t
         org-src-preserve-indentation t ;; do not put two spaces on the left
         org-startup-indented t
@@ -1153,16 +1150,6 @@ Interesting bits:
                                          ("->" . "→")
                                          ("->>" . "↠")))
   (setq prettify-symbols-unprettify-at-point 'right-edge)
-  (setq org-agenda-custom-commands
-        '(("d" "Dashboard"
-           ((agenda "" ((org-deadline-warning-days 7)))
-            (todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))
-            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-          ("n" "Next Tasks"
-           ((todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))))
-          ("w" "Work Tasks" tags-todo "+work")))
   (setq org-image-actual-width 300)
   :config
   ;; (efs/org-font-setup)
@@ -1183,7 +1170,41 @@ Interesting bits:
   (plist-put org-format-latex-options :scale 1.5)
   )
 #+END_SRC
-
+** org agenda
+:PROPERTIES:
+:CUSTOM_ID: h:345DD7DC-12A2-444B-923E-A61B11AB2D26
+:END:
+#+begin_src emacs-lisp
+(use-package org
+  :general
+  (lc/leader-keys
+    "f t" '(org-babel-tangle :wk "tangle")
+    "o a" '(org-agenda-list :wk "agenda")
+    "o A" '(org-agenda :wk "agenda")
+    "o C" '(org-capture :wk "capture")
+    "o l" '(org-todo-list :wk "todo list")
+    "o c" '((lambda () (interactive)
+              (find-file (concat user-emacs-directory "readme.org")))
+            :wk "open config")
+    "o n" '((lambda () (interactive) (org-agenda nil "n")) :wk "next")
+    "o t" '((lambda () (interactive)
+              (find-file (concat org-directory "/personal/todo.org")))
+            :wk "open todos"))
+  :init
+  (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
+                           "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org"))
+  (setq org-agenda-custom-commands
+        '(("d" "Dashboard"
+           ((agenda "" ((org-deadline-warning-days 7)))
+            (todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))
+            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+          ("n" "Next Tasks"
+           ((todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))))
+          ("w" "Work Tasks" tags-todo "+work")))
+  )
+#+end_src
 ** TODO Hack to get org-version to work
 :PROPERTIES:
 :CUSTOM_ID: h:78D6F7DF-905E-4016-BF91-4E9E38580633
@@ -1391,7 +1412,7 @@ asynchronously."
 :END:
 #+begin_src emacs-lisp
 (use-package org-reverse-datetree
-:after org)
+  :after org :demand)
 #+end_src
 
 ** org-superstar
@@ -1619,31 +1640,26 @@ Taken from DOOM:
 - nice ~+org/insert-item-below~ and ~+org/dwim-at-point~ functions
 - ~evil~ bindings for ~org-agenda~
 - text objects:
-  - use ~vie~ to select everything inside a src block
-  - use ~vir~ to select everything inside a heading
+  + use ~vie~ to select everything inside a src block
+  + use ~vir~ to select everything inside a heading
+  + use ==ie= to format
 
 #+begin_src emacs-lisp
 (use-package evil-org-mode
   :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
   :hook ((org-mode . evil-org-mode)
          (org-mode . (lambda () 
-											 (require 'evil-org)
-											 (evil-normalize-keymaps)
-											 (evil-org-set-key-theme '(textobjects))
+                       (require 'evil-org)
+                       (evil-normalize-keymaps)
+                       (evil-org-set-key-theme '(textobjects))
                        (require 'evil-org-agenda)
                        (evil-org-agenda-set-keys))))
+  :bind
+  ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>" 
+  ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>" 
   :general
-	(lc/local-leader-keys
-    :keymaps 'org-mode-map
-    "> l" '(org-indent-item :wk "indent item")
-    "< l" '(org-outdent-item-tree :wk "dedent item")
-    "> h" '(org-do-demote :wk "indent heading")
-    "< h" '(org-do-promote :wk "dedent heading"))
   (general-nmap
-    :keymaps 'org-mode-map
-		:states 'normal
-    "<C-return>"      #'+org/insert-item-below
-    "<C-S-return>"    #'+org/insert-item-above
+    :keymaps 'org-mode-map :states 'normal
     "RET"   #'+org/dwim-at-point)
   :init
   (defun +org--insert-item (direction)
@@ -1860,6 +1876,7 @@ Taken from DOOM:
 I use this package to export my config to HTML. I then push it to the ~gh-pages~ branch
 #+begin_src emacs-lisp
 (use-package org-html-themify
+	:after modus-themes
   :straight
   (org-html-themify
    :type git
@@ -1867,14 +1884,16 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
    :repo "DogLooksGood/org-html-themify"
    :files ("*.el" "*.js" "*.css"))
   :hook (org-mode . org-html-themify-mode)
-  :init
-  (setq org-html-themify-themes
-        (if (eq lc/theme 'light)
-            '((light . modus-operandi)
-              (dark . modus-operandi))
+  :config
+  (when (eq lc/theme 'light)
+    (setq org-html-themify-themes
+          '((light . modus-operandi)
+            (dark . modus-operandi))))
+  (when (eq lc/theme 'dark)
+    (setq org-html-themify-themes
           '((light . modus-vivendi)
             (dark . modus-vivendi))))
-  :config
+
   ;; otherwise it complains about invalid face
   (require 'hl-line)
   )
@@ -1886,8 +1905,8 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package ox-gfm
+	:commands (org-gfm-export-as-markdown org-gfm-export-to-markdown)
 	:after org
-	:demand
 	)
 #+END_SRC
 
@@ -2183,6 +2202,13 @@ Adding it as a ~after-save-hook~  automatically adds a ~CUSTOM_ID~ to newly crea
 				modus-themes-scale-4 1.27
 				modus-themes-scale-5 1.33)
 	(defun lc/load-modus-theme ()
+    ;; Dark for the night
+    (run-at-time "00:00" (* 60 60 24)
+								 (lambda ()
+									 (setq lc/theme 'dark)
+									 (modus-themes-load-vivendi)
+									 (with-eval-after-load 'org
+										 (plist-put org-format-latex-options :foreground "whitesmoke"))))
 		;;Light for the day
 		(run-at-time "07:00" (* 60 60 24)
 								 (lambda ()
@@ -2191,12 +2217,6 @@ Adding it as a ~after-save-hook~  automatically adds a ~CUSTOM_ID~ to newly crea
 									 (with-eval-after-load 'org
 										 (plist-put org-format-latex-options :foreground "black"))))
 		;; Dark for the night
-		(run-at-time "00:00" (* 60 60 24)
-								 (lambda ()
-									 (setq lc/theme 'dark)
-									 (modus-themes-load-vivendi)
-									 (with-eval-after-load 'org
-										 (plist-put org-format-latex-options :foreground "whitesmoke"))))
 		(run-at-time "17:00" (* 60 60 24)
 								 (lambda ()
 									 (setq lc/theme 'dark)
@@ -2672,6 +2692,7 @@ You can act on candidates with =C-l= and ask to remind bindings with =C-h=
   (lc/leader-keys
 		:states 'normal
     "p" '(:keymap projectile-command-map :which-key "project")
+    "p <escape>" 'keyboard-escape-quit
     "p a" '(projectile-add-known-project :wk "add known")
     "p t" '(projectile-run-vterm :wk "term"))
   :init
@@ -2945,7 +2966,8 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
     :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
-           (clojure-mode . rainbow-delimiters-mode)))
+           (clojure-mode . rainbow-delimiters-mode))
+		)
 #+END_SRC
 
 ** syntax highlighting
@@ -3223,7 +3245,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 :END:
 #+begin_src emacs-lisp
 (use-package tramp
-	:demand
 	:init
 	;; Disable version control on tramp buffers to avoid freezes.
 	(setq vc-ignore-dir-regexp
@@ -3242,8 +3263,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                          "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
                          "-o ControlMaster=auto -o ControlPersist=yes")))
 
-(use-package docker-tramp
-	:demand)
+(use-package docker-tramp)
 #+end_src
  
 ** yaml mode
@@ -3613,30 +3633,6 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 :PROPERTIES:
 :CUSTOM_ID: h:6956B874-2F21-42A1-8343-C4BF7B1123C9
 :END:
-*** elisp-mode
-:PROPERTIES:
-:CUSTOM_ID: h:6C6EF70D-C129-41EA-ABA0-78FA6C329B96
-:END:
-#+begin_src emacs-lisp
-(use-package elisp-mode
-  :straight (:type built-in)
-  :general
-  (lc/local-leader-keys
-    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
-    "e l" '(eval-last-sexp :wk "last sexp")
-    "e b" '(eval-buffer :wk "buffer"))
-  (lc/local-leader-keys
-    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
-    :states 'visual
-    ;; "e" '(eval-region :wk "region")
-    "e" '((lambda (start end)
-            (interactive (list (region-beginning) (region-end)))
-            (eval-region start end t))
-          :wk "region")
-    )
-  )
-#+end_src
-
 *** evil-lisp state
 :PROPERTIES:
 :CUSTOM_ID: h:C59E740E-F00B-4D2F-B5A3-36C3B99BCD5E
@@ -3657,7 +3653,30 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
   :config
   (evil-lisp-state-leader "SPC l")
   )
+#+end_src
 
+*** eros: results in overlays
+:PROPERTIES:
+:CUSTOM_ID: h:309D0DC9-29FF-46E8-A98A-F2CD6CCEB12A
+:END:
+#+begin_src emacs-lisp
+(use-package eros
+  :hook ((emacs-lisp-mode org-mode lisp-interaction-mode) . eros-mode)
+  :general
+  (lc/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
+    :states 'normal
+    "e l" '(eros-eval-last-sexp :wk "last sexp")
+    "e d" '(eros-eval-defun :wk "defun")
+    "e b" '(eval-buffer :wk "buffer"))
+  (lc/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
+    :states 'visual
+    "e" '((lambda (start end)
+            (interactive (list (region-beginning) (region-end)))
+            (eval-region start end t))
+          :wk "region"))
+  )
 #+end_src
 
 ** Nix
@@ -3867,12 +3886,15 @@ To visit a link, =SPC s l=
       (cl-loop for entry in entries
                do (elfeed-untag entry 'unread)
                when (elfeed-entry-link entry)
-               do (lc/xwwp-full-window it))
+               do (xwwp it))
       (mapc #'elfeed-search-update-entry entries)
       (unless (use-region-p) (forward-line))))
   :config
   (setq elfeed-feeds'(("https://www.reddit.com/r/emacs.rss?sort=new" reddit emacs)
-                      ("https://www.reddit.com/search.rss?q=url%3A%28youtu.be+OR+youtube.com%29&sort=top&t=week&include_over_18=1&type=link" reddit youtube popular))))
+                      ("http://emacsredux.com/atom.xml" emacs)
+                      ("http://irreal.org/blog/?tag=emacs&amp;feed=rss2" emacs)
+                      ("https://www.reddit.com/search.rss?q=url%3A%28youtu.be+OR+youtube.com%29&sort=top&t=week&include_over_18=1&type=link"
+                      reddit youtube popular))))
 #+end_src
  
 ** COMMENT dash docsets
@@ -4110,13 +4132,13 @@ Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
                       :inverse-video nil))
 #+end_src
 
-* COMMENT missing / to fix
+* COMMENT to add / to fix
 :PROPERTIES:
 :CUSTOM_ID: h:742F97D8-9FC2-4ED4-9985-A23192D75550
 :END:
-** Missing
+** To add
 :PROPERTIES:
-:CUSTOM_ID: h:5F1CF6F3-5BEE-41BB-8EAD-E6077A12920C
+:CUSTOM_ID: h:167C14F0-55E7-4524-98BC-1C605BA44337
 :END:
 *** Make different font configurations (toggle big font)
 :PROPERTIES:
@@ -4269,6 +4291,13 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
 (global-set-key (kbd "C-S-h") 'hrm-help-transient)
 #+end_src
 
+*** ~demo-it~
+:PROPERTIES:
+:CUSTOM_ID: h:4CBD79C8-23E1-4415-AE16-7004B020DCAE
+:END:
+- https://github.com/howardabrams/demo-it
+- https://github.com/howardabrams/literate-devops-demo/blob/master/literate-devops-demo.el
+- https://github.com/howardabrams/magit-demo/blob/master/magit-demo.el
 ** To fix
 :PROPERTIES:
 :CUSTOM_ID: h:92086A48-355B-426E-AB82-DB73FAA11A1C

@@ -111,6 +111,8 @@
   ;; enable winner mode globally for undo/redo window layout changes
   (winner-mode t)
 
+  (show-paren-mode t)
+
   ;; less noise when compiling elisp
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
 
@@ -502,8 +504,7 @@ size. This function also handles icons and modeline font sizes."
          (org-mode . variable-pitch-mode))
   :general
   (lc/leader-keys
-    "o a" '(org-agenda-list :wk "agenda")
-    "o A" '(org-agenda :wk "agenda")
+    "f t" '(org-babel-tangle :wk "tangle")
     "o C" '(org-capture :wk "capture")
     "o l" '(org-todo-list :wk "todo list")
     "o c" '((lambda () (interactive)
@@ -540,8 +541,6 @@ size. This function also handles icons and modeline font sizes."
         +org-export-directory "~/Dropbox/org/export"
         org-default-notes-file "~/Dropbox/org/personal/todo.org"
         org-id-locations-file "~/Dropbox/org/.orgids"
-        org-agenda-files '("~/dropbox/org/personal/birthdays.org"
-                           "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org")
         ;; org-export-in-background t
         org-src-preserve-indentation t ;; do not put two spaces on the left
         org-startup-indented t
@@ -564,16 +563,6 @@ size. This function also handles icons and modeline font sizes."
                                          ("->" . "→")
                                          ("->>" . "↠")))
   (setq prettify-symbols-unprettify-at-point 'right-edge)
-  (setq org-agenda-custom-commands
-        '(("d" "Dashboard"
-           ((agenda "" ((org-deadline-warning-days 7)))
-            (todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))
-            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
-          ("n" "Next Tasks"
-           ((todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))))
-          ("w" "Work Tasks" tags-todo "+work")))
   (setq org-image-actual-width 300)
   :config
   ;; (efs/org-font-setup)
@@ -592,6 +581,36 @@ size. This function also handles icons and modeline font sizes."
   (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
   (add-to-list 'org-export-backends 'beamer)
   (plist-put org-format-latex-options :scale 1.5)
+  )
+
+(use-package org
+  :general
+  (lc/leader-keys
+    "f t" '(org-babel-tangle :wk "tangle")
+    "o a" '(org-agenda-list :wk "agenda")
+    "o A" '(org-agenda :wk "agenda")
+    "o C" '(org-capture :wk "capture")
+    "o l" '(org-todo-list :wk "todo list")
+    "o c" '((lambda () (interactive)
+              (find-file (concat user-emacs-directory "readme.org")))
+            :wk "open config")
+    "o n" '((lambda () (interactive) (org-agenda nil "n")) :wk "next")
+    "o t" '((lambda () (interactive)
+              (find-file (concat org-directory "/personal/todo.org")))
+            :wk "open todos"))
+  :init
+  (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
+                           "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org"))
+  (setq org-agenda-custom-commands
+        '(("d" "Dashboard"
+           ((agenda "" ((org-deadline-warning-days 7)))
+            (todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))
+            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+          ("n" "Next Tasks"
+           ((todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))))
+          ("w" "Work Tasks" tags-todo "+work")))
   )
 
 (use-package org
@@ -759,7 +778,7 @@ asynchronously."
    "tangle-process"))
 
 (use-package org-reverse-datetree
-:after org)
+  :after org :demand)
 
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode)
@@ -940,23 +959,17 @@ asynchronously."
   :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
   :hook ((org-mode . evil-org-mode)
          (org-mode . (lambda () 
-											 (require 'evil-org)
-											 (evil-normalize-keymaps)
-											 (evil-org-set-key-theme '(textobjects))
+                       (require 'evil-org)
+                       (evil-normalize-keymaps)
+                       (evil-org-set-key-theme '(textobjects))
                        (require 'evil-org-agenda)
                        (evil-org-agenda-set-keys))))
+  :bind
+  ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>" 
+  ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>" 
   :general
-	(lc/local-leader-keys
-    :keymaps 'org-mode-map
-    "> l" '(org-indent-item :wk "indent item")
-    "< l" '(org-outdent-item-tree :wk "dedent item")
-    "> h" '(org-do-demote :wk "indent heading")
-    "< h" '(org-do-promote :wk "dedent heading"))
   (general-nmap
-    :keymaps 'org-mode-map
-		:states 'normal
-    "<C-return>"      #'+org/insert-item-below
-    "<C-S-return>"    #'+org/insert-item-above
+    :keymaps 'org-mode-map :states 'normal
     "RET"   #'+org/dwim-at-point)
   :init
   (defun +org--insert-item (direction)
@@ -1162,6 +1175,7 @@ asynchronously."
             (org-element-property :end context))))))))
 
 (use-package org-html-themify
+	:after modus-themes
   :straight
   (org-html-themify
    :type git
@@ -1169,21 +1183,23 @@ asynchronously."
    :repo "DogLooksGood/org-html-themify"
    :files ("*.el" "*.js" "*.css"))
   :hook (org-mode . org-html-themify-mode)
-  :init
-  (setq org-html-themify-themes
-        (if (eq lc/theme 'light)
-            '((light . modus-operandi)
-              (dark . modus-operandi))
+  :config
+  (when (eq lc/theme 'light)
+    (setq org-html-themify-themes
+          '((light . modus-operandi)
+            (dark . modus-operandi))))
+  (when (eq lc/theme 'dark)
+    (setq org-html-themify-themes
           '((light . modus-vivendi)
             (dark . modus-vivendi))))
-  :config
+
   ;; otherwise it complains about invalid face
   (require 'hl-line)
   )
 
 (use-package ox-gfm
+	:commands (org-gfm-export-as-markdown org-gfm-export-to-markdown)
 	:after org
-	:demand
 	)
 
 (use-package ox-ipynb
@@ -1356,6 +1372,13 @@ asynchronously."
 				modus-themes-scale-4 1.27
 				modus-themes-scale-5 1.33)
 	(defun lc/load-modus-theme ()
+    ;; Dark for the night
+    (run-at-time "00:00" (* 60 60 24)
+								 (lambda ()
+									 (setq lc/theme 'dark)
+									 (modus-themes-load-vivendi)
+									 (with-eval-after-load 'org
+										 (plist-put org-format-latex-options :foreground "whitesmoke"))))
 		;;Light for the day
 		(run-at-time "07:00" (* 60 60 24)
 								 (lambda ()
@@ -1364,12 +1387,6 @@ asynchronously."
 									 (with-eval-after-load 'org
 										 (plist-put org-format-latex-options :foreground "black"))))
 		;; Dark for the night
-		(run-at-time "00:00" (* 60 60 24)
-								 (lambda ()
-									 (setq lc/theme 'dark)
-									 (modus-themes-load-vivendi)
-									 (with-eval-after-load 'org
-										 (plist-put org-format-latex-options :foreground "whitesmoke"))))
 		(run-at-time "17:00" (* 60 60 24)
 								 (lambda ()
 									 (setq lc/theme 'dark)
@@ -1691,6 +1708,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (lc/leader-keys
 		:states 'normal
     "p" '(:keymap projectile-command-map :which-key "project")
+    "p <escape>" 'keyboard-escape-quit
     "p a" '(projectile-add-known-project :wk "add known")
     "p t" '(projectile-run-vterm :wk "term"))
   :init
@@ -1885,7 +1903,8 @@ Movement   Keep           Diff              Other │ smerge │
 
 (use-package rainbow-delimiters
   :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
-         (clojure-mode . rainbow-delimiters-mode)))
+         (clojure-mode . rainbow-delimiters-mode))
+	      )
 
 (use-package tree-sitter
   :hook (python-mode . (lambda ()
@@ -2056,7 +2075,6 @@ Movement   Keep           Diff              Other │ smerge │
 	:mode "\\.toml\\'")
 
 (use-package tramp
-	:demand
 	:init
 	;; Disable version control on tramp buffers to avoid freezes.
 	(setq vc-ignore-dir-regexp
@@ -2075,8 +2093,7 @@ Movement   Keep           Diff              Other │ smerge │
                          "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
                          "-o ControlMaster=auto -o ControlPersist=yes")))
 
-(use-package docker-tramp
-	:demand)
+(use-package docker-tramp)
 
 (use-package yaml-mode
   :mode ((rx ".yml" eos) . yaml-mode))
@@ -2349,24 +2366,6 @@ Movement   Keep           Diff              Other │ smerge │
                                    (ess-R-fl-keyword:F&T . t)))
   )
 
-(use-package elisp-mode
-  :straight (:type built-in)
-  :general
-  (lc/local-leader-keys
-    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
-    "e l" '(eval-last-sexp :wk "last sexp")
-    "e b" '(eval-buffer :wk "buffer"))
-  (lc/local-leader-keys
-    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
-    :states 'visual
-    ;; "e" '(eval-region :wk "region")
-    "e" '((lambda (start end)
-            (interactive (list (region-beginning) (region-end)))
-            (eval-region start end t))
-          :wk "region")
-    )
-  )
-
 (use-package evil-lisp-state
   :after evil
   :demand
@@ -2376,6 +2375,24 @@ Movement   Keep           Diff              Other │ smerge │
   ;; (setq evil-lisp-state-major-modes '(org-mode emacs-lisp-mode clojure-mode clojurescript-mode lisp-interaction-mode))
   :config
   (evil-lisp-state-leader "SPC l")
+  )
+
+(use-package eros
+  :hook ((emacs-lisp-mode org-mode lisp-interaction-mode) . eros-mode)
+  :general
+  (lc/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
+    :states 'normal
+    "e l" '(eros-eval-last-sexp :wk "last sexp")
+    "e d" '(eros-eval-defun :wk "defun")
+    "e b" '(eval-buffer :wk "buffer"))
+  (lc/local-leader-keys
+    :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
+    :states 'visual
+    "e" '((lambda (start end)
+            (interactive (list (region-beginning) (region-end)))
+            (eval-region start end t))
+          :wk "region"))
   )
 
 (use-package nix-mode
@@ -2490,9 +2507,12 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
       (cl-loop for entry in entries
                do (elfeed-untag entry 'unread)
                when (elfeed-entry-link entry)
-               do (lc/xwwp-full-window it))
+               do (xwwp it))
       (mapc #'elfeed-search-update-entry entries)
       (unless (use-region-p) (forward-line))))
   :config
   (setq elfeed-feeds'(("https://www.reddit.com/r/emacs.rss?sort=new" reddit emacs)
-                      ("https://www.reddit.com/search.rss?q=url%3A%28youtu.be+OR+youtube.com%29&sort=top&t=week&include_over_18=1&type=link" reddit youtube popular))))
+                      ("http://emacsredux.com/atom.xml" emacs)
+                      ("http://irreal.org/blog/?tag=emacs&amp;feed=rss2" emacs)
+                      ("https://www.reddit.com/search.rss?q=url%3A%28youtu.be+OR+youtube.com%29&sort=top&t=week&include_over_18=1&type=link"
+                      reddit youtube popular))))
