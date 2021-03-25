@@ -127,7 +127,7 @@
 
 (use-package emacs
   :init
-  (defun is-jupyter-python-org-buffer? ()
+  (defun lc/is-jupyter-python-org-buffer? ()
     (with-current-buffer (buffer-name)
       (goto-char (point-min))
       (re-search-forward "begin_src jupyter-python" 10000 t)))
@@ -141,7 +141,7 @@
     )
 
   (add-hook 'org-mode-hook (lambda ()
-                             (when (is-jupyter-python-org-buffer?)
+                             (when (lc/is-jupyter-python-org-buffer?)
 															 (org-jupyter-python-mode))))
 	)
 
@@ -332,7 +332,7 @@ size. This function also handles icons and modeline font sizes."
     "fR" '((lambda (new-path)
              (interactive (list (read-file-name "Move file to: ") current-prefix-arg))
              (rename-file (buffer-file-name) (expand-file-name new-path)))
-					 :wk "move/rename")
+           :wk "move/rename")
 
     "g" '(:ignore t :which-key "git")
     ;; keybindings defined in magit
@@ -348,6 +348,9 @@ size. This function also handles icons and modeline font sizes."
     "hK" 'describe-keymap
     "hp" 'describe-package
     "hv" 'describe-variable
+
+    "k" '(:ignore t :which-key "kubernetes")
+    ;; keybindings defined in kubernetes.el
 
     "o" '(:ignore t :which-key "org")
     ;; keybindings defined in org-mode
@@ -807,13 +810,12 @@ asynchronously."
   :general
   (lc/local-leader-keys
     :keymaps 'org-mode-map
-    "," '(org-edit-special :wk "edit")
+    "'" '(org-edit-special :wk "edit")
     "-" '(org-babel-demarcate-block :wk "split block")
     "z" '(org-babel-hide-result-toggle :wk "fold result"))
   (lc/local-leader-keys
     :keymaps 'org-src-mode-map
-    :states 'normal
-    "," '(org-edit-src-exit :wk "exit")) ;;FIXME
+    "'" '(org-edit-src-exit :wk "exit")) ;;FIXME
   :init
   (setq org-confirm-babel-evaluate nil)
   :config
@@ -1400,9 +1402,8 @@ asynchronously."
 	)
 
 (use-package dashboard
-  ;; :after projectile
-  :hook
-  (dashboard-after-initialize . (lambda () (internal-show-cursor nil nil)))
+  ;; :hook
+  ;; (dashboard-after-initialize . (lambda () (internal-show-cursor nil nil)))
   :demand
   :init
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
@@ -1410,8 +1411,8 @@ asynchronously."
   (setq dashboard-projects-backend 'projectile)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
-  (defun is-after-17-or-weekends? ()
-    (or (-> (nth 4 (split-string (current-time-string) " ")) ; time of the day e.g. 18
+  (defun lc/is-after-17-or-weekends? ()
+    (or (-> (nth 3 (split-string (current-time-string) " ")) ; time of the day e.g. 18
             (substring 0 2)
             (string-to-number)
             (> 16))
@@ -1420,14 +1421,9 @@ asynchronously."
   ;; exclude work items after 17 and on weekends
   (run-at-time "00:00" (* 60 60 24)
                (lambda ()
-                 (if (is-after-17-or-weekends?)
+                 (if (lc/is-after-17-or-weekends?)
                      (setq dashboard-match-agenda-entry "life|habits")
                    (setq dashboard-match-agenda-entry "work|life|habits"))))
-  (setq dashboard-items '((agenda . 5)
-                          ;; (bookmarks . 5)
-                          ;; (recents  . 5)
-                          (projects . 5)
-                          ))
   (setq dashboard-banner-logo-title nil)
   (setq dashboard-set-footer nil)
   ;; (setq dashboard-startup-banner [VALUE])
@@ -1449,9 +1445,61 @@ asynchronously."
            ;;  "Reload last session"
            ;;  (lambda (&rest _) (persp-state-load persp-state-default-file)))
            )))
+  (defun lc/dashboard-agenda-entry-format ()
+    "Format agenda entry to show it on dashboard. Compared to the original, we remove tags at the end"
+    (let* ((schedule-time (org-get-scheduled-time (point)))
+           (deadline-time (org-get-deadline-time (point)))
+           (item (org-agenda-format-item
+                  (dashboard-agenda-entry-time (or schedule-time deadline-time))
+                  (org-get-heading)
+                  (org-outline-level)
+                  (org-get-category)
+                  nil;; (org-get-tags)
+                  t))
+           (loc (point))
+           (file (buffer-file-name)))
+      (dashboard-agenda--set-agenda-headline-face item)
+      (list item loc file)))
+	(defun lc/dashboard-get-agenda ()
+  "Get agenda items for today or for a week from now."
+  (org-compile-prefix-format 'agenda)
+  (org-map-entries 'lc/dashboard-agenda-entry-format
+                   dashboard-match-agenda-entry
+                   'agenda
+                   dashboard-filter-agenda-entry))
+  (defun lc/dashboard-get-next ()
+    "Get agenda items for today or for a week from now."
+    (org-compile-prefix-format 'agenda)
+    (org-map-entries 'lc/dashboard-agenda-entry-format
+                     "/NEXT"
+                     'agenda))
+  (defun lc/dashboard-insert-next (list-size)
+    "Add the list of LIST-SIZE items of next tasks"
+    (require 'org-agenda)
+    (let ((next (lc/dashboard-get-next)))
+      (dashboard-insert-section
+       "Next tasks"
+       next
+       list-size
+       "n"
+       `(lambda (&rest ignore)
+          (let ((buffer (find-file-other-window (nth 2 ',el))))
+            (with-current-buffer buffer
+              (goto-char (nth 1 ',el))
+              (switch-to-buffer buffer))))
+       (format "%s" (nth 0 el)))))
   :config
   (dashboard-setup-startup-hook)
   (set-face-attribute 'dashboard-items-face nil :height (lc/get-font-size))
+  ;; do not show tags in agenda view
+  (advice-add 'dashboard-get-agenda :override #'lc/dashboard-get-agenda)
+  ;; show next tasks in dashboard
+  (add-to-list 'dashboard-item-generators  '(next . lc/dashboard-insert-next))
+  (setq dashboard-items '((agenda . 5)
+                          (next . 5)
+                          ;; (bookmarks . 5)
+                          ;; (recents  . 5)
+                          (projects . 5)))
   )
 
 (use-package centaur-tabs
@@ -1800,24 +1848,25 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 (use-package magit
   :general
   (lc/leader-keys
+    "g b" 'magit-blame
     "g g" 'magit-status
     "g G" 'magit-status-here
-    "g l" '(magit-log :wk "log"))
-	(general-nmap
-		:keymaps '(magit-status-mode-map
-     magit-stash-mode-map
-     magit-revision-mode-map
-     magit-process-mode-map
-     magit-diff-mode-map)
-		 "<tab>" #'magit-section-toggle)
+    "g l" 'magit-log)
+  (general-nmap
+    :keymaps '(magit-status-mode-map
+               magit-stash-mode-map
+               magit-revision-mode-map
+               magit-process-mode-map
+               magit-diff-mode-map)
+    "<tab>" #'magit-section-toggle
+    "<escape>" #'transient-quit-one
+		)
   :init
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   (setq magit-log-arguments '("--graph" "--decorate" "--color"))
-	(setq git-commit-fill-column 72)
+  (setq git-commit-fill-column 72)
 	:config
-	  (evil-define-key* 'normal magit-status-mode-map [escape] nil)
-
-	(evil-define-key* '(normal visual) magit-mode-map
+  (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
   )
 
@@ -1851,13 +1900,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 (use-package smerge-mode
   :straight (:type built-in)
-	      :after hydra
+  :after hydra
   :general
-  (lc/leader-keys "g m" 'hydra-smerge/body)
-	      :hook
-	      (magit-diff-visit-file . (lambda ()
-                           (when smerge-mode
-                             (smerge-hydra/body))))
+  (lc/leader-keys "g m" 'smerge-hydra/body)
+  :hook
+  (magit-diff-visit-file . (lambda ()
+                             (when smerge-mode
+                               (smerge-hydra/body))))
   :init
   (defhydra smerge-hydra (:hint nil
                                 :pre (smerge-mode 1)
@@ -1865,15 +1914,15 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                                 ;; no merge conflicts remain.
                                 :post (smerge-auto-leave))
     "
-                                                  ╭────────┐
-Movement   Keep           Diff              Other │ smerge │
-╭─────────────────────────────────────────────────┴────────╯
-   ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
-   ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
-   ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
-   ^_j_ ↓^     [_a_] all        [_H_] hightlight
-   ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
-   ^_G_^                                            │ [_q_] quit"
+                                                    ╭────────┐
+  Movement   Keep           Diff              Other │ smerge │
+  ╭─────────────────────────────────────────────────┴────────╯
+     ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
+     ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
+     ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
+     ^_j_ ↓^     [_a_] all        [_H_] hightlight
+     ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
+     ^_G_^                                            │ [_q_] quit"
     ("g" (progn (goto-char (point-min)) (smerge-next)))
     ("G" (progn (goto-char (point-max)) (smerge-prev)))
     ("C-j" smerge-next)
@@ -2098,6 +2147,71 @@ Movement   Keep           Diff              Other │ smerge │
 (use-package yaml-mode
   :mode ((rx ".yml" eos) . yaml-mode))
 
+(use-package kubernetes
+  :hook
+  (kubernetes-overview-mode . lc/load-kubernetes-evil)
+  :general
+  (lc/leader-keys
+    "k k" 'kubernetes-overview)
+  :init
+  ;; refresh manually with gr
+  (setq kubernetes-poll-frequency 3600)
+  (setq kubernetes-redraw-frequency 3600)
+  (defun lc/load-kubernetes-evil ()
+    "Copied from kubernetes-evil.el"
+    (evil-set-initial-state 'kubernetes-mode 'motion)
+    (evil-set-initial-state 'kubernetes-display-thing-mode 'motion)
+    (evil-set-initial-state 'kubernetes-log-line-mode 'motion)
+    (evil-set-initial-state 'kubernetes-logs-mode 'motion)
+    (evil-set-initial-state 'kubernetes-overview-mode 'motion)
+
+    (evil-define-key 'motion kubernetes-mode-map
+      (kbd "p")   #'magit-section-backward
+      (kbd "n")   #'magit-section-forward
+      (kbd "M-p") #'magit-section-backward-sibling
+      (kbd "M-n") #'magit-section-forward-sibling
+      (kbd "C-i") #'magit-section-toggle
+      (kbd "^")   #'magit-section-up
+      [tab]       #'magit-section-toggle
+      [C-tab]     #'magit-section-cycle
+      [M-tab]     #'magit-section-cycle-diffs
+      [S-tab]     #'magit-section-cycle-global
+
+      [remap evil-next-line] #'next-line
+      [remap evil-previous-line] #'previous-line
+      [remap evil-next-visual-line] #'next-line
+      [remap evil-previous-visual-line] #'previous-line
+
+      (kbd "q") #'quit-window
+      (kbd "RET") #'kubernetes-navigate
+      (kbd "M-w") #'kubernetes-copy-thing-at-point
+
+      (kbd "?") #'kubernetes-overview-popup
+      (kbd "c") #'kubernetes-config-popup
+      (kbd "g r") #'kubernetes-refresh
+      (kbd "h") #'describe-mode
+      (kbd "d") #'kubernetes-describe-popup
+      (kbd "D") #'kubernetes-mark-for-delete
+      (kbd "e") #'kubernetes-exec-popup
+      (kbd "u") #'kubernetes-unmark
+      (kbd "U") #'kubernetes-unmark-all
+      (kbd "x") #'kubernetes-execute-marks
+      (kbd "l") #'kubernetes-logs-popup
+      (kbd "L") #'kubernetes-labels-popup)
+
+    (evil-define-key 'motion kubernetes-overview-mode-map
+      (kbd "v") #'kubernetes-overview-set-sections)
+
+    (evil-define-key 'motion kubernetes-logs-mode-map
+      (kbd "n") #'kubernetes-logs-forward-line
+      (kbd "p") #'kubernetes-logs-previous-line
+      (kbd "RET") #'kubernetes-logs-inspect-line)
+
+    (evil-define-key 'motion kubernetes-log-line-mode-map
+      (kbd "n") #'kubernetes-logs-forward-line
+      (kbd "p") #'kubernetes-logs-previous-line))
+  )
+
 (use-package lsp-mode
 	:commands (lsp lsp-deferred)
 	:hook
@@ -2299,10 +2413,10 @@ Movement   Keep           Diff              Other │ smerge │
   :general
 	(lc/local-leader-keys
     :keymaps 'python-mode-map
-    "'" '(lc/jupyter-repl :wk "jupyter REPL")
     "e e" '(jupyter-eval-line-or-region :wk "line")
     "e d" '(jupyter-eval-defun :wk "defun")
     "e b" '((lambda () (interactive) (lc/jupyter-eval-buffer)) :wk "buffer")
+    "j r" '(lc/jupyter-repl :wk "jupyter REPL")
     "k" '(:ignore true :wk "kernel")
     "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
 		"k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
@@ -2346,7 +2460,7 @@ Movement   Keep           Diff              Other │ smerge │
 (use-package ess
 	:general
   (R-mode
-    "'" '(R :wk "R")
+    "R" '(R :wk "R")
 		"l" '(ess-eval-line :wk "eval line")
 		"L" '(ess-eval-region-or-line-and-step :wk "line and step")
 		)
@@ -2415,6 +2529,7 @@ Movement   Keep           Diff              Other │ smerge │
     "C" '(cider-connect-cljs :wk "connect (cljs)")
     "j" '(cider-jack-in :wk "jack in")
     "J" '(cider-jack-in-cljs :wk "jack in (cljs)")
+    "e b" 'cider-eval-buffer
     "e l" 'cider-eval-last-sexp
     "e E" 'cider-pprint-eval-last-sexp-to-comment
     "e d" '(cider-eval-defun-at-point :wk "defun")
