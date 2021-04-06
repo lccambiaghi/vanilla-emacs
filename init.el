@@ -127,12 +127,12 @@
 
 (use-package emacs
   :init
-  (defun lc/is-jupyter-python-org-buffer? ()
+  (defun lc/is-jupyter-org-buffer? ()
     (with-current-buffer (buffer-name)
       (goto-char (point-min))
-      (re-search-forward "begin_src jupyter-python" 10000 t)))
+      (re-search-forward "begin_src jupyter-" 10000 t)))
   
-  (define-minor-mode org-jupyter-python-mode
+  (define-minor-mode org-jupyter-mode
     "Minor mode which is active when an org file has the string begin_src jupyter-python
     in the first few hundred rows"
     ;; :keymap (let ((map (make-sparse-keymap)))
@@ -141,8 +141,8 @@
     )
 
   (add-hook 'org-mode-hook (lambda ()
-                             (when (lc/is-jupyter-python-org-buffer?)
-															 (org-jupyter-python-mode))))
+                             (when (lc/is-jupyter-org-buffer?)
+															 (org-jupyter-mode))))
 	)
 
 (use-package emacs
@@ -158,7 +158,7 @@
     :type 'string
     :group 'lc)
 	
-  (defcustom lc/laptop-font-size 180
+  (defcustom lc/laptop-font-size 150
 		"Font size used for laptop"
     :type 'int
     :group 'lc)
@@ -176,8 +176,8 @@
 		"font size is calculated according to the size of the primary screen"
 		(let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(nf-2)/10)^2 + ($nf/10)^2 )/2.54}'")
 					 (command "osascript -e 'tell application \"finder\" to get bounds of window of desktop' | cut -d',' -f3")
-					 (screen-width (string-to-number (shell-command-to-string command))))
-      (if (> screen-width 2560) lc/laptop-font-size lc/laptop-font-size)))
+					 (screen-width (string-to-number (shell-command-to-string command))))  ;;<
+      (if (> screen-width 2560) lc/laptop-font-size lc/laptop-font-size))) 
 	
   ;; Main typeface
   (set-face-attribute 'default nil :font lc/default-font-family :height (lc/get-font-size))
@@ -224,7 +224,12 @@ size. This function also handles icons and modeline font sizes."
   (when (eq system-type 'darwin)
     (setq mac-command-modifier 'super)     ; command as super
     (setq mac-option-modifier 'meta)     ; alt as meta
-    (setq mac-control-modifier 'control)))
+    (setq mac-control-modifier 'control)
+    (global-set-key [(s c)] 'kill-ring-save)
+    (global-set-key [(s v)] 'yank)
+    (global-set-key [(s x)] 'kill-region)
+    (global-set-key [(s q)] 'kill-emacs)
+    ))
 
 (use-package gcmh
   :demand
@@ -273,7 +278,7 @@ size. This function also handles icons and modeline font sizes."
 
 (use-package emacs
   :hook
-  ((org-jupyter-python-mode . (lambda () (lc/set-local-electric-pairs '())))
+  ((org-jupyter-mode . (lambda () (lc/set-local-electric-pairs '())))
    (org-mode . (lambda () (lc/set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
   :init
   ;; auto-close parentheses
@@ -288,9 +293,9 @@ size. This function also handles icons and modeline font sizes."
     (setq-local electric-pair-pairs (append lc/default-electric-pairs pairs))
     (setq-local electric-pair-text-pairs electric-pair-pairs))
 
-  ;; disable auto pairing for <
+  ;; disable auto pairing for <  >
   (add-function :before-until electric-pair-inhibit-predicate
-                (lambda (c) (eq c ?<))))
+                (lambda (c) (eq c ?<))))  ;; >
 
 (use-package general
   :demand t
@@ -389,6 +394,7 @@ size. This function also handles icons and modeline font sizes."
     )
 
   (lc/local-leader-keys
+    :states 'normal
     "d" '(:ignore t :which-key "debug")
     "e" '(:ignore t :which-key "eval")
     "t" '(:ignore t :which-key "test")))
@@ -397,8 +403,8 @@ size. This function also handles icons and modeline font sizes."
   :demand
   :general
   (lc/leader-keys
-   "wv" 'evil-window-vsplit
-   "ws" 'evil-window-split)
+    "wv" 'evil-window-vsplit
+    "ws" 'evil-window-split)
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -407,6 +413,7 @@ size. This function also handles icons and modeline font sizes."
   (setq evil-want-Y-yank-to-eol t)
   (setq evil-respect-visual-line-mode t)
   (setq evil-undo-system 'undo-fu)
+	(setq evil-search-module 'evil-search)  ;; enables gn
   ;; move to window when splitting
   (setq evil-split-window-below t)
   (setq evil-vsplit-window-right t)
@@ -420,7 +427,7 @@ size. This function also handles icons and modeline font sizes."
   ;; don't move cursor after ==
   (defun lc/evil-dont-move-cursor (orig-fn &rest args)
     (save-excursion (apply orig-fn args)))
-  (advice-add 'evil-indent :around 'lc/evil-dont-move-cursor)
+  (advice-add 'evil-indent :around #'lc/evil-dont-move-cursor)
   )
 
 (use-package evil-collection
@@ -431,14 +438,55 @@ size. This function also handles icons and modeline font sizes."
   :config
   (evil-collection-init))
 
+(use-package evil
+  :config
+  (defcustom evil-extra-operator-eval-modes-alist
+    '(;; (emacs-lisp eval-region)
+      ;; (scheme-mode geiser-eval-region)
+      (clojure-mode cider-eval-region)
+			(jupyter-python jupyter-eval-region) ;; when executing in src block
+      (python-mode jupyter-eval-region) ;; when executing in org-src-edit mode
+      )
+    "Alist used to determine evil-operator-eval's behaviour.
+Each element of this alist should be of this form:
+ (MAJOR-MODE EVAL-FUNC [ARGS...])
+MAJOR-MODE denotes the major mode of buffer. EVAL-FUNC should be a function
+with at least 2 arguments: the region beginning and the region end. ARGS will
+be passed to EVAL-FUNC as its rest arguments"
+    :type '(alist :key-type symbol)
+    :group 'evil-extra-operator)
+
+  (evil-define-operator evil-operator-eval (beg end)
+    "Evil operator for evaluating code."
+    :move-point nil
+    (interactive "<r>")
+    (let* ((mode (if (org-in-src-block-p) (intern (car (org-babel-get-src-block-info))) major-mode))
+					 (ele (assoc mode evil-extra-operator-eval-modes-alist))
+           (f-a (cdr-safe ele))
+           (func (car-safe f-a))
+           (args (cdr-safe f-a)))
+      (if (fboundp func)
+          (apply func beg end args)
+        (eval-region beg end t))))
+	
+  (define-key evil-motion-state-map "gr" 'evil-operator-eval)
+  
+  )
+
 (use-package evil-goggles
   :after evil
   :demand
   :init
   (setq evil-goggles-duration 0.05)
   :config
+  (push '(evil-operator-eval
+          :face evil-goggles-yank-face
+          :switch evil-goggles-enable-yank
+          :advice evil-goggles--generic-async-advice)
+        evil-goggles--commands)
   (evil-goggles-mode)
-  (evil-goggles-use-diff-faces))
+  (evil-goggles-use-diff-faces)
+  )
 
 (use-package evil-snipe
 	:after evil
@@ -474,6 +522,21 @@ size. This function also handles icons and modeline font sizes."
 	(define-key evil-inner-text-objects-map "j" 'evil-indent-plus-i-indent-up-down)
 	(define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down)
 	)
+
+(use-package evil-cleverparens
+  :hook
+  ((emacs-lisp-mode . evil-cleverparens-mode)
+   (clojure-mode . evil-cleverparens-mode))
+  :init
+  (setq evil-move-beyond-eol t
+        evil-cleverparens-use-additional-bindings nil
+        evil-cleverparens-use-s-and-S nil
+        ;; evil-cleverparens-swap-move-by-word-and-symbol t
+        ;; evil-cleverparens-use-regular-insert t
+        )
+  ;; :config
+  ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+  )
 
 (use-package evil-iedit-state
   :general
@@ -511,9 +574,11 @@ size. This function also handles icons and modeline font sizes."
     "o C" '(org-capture :wk "capture")
     "o l" '(org-todo-list :wk "todo list")
     "o c" '((lambda () (interactive)
+              (persp-switch "main")
               (find-file (concat user-emacs-directory "readme.org")))
             :wk "open config")
     "o t" '((lambda () (interactive)
+              (persp-switch "main")
               (find-file (concat org-directory "/personal/todo.org")))
             :wk "open todos"))
   (lc/local-leader-keys
@@ -540,7 +605,6 @@ size. This function also handles icons and modeline font sizes."
   :init
   ;; general settings
   (setq org-directory "~/Dropbox/org"
-        org-image-actual-width nil
         +org-export-directory "~/Dropbox/org/export"
         org-default-notes-file "~/Dropbox/org/personal/todo.org"
         org-id-locations-file "~/Dropbox/org/.orgids"
@@ -550,6 +614,7 @@ size. This function also handles icons and modeline font sizes."
         ;; org-startup-with-inline-images t
         org-hide-emphasis-markers t
         org-catch-invisible-edits 'smart)
+  (setq org-image-actual-width nil)
   (setq org-indent-indentation-per-level 1)
   (setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
   ;; disable modules for faster startup
@@ -566,7 +631,6 @@ size. This function also handles icons and modeline font sizes."
                                          ("->" . "→")
                                          ("->>" . "↠")))
   (setq prettify-symbols-unprettify-at-point 'right-edge)
-  (setq org-image-actual-width 300)
   :config
   ;; (efs/org-font-setup)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -705,7 +769,7 @@ size. This function also handles icons and modeline font sizes."
 																			 append
 																			 (with-current-buffer (find-file-noselect f)
 																				 (org-map-entries
-																					(lambda ()
+																					(lambda ()                 ;; <
 																						(when (> 2 (car (org-heading-components)))
 																							(cons f (nth 4 (org-heading-components)))))))))))
 			(switch-to-buffer (get-buffer-create "*toc*"))
@@ -849,9 +913,9 @@ asynchronously."
          (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
                                            (when (derived-mode-p 'org-mode)
                                              ;; (setq-local company-backends '((company-capf)))
+																						 (setq-local evil-lookup-func #'jupyter-inspect-at-point)
                                              (jupyter-org-interaction-mode))))
-				 (envrc-mode . lc/load-ob-jupyter)
-				 )
+				 (envrc-mode . lc/load-ob-jupyter))
   :init
   (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
                                                        (:pandoc t)
@@ -881,7 +945,7 @@ asynchronously."
                            jupyter-org-strip-last-newline
                            jupyter-org-scalar)
                        result)))))
-      (if (< (length str) 100000)
+      (if (< (length str) 100000)  ;; >
           (insert str)
         (insert (format ": Result was too long! Length was %d" (length str)))))
     (when (/= (point) (line-beginning-position))
@@ -1186,15 +1250,6 @@ asynchronously."
    :files ("*.el" "*.js" "*.css"))
   :hook (org-mode . org-html-themify-mode)
   :config
-  (when (eq lc/theme 'light)
-    (setq org-html-themify-themes
-          '((light . modus-operandi)
-            (dark . modus-operandi))))
-  (when (eq lc/theme 'dark)
-    (setq org-html-themify-themes
-          '((light . modus-vivendi)
-            (dark . modus-vivendi))))
-
   ;; otherwise it complains about invalid face
   (require 'hl-line)
   )
@@ -1320,90 +1375,95 @@ asynchronously."
 	)
 
 (use-package modus-themes
-	:straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
-	:hook ((emacs-startup . lc/load-modus-theme)
-				 (modus-themes-after-load-theme . lc/fix-fill-column-indicator))
-	:general
-	(lc/leader-keys
-		"t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
-	:init
-	(setq modus-themes-operandi-color-overrides
-				'((bg-main . "#fefcf4")
-					(bg-dim . "#faf6ef")
-					(bg-alt . "#f7efe5")
-					(bg-hl-line . "#f4f0e3")
-					(bg-active . "#e8dfd1")
-					(bg-inactive . "#f6ece5")
-					(bg-region . "#c6bab1")
-					(bg-header . "#ede3e0")
-					(bg-tab-bar . "#dcd3d3")
-					(bg-tab-active . "#fdf6eb")
-					(bg-tab-inactive . "#c8bab8")
-					(fg-unfocused ."#55556f")))
-	(setq modus-themes-vivendi-color-overrides
-				'((bg-main . "#100b17")
-					(bg-dim . "#161129")
-					(bg-alt . "#181732")
-					(bg-hl-line . "#191628")
-					(bg-active . "#282e46")
-					(bg-inactive . "#1a1e39")
-					(bg-region . "#393a53")
-					(bg-header . "#202037")
-					(bg-tab-bar . "#262b41")
-					(bg-tab-active . "#120f18")
-					(bg-tab-inactive . "#3a3a5a")
-					(fg-unfocused . "#9a9aab")))
-	(setq modus-themes-slanted-constructs t
-				;; modus-themes-no-mixed-fonts t
-				modus-themes-bold-constructs t
-				modus-themes-fringes 'nil ; {nil,'subtle,'intense}
-				modus-themes-mode-line '3d ; {nil,'3d,'moody}
-				modus-themes-intense-hl-line nil
-				modus-themes-prompts nil ; {nil,'subtle,'intense}
-				modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
-				modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
-				modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-				modus-themes-headings  ; Read further below in the manual for this one
-				'((1 . line-no-bold)
-					(t . rainbow-line-no-bold))
-				modus-themes-variable-pitch-headings t
-				modus-themes-scale-headings t
-				modus-themes-scale-1 1.1
-				modus-themes-scale-2 1.15
-				modus-themes-scale-3 1.21
-				modus-themes-scale-4 1.27
-				modus-themes-scale-5 1.33)
-	(defun lc/load-modus-theme ()
-    ;; Dark for the night
-    (run-at-time "00:00" (* 60 60 24)
-								 (lambda ()
-									 (setq lc/theme 'dark)
-									 (modus-themes-load-vivendi)
-									 (with-eval-after-load 'org
-										 (plist-put org-format-latex-options :foreground "whitesmoke"))))
-		;;Light for the day
-		(run-at-time "07:00" (* 60 60 24)
-								 (lambda ()
-									 (modus-themes-load-operandi)
-									 (setq lc/theme 'light)
-									 (with-eval-after-load 'org
-										 (plist-put org-format-latex-options :foreground "black"))))
-		;; Dark for the night
-		(run-at-time "17:00" (* 60 60 24)
-								 (lambda ()
-									 (setq lc/theme 'dark)
-									 (modus-themes-load-vivendi)
-									 (with-eval-after-load 'org
-										 (plist-put org-format-latex-options :foreground "whitesmoke")))))
-	(defun lc/fix-fill-column-indicator ()
-		(modus-themes-with-colors
-			(custom-set-faces
-			 `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive))))))
-	)
+  :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+  :demand
+  :hook (modus-themes-after-load-theme . lc/fix-fill-column-indicator)
+  :general
+  (lc/leader-keys
+    "t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
+  :init
+  (setq modus-themes-operandi-color-overrides
+        '((bg-main . "#fefcf4")
+          (bg-dim . "#faf6ef")
+          (bg-alt . "#f7efe5")
+          (bg-hl-line . "#f4f0e3")
+          (bg-active . "#e8dfd1")
+          (bg-inactive . "#f6ece5")
+          (bg-region . "#c6bab1")
+          (bg-header . "#ede3e0")
+          (bg-tab-bar . "#dcd3d3")
+          (bg-tab-active . "#fdf6eb")
+          (bg-tab-inactive . "#c8bab8")
+          (fg-unfocused ."#55556f")))
+  (setq modus-themes-vivendi-color-overrides
+        '((bg-main . "#100b17")
+          (bg-dim . "#161129")
+          (bg-alt . "#181732")
+          (bg-hl-line . "#191628")
+          (bg-active . "#282e46")
+          (bg-inactive . "#1a1e39")
+          (bg-region . "#393a53")
+          (bg-header . "#202037")
+          (bg-tab-bar . "#262b41")
+          (bg-tab-active . "#120f18")
+          (bg-tab-inactive . "#3a3a5a")
+          (fg-unfocused . "#9a9aab")))
+  (setq modus-themes-slanted-constructs t
+        ;; modus-themes-no-mixed-fonts t
+        modus-themes-bold-constructs t
+        modus-themes-fringes 'nil ; {nil,'subtle,'intense}
+        modus-themes-mode-line '3d ; {nil,'3d,'moody}
+        modus-themes-intense-hl-line nil
+        modus-themes-prompts nil ; {nil,'subtle,'intense}
+        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+        modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
+        modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
+        modus-themes-headings  ; Read further below in the manual for this one
+        '((1 . line-no-bold)
+          (t . rainbow-line-no-bold))
+        modus-themes-variable-pitch-headings t
+        modus-themes-scale-headings t
+        modus-themes-scale-1 1.1
+        modus-themes-scale-2 1.15
+        modus-themes-scale-3 1.21
+        modus-themes-scale-4 1.27
+        modus-themes-scale-5 1.33)
+  (defun lc/load-dark-theme ()
+    (setq lc/theme 'dark)
+    (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "whitesmoke"))
+    (with-eval-after-load 'org-html-themify
+      (setq org-html-themify-themes '((light . modus-vivendi) (dark . modus-vivendi))))
+    (modus-themes-load-vivendi))
+  (defun lc/load-light-theme ()
+    (setq lc/theme 'light)
+    (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "dark"))
+    (with-eval-after-load 'org-html-themify
+      (setq org-html-themify-themes '((light . modus-operandi) (dark . modus-operandi))))
+    (setenv "BAT_THEME" "ansi")
+    (modus-themes-load-operandi))
+  (defun lc/change-theme-with-mac-system ()
+    (let ((appearance (plist-get (mac-application-state) :appearance)))
+      (cond ((equal appearance "NSAppearanceNameAqua")
+             (lc/load-light-theme))
+            ((equal appearance "NSAppearanceNameDarkAqua")
+             (lc/load-dark-theme)))))
+  (defun lc/change-theme-with-timers ()
+    (run-at-time "00:00" (* 60 60 24) (lc/load-dark-theme))
+    (run-at-time "08:00" (* 60 60 24) (lc/load-light-theme))
+    (run-at-time "18:00" (* 60 60 24) (lc/load-dark-theme)))
+  (defun lc/fix-fill-column-indicator ()
+    (modus-themes-with-colors
+      (custom-set-faces
+       `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive))))))
+  :config
+  (if (boundp 'mac-effective-appearance-change-hook)
+      (progn
+        (add-hook 'after-init-hook 'lc/change-theme-with-mac-system)
+        (add-hook 'mac-effective-appearance-change-hook 'lc/change-theme-with-mac-system))
+    (add-hook 'after-init-hook 'lc/change-theme-with-timers))
+  )
 
 (use-package dashboard
-  ;; :hook
-  ;; (dashboard-after-initialize . (lambda () (internal-show-cursor nil nil)))
   :demand
   :init
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
@@ -1412,18 +1472,12 @@ asynchronously."
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
   (defun lc/is-after-17-or-weekends? ()
-    (or (-> (nth 3 (split-string (current-time-string) " ")) ; time of the day e.g. 18
+    (or (thread-first (nth 4 (split-string (current-time-string) " ")) ;; time of the day e.g. 18
             (substring 0 2)
-            (string-to-number)
+            (string-to-number)   ;;<
             (> 16))
-        (-> (substring (current-time-string) 0 3) ; day of the week e.g. Fri
+        (thread-first (substring (current-time-string) 0 3) ;; day of the week e.g. Fri
             (member  '("Sat" "Sun")))))
-  ;; exclude work items after 17 and on weekends
-  (run-at-time "00:00" (* 60 60 24)
-               (lambda ()
-                 (if (lc/is-after-17-or-weekends?)
-                     (setq dashboard-match-agenda-entry "life|habits")
-                   (setq dashboard-match-agenda-entry "work|life|habits"))))
   (setq dashboard-banner-logo-title nil)
   (setq dashboard-set-footer nil)
   ;; (setq dashboard-startup-banner [VALUE])
@@ -1439,11 +1493,11 @@ asynchronously."
             "JIRA"
             "Go to Kanban"
             (lambda (&rest _) (browse-url "https://jira.maerskdev.net/secure/RapidBoard.jspa?rapidView=6378&projectKey=AVOC&quickFilter=15697")))
-           ;; Perspective
-           ;; (,(all-the-icons-octicon "history" :height 1.1 :v-adjust 0.0)
-           ;;  "Reload last session"
-           ;;  "Reload last session"
-           ;;  (lambda (&rest _) (persp-state-load persp-state-default-file)))
+           ;; Perspectives
+           (,(all-the-icons-octicon "history" :height 1.1 :v-adjust 0.0)
+            "Restore"
+            "Restore"
+            (lambda (&rest _) (persp-state-load persp-state-default-file)))
            )))
   (defun lc/dashboard-agenda-entry-format ()
     "Format agenda entry to show it on dashboard. Compared to the original, we remove tags at the end"
@@ -1460,18 +1514,18 @@ asynchronously."
            (file (buffer-file-name)))
       (dashboard-agenda--set-agenda-headline-face item)
       (list item loc file)))
-	(defun lc/dashboard-get-agenda ()
-  "Get agenda items for today or for a week from now."
-  (org-compile-prefix-format 'agenda)
-  (org-map-entries 'lc/dashboard-agenda-entry-format
-                   dashboard-match-agenda-entry
-                   'agenda
-                   dashboard-filter-agenda-entry))
+  (defun lc/dashboard-get-agenda ()
+    "Get agenda items for today or for a week from now."
+    (org-compile-prefix-format 'agenda)
+    (org-map-entries 'lc/dashboard-agenda-entry-format
+                     dashboard-match-agenda-entry
+                     'agenda
+                     dashboard-filter-agenda-entry))
   (defun lc/dashboard-get-next ()
     "Get agenda items for today or for a week from now."
     (org-compile-prefix-format 'agenda)
     (org-map-entries 'lc/dashboard-agenda-entry-format
-                     "/NEXT"
+                     dashboard-match-next-entry
                      'agenda))
   (defun lc/dashboard-insert-next (list-size)
     "Add the list of LIST-SIZE items of next tasks"
@@ -1489,6 +1543,16 @@ asynchronously."
               (switch-to-buffer buffer))))
        (format "%s" (nth 0 el)))))
   :config
+  ;; exclude work items after 17 and on weekends
+  (setq dashboard-match-next-entry "TODO=\"NEXT\"-work")
+  (run-at-time "00:00" (* 60 60 24)
+               (lambda ()
+                 (if (lc/is-after-17-or-weekends?)
+                     (setq dashboard-match-agenda-entry "life|habits"
+                           dashboard-match-next-entry "TODO=\"NEXT\"-work")
+                   (setq dashboard-match-agenda-entry "work|life|habits"
+                         dashboard-match-next-entry "TODO=\"NEXT\""
+                         ))))
   (dashboard-setup-startup-hook)
   (set-face-attribute 'dashboard-items-face nil :height (lc/get-font-size))
   ;; do not show tags in agenda view
@@ -1496,7 +1560,7 @@ asynchronously."
   ;; show next tasks in dashboard
   (add-to-list 'dashboard-item-generators  '(next . lc/dashboard-insert-next))
   (setq dashboard-items '((agenda . 5)
-                          (next . 5)
+                          (next . 10)
                           ;; (bookmarks . 5)
                           ;; (recents  . 5)
                           (projects . 5)))
@@ -1522,7 +1586,11 @@ asynchronously."
   )
 
 (use-package centered-cursor-mode
-  :general (lc/leader-keys "t -" (lambda () (interactive) (centered-cursor-mode 'toggle))))
+  :general
+	(lc/leader-keys
+		"t =" '((lambda () (interactive) (centered-cursor-mode 'toggle)) :wk "center cursor")
+		)
+	)
 
 (use-package hide-mode-line
   :commands (hide-mode-line-mode))
@@ -1582,12 +1650,12 @@ asynchronously."
   (prog-mode . display-fill-column-indicator-mode)
   :init
   (setq-default fill-column  90)
-  (setq display-fill-column-indicator-character "|")
+  ;; (setq display-fill-column-indicator-character "|")
 	)
 
 (use-package emacs
   :hook
-  ((org-jupyter-python-mode . (lambda () (whitespace-mode -1)))
+  ((org-jupyter-mode . (lambda () (whitespace-mode -1)))
    (org-mode . whitespace-mode))
   :init
   (setq-default
@@ -1763,7 +1831,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
   (setq projectile-completion-system 'default)
-  (setq projectile-switch-project-action #'projectile-find-file)
   (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
 	(setq projectile-switch-project-action 'projectile-commander)
 	;; Do not include straight repos (emacs packages) to project list
@@ -1807,7 +1874,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   )
 
 (use-package perspective
-  :commands (persp-new persp-switch)
+  :commands (persp-new persp-switch persp-state-save)
   :general
   (lc/leader-keys
     "<tab>" '(:ignore true :wk "tab")
@@ -1818,32 +1885,30 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
     "<tab> m" '(lc/main-tab :wk "main"))
   :init
+	(setq persp-state-default-file (expand-file-name ".persp" user-emacs-directory))
   (defun lc/main-tab ()
     "Jump to the dashboard buffer, if doesn't exists create one."
     (interactive)
-    ;; (persp-new (concat "tab " (+ 1 (int (length (persp-names))))))
-    (persp-new "main")
     (persp-switch "main")
     (switch-to-buffer dashboard-buffer-name)
     (dashboard-mode)
     (dashboard-insert-startupify-lists)
     (dashboard-refresh-buffer))
   :config
-  (persp-mode))
+  (persp-mode)
+	(add-hook 'kill-emacs-hook #'persp-state-save))
 
 (use-package persp-projectile
-	:after projectile
+  :after projectile
   :general
   (lc/leader-keys
     "p p" 'projectile-persp-switch-project
-		;; "<tab> o"	'((lambda () (interactive) (projectile-persp-switch-project "org")) :wk "org")
-    ;; "p P" '((lambda ()
-    ;;           (setq projectile-switch-project-action 'projectile-commander)
-    ;;           (setq projectile-switch-project-action 'projectile-find-file)
-		;; 					(interactive)
-    ;;           (projectile-persp-switch-project))
-    ;;         :wk "project commander" )
-    ))
+    ;; "<tab> o"	'((lambda () (interactive)
+    ;;               (let ((projectile-switch-project-action #'projectile-find-file))
+    ;;                 (projectile-persp-switch-project "org")))
+    ;;             :wk "org")
+    )
+  )
 
 (use-package magit
   :general
@@ -1859,8 +1924,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                magit-process-mode-map
                magit-diff-mode-map)
     "<tab>" #'magit-section-toggle
-    "<escape>" #'transient-quit-one
-		)
+    "<escape>" #'transient-quit-one)
   :init
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   (setq magit-log-arguments '("--graph" "--decorate" "--color"))
@@ -1974,6 +2038,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq company-minimum-prefix-length 1)
   (setq company-idle-delay 0.0)
   (setq company-tooltip-align-annotations t)
+  (setq company-tooltip-maximum-width 50
+        company-tooltip-minimum-width 50)
   ;; don't autocomplete when single candidate
   (setq company-auto-complete nil)
   (setq company-auto-complete-chars nil)
@@ -1985,57 +2051,15 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;;                           company-echo-metadata-frontend))
   ;; (setq company-selection-default nil)
   (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
+  :custom-face
+  (company-tooltip
+   ((t (:family "Fira Code"))))
   :config
   (global-company-mode)
   (with-eval-after-load 'evil
     (add-hook 'company-mode-hook #'evil-normalize-keymaps))
   ;; needed in case we only have one candidate
   (define-key company-active-map (kbd "C-j") 'company-select-next)
-  )
-
-(use-package company-box
-  :hook (company-mode . company-box-mode)
-  :config
-  (setq company-box-show-single-candidate t
-        company-box-backends-colors nil
-        company-box-max-candidates 50
-        company-box-icons-alist 'company-box-icons-all-the-icons
-        company-box-icons-all-the-icons
-        (let ((all-the-icons-scale-factor 0.8))
-          `((Unknown       . ,(all-the-icons-material "find_in_page"             :face 'all-the-icons-purple))
-            (Text          . ,(all-the-icons-material "text_fields"              :face 'all-the-icons-green))
-            (Method        . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-            (Function      . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-            (Constructor   . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-            (Field         . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-            (Variable      . ,(all-the-icons-material "adjust"                   :face 'all-the-icons-blue))
-            (Class         . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
-            (Interface     . ,(all-the-icons-material "settings_input_component" :face 'all-the-icons-red))
-            (Module        . ,(all-the-icons-material "view_module"              :face 'all-the-icons-red))
-            (Property      . ,(all-the-icons-material "settings"                 :face 'all-the-icons-red))
-            (Unit          . ,(all-the-icons-material "straighten"               :face 'all-the-icons-red))
-            (Value         . ,(all-the-icons-material "filter_1"                 :face 'all-the-icons-red))
-            (Enum          . ,(all-the-icons-material "plus_one"                 :face 'all-the-icons-red))
-            (Keyword       . ,(all-the-icons-material "filter_center_focus"      :face 'all-the-icons-red))
-            (Snippet       . ,(all-the-icons-material "short_text"               :face 'all-the-icons-red))
-            (Color         . ,(all-the-icons-material "color_lens"               :face 'all-the-icons-red))
-            (File          . ,(all-the-icons-material "insert_drive_file"        :face 'all-the-icons-red))
-            (Reference     . ,(all-the-icons-material "collections_bookmark"     :face 'all-the-icons-red))
-            (Folder        . ,(all-the-icons-material "folder"                   :face 'all-the-icons-red))
-            (EnumMember    . ,(all-the-icons-material "people"                   :face 'all-the-icons-red))
-            (Constant      . ,(all-the-icons-material "pause_circle_filled"      :face 'all-the-icons-red))
-            (Struct        . ,(all-the-icons-material "streetview"               :face 'all-the-icons-red))
-            (Event         . ,(all-the-icons-material "event"                    :face 'all-the-icons-red))
-            (Operator      . ,(all-the-icons-material "control_point"            :face 'all-the-icons-red))
-            (TypeParameter . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
-            (Template      . ,(all-the-icons-material "short_text"               :face 'all-the-icons-green))
-            (ElispFunction . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-            (ElispVariable . ,(all-the-icons-material "check_circle"             :face 'all-the-icons-blue))
-            (ElispFeature  . ,(all-the-icons-material "stars"                    :face 'all-the-icons-orange))
-            (ElispFace     . ,(all-the-icons-material "format_paint"             :face 'all-the-icons-pink)))))
-
-  ;; Disable tab-bar in company-box child frames
-  (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
   )
 
 (use-package inheritenv
@@ -2045,7 +2069,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :straight (envrc :type git :host github :repo "purcell/envrc")
   :commands (envrc-mode)
   :hook ((python-mode . envrc-mode)
-         (org-jupyter-python-mode . envrc-mode))
+         (org-jupyter-mode . envrc-mode))
   )
 
 (use-package yasnippet
@@ -2074,6 +2098,12 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
            "u" 'undo-fu-only-undo
            "\C-r" 'undo-fu-only-redo))
 
+(when (eq system-type 'darwin)
+  (use-package undo-fu
+    :general
+    (:states '(normal insert)
+             "s-z" 'undo-fu-only-undo)))
+
 (use-package vterm
   :config
   (setq vterm-shell (executable-find "fish")
@@ -2087,14 +2117,26 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 (use-package dired
   :straight (:type built-in)
   :hook
-	(dired-mode . dired-hide-details-mode)
+  (dired-mode . dired-hide-details-mode)
   :general
   (lc/leader-keys
     "f d" 'dired
     "f j" 'dired-jump)
-	:init
-	(setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
-	(setq dired-dwim-target t))
+  (general-nmap
+    :keymaps 'dired-mode-map
+    :states 'normal
+    "F" '((lambda () (interactive)
+            (let ((fn (dired-get-file-for-visit)))
+              (start-process "open-directory" nil "open" "-R" fn)))
+          :wk "open finder")
+    "X" '((lambda () (interactive)
+            (let ((fn (dired-get-file-for-visit)))
+              (start-process "open-external" nil "open" fn)))
+          :wk "open external"))
+  :init
+  (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
+  (setq dired-listing-switches "-lah")
+  (setq dired-dwim-target t))
 
 (use-package dired-single
   :after dired
@@ -2106,13 +2148,26 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
    "q" 'kill-current-buffer))
 
 (use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode))
+  :hook (dired-mode . (lambda () (interactive)
+                        (unless (file-remote-p default-directory)
+                          (all-the-icons-dired-mode)))))
 
 (use-package dired-hide-dotfiles
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :config
   (evil-collection-define-key 'normal 'dired-mode-map
     "H" 'dired-hide-dotfiles-mode))
+
+(use-package dired-subtree
+  :general
+  (dired-mode-map
+   :states 'normal
+   "i" 'dired-subtree-toggle)
+  :config
+  (advice-add 'dired-subtree-toggle
+              :after (lambda () (interactive)
+                       (when all-the-icons-dired-mode
+                         (revert-buffer)))))
 
 (use-package restart-emacs
   :general
@@ -2124,23 +2179,25 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 	:mode "\\.toml\\'")
 
 (use-package tramp
-	:init
-	;; Disable version control on tramp buffers to avoid freezes.
-	(setq vc-ignore-dir-regexp
-      (format "\\(%s\\)\\|\\(%s\\)"
-              vc-ignore-dir-regexp
-              tramp-file-name-regexp))
-	(setq tramp-default-method "ssh")
-	(setq tramp-auto-save-directory
-      (expand-file-name "tramp-auto-save" user-emacs-directory))
-	(setq tramp-persistency-file-name
-      (expand-file-name "tramp-connection-history" user-emacs-directory))
-	(setq password-cache-expiry nil)
-	(setq tramp-use-ssh-controlmaster-options nil)
-	(customize-set-variable 'tramp-ssh-controlmaster-options
-                        (concat
-                         "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
-                         "-o ControlMaster=auto -o ControlPersist=yes")))
+  :straight (:type built-in)
+  :init
+  ;; Disable version control on tramp buffers to avoid freezes.
+  (setq vc-ignore-dir-regexp
+        (format "\\(%s\\)\\|\\(%s\\)"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+  (setq tramp-default-method "ssh")
+  (setq tramp-auto-save-directory
+        (expand-file-name "tramp-auto-save" user-emacs-directory))
+  (setq tramp-persistency-file-name
+        (expand-file-name "tramp-connection-history" user-emacs-directory))
+  (setq password-cache-expiry nil)
+  (setq tramp-use-ssh-controlmaster-options nil)
+  :config
+  (customize-set-variable 'tramp-ssh-controlmaster-options
+                          (concat
+                           "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
+                           "-o ControlMaster=auto -o ControlPersist=yes")))
 
 (use-package docker-tramp)
 
@@ -2213,59 +2270,65 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   )
 
 (use-package lsp-mode
-	:commands (lsp lsp-deferred)
-	:hook
-	(lsp-mode . (lambda ()
-								(setq-local evil-lookup-func #'lsp-describe-thing-at-point)
-								(setq-local evil-goto-definition-functions
-														'(lambda (&rest args) (lsp-find-definition)))))
-	(lsp-mode . lsp-enable-which-key-integration)
-	:general
-	(lc/local-leader-keys
-		:states 'normal
-		:keymaps 'lsp-mode-map
-		"i" '(:ignore t :which-key "import")
-		"i o" '(lsp-organize-imports :wk "optimize")
-		"l" '(:keymap lsp-command-map :wk "lsp")
-		"r" '(lsp-rename :wk "rename"))
-	;; (lsp-mode-map
-	;;  :states 'normal "gD" 'lsp-find-references)
-	:init
-	(setq lsp-restart 'ignore)
-	(setq lsp-eldoc-enable-hover nil)
-	(setq lsp-enable-file-watchers nil)
-	(setq lsp-signature-auto-activate nil)
-	(setq lsp-modeline-diagnostics-enable nil)
-	(setq lsp-keep-workspace-alive nil)
-	(setq lsp-auto-execute-action nil)
-	(setq lsp-before-save-edits nil)
-	;; :config
-	;; (lsp-register-client
+  :commands (lsp lsp-deferred)
+  :hook
+  ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
+   (lsp-mode . lsp-enable-which-key-integration))
+  :general
+  (lc/local-leader-keys
+    :states 'normal
+    :keymaps 'lsp-mode-map
+    "i" '(:ignore t :which-key "import")
+    "i o" '(lsp-organize-imports :wk "optimize")
+    "l" '(:keymap lsp-command-map :wk "lsp")
+    "r" '(lsp-rename :wk "rename"))
+  (lsp-mode-map
+   :states 'normal "gD" 'lsp-find-references)
+  :init
+  (setq lsp-restart 'ignore)
+  (setq lsp-eldoc-enable-hover nil)
+  (setq lsp-enable-file-watchers nil)
+  (setq lsp-signature-auto-activate nil)
+  (setq lsp-modeline-diagnostics-enable nil)
+  (setq lsp-keep-workspace-alive nil)
+  (setq lsp-auto-execute-action nil)
+  (setq lsp-before-save-edits nil)
+  (setq lsp-diagnostics-provider :flymake)
+  ;; :config
+  ;; (lsp-register-client
   ;;   (make-lsp-client :new-connection (lsp-tramp-connection "<binary name (e. g. pyls, rls)>")
   ;;                    :major-modes '(python-mode)
   ;;                    :remote? t
   ;;                    :server-id 'pyls-remote))
-	)
+  )
 
 (use-package lsp-ui
-	:hook ((lsp-mode . lsp-ui-mode))
-	:general
-	(lsp-mode-map
-	 :states 'normal "gD" 'lsp-ui-peek-find-references)
-	(lsp-ui-peek-mode-map
-	 :states 'normal
-	 "C-j" 'lsp-ui-peek--select-next
-	 "C-k" 'lsp-ui-peek--select-prev)
-	(outline-mode-map
-	 :states 'normal
-	 "C-j" 'nil
-	 "C-k" 'nil)
-	:init
-	(setq lsp-ui-doc-show-with-cursor nil)
-	(setq lsp-ui-doc-show-with-mouse nil)
-	(setq lsp-ui-peek-always-show t)
-	(setq lsp-ui-peek-fontify 'always)
-	)
+  :hook
+  ((lsp-mode . lsp-ui-mode)
+   (lsp-mode . (lambda () (setq-local evil-goto-definition-functions
+                                      '(lambda (&rest args) (lsp-ui-peek-find-definitions)))))
+   )
+  :bind
+  (:map lsp-ui-mode-map
+        ([remap lsp-find-references] . lsp-ui-peek-find-references))
+  :general
+  (lc/local-leader-keys
+    "h" 'lsp-ui-doc-show
+    "H" 'lsp-ui-doc-hide)
+  (lsp-ui-peek-mode-map
+   :states 'normal
+   "C-j" 'lsp-ui-peek--select-next
+   "C-k" 'lsp-ui-peek--select-prev)
+  (outline-mode-map
+   :states 'normal
+   "C-j" 'nil
+   "C-k" 'nil)
+  :init
+  (setq lsp-ui-doc-show-with-cursor nil)
+  (setq lsp-ui-doc-show-with-mouse nil)
+  (setq lsp-ui-peek-always-show t)
+  (setq lsp-ui-peek-fontify 'always)
+  )
 
 (use-package dap-mode
   :hook
@@ -2411,38 +2474,39 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
   :general
-	(lc/local-leader-keys
+  (lc/local-leader-keys
     :keymaps 'python-mode-map
+    "e" '(:ignore true :wk "eval")
     "e e" '(jupyter-eval-line-or-region :wk "line")
     "e d" '(jupyter-eval-defun :wk "defun")
     "e b" '((lambda () (interactive) (lc/jupyter-eval-buffer)) :wk "buffer")
-    "j r" '(lc/jupyter-repl :wk "jupyter REPL")
+    "J" '(lc/jupyter-repl :wk "jupyter REPL")
     "k" '(:ignore true :wk "kernel")
     "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
-		"k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
-	(lc/local-leader-keys
-		:keymaps 'python-mode-map
-		:states 'visual
-		"e" '(jupyter-eval-region :wk "eval"))
-	:init
-	(setq jupyter-repl-prompt-margin-width 4)
-	(defun jupyter-command-venv (&rest args)
-		"This overrides jupyter-command to use the virtualenv's jupyter"
-		(let ((jupyter-executable (executable-find "jupyter")))
-			(with-temp-buffer
-				(when (zerop (apply #'process-file jupyter-executable nil t nil args))
-					(string-trim-right (buffer-string))))))
-	(defun lc/jupyter-eval-buffer ()
-		"Send the contents of BUFFER using `jupyter-current-client'."
-		(interactive)
-		(jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
-	(defun lc/jupyter-repl ()
-		"If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
-		(interactive)
-		(if (bound-and-true-p jupyter-current-client)
-				(jupyter-repl-pop-to-buffer)
-			(call-interactively 'jupyter-repl-associate-buffer)))
-	(advice-add 'jupyter-command :override #'jupyter-command-venv))
+    "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
+  (lc/local-leader-keys
+    :keymaps 'python-mode-map
+    :states 'visual
+    "e" '(jupyter-eval-region :wk "eval"))
+  :init
+  (setq jupyter-repl-prompt-margin-width 4)
+  (defun jupyter-command-venv (&rest args)
+    "This overrides jupyter-command to use the virtualenv's jupyter"
+    (let ((jupyter-executable (executable-find "jupyter")))
+      (with-temp-buffer
+        (when (zerop (apply #'process-file jupyter-executable nil t nil args))
+          (string-trim-right (buffer-string))))))
+  (defun lc/jupyter-eval-buffer ()
+    "Send the contents of BUFFER using `jupyter-current-client'."
+    (interactive)
+    (jupyter-eval-string (jupyter-load-file-code (buffer-file-name))))
+  (defun lc/jupyter-repl ()
+    "If a buffer is already associated with a jupyter buffer, then pop to it. Otherwise start a jupyter kernel."
+    (interactive)
+    (if (bound-and-true-p jupyter-current-client)
+        (jupyter-repl-pop-to-buffer)
+      (call-interactively 'jupyter-repl-associate-buffer)))
+  (advice-add 'jupyter-command :override #'jupyter-command-venv))
 
 (use-package pyimport
   :general
@@ -2458,12 +2522,31 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 	)
 
 (use-package ess
-	:general
-  (R-mode
+  :general
+  (lc/local-leader-keys
+    :keymaps 'ess-r-mode-map
+    :states 'normal
     "R" '(R :wk "R")
-		"l" '(ess-eval-line :wk "eval line")
-		"L" '(ess-eval-region-or-line-and-step :wk "line and step")
-		)
+    "q" '(ess-quit :wk "quit")
+    "RET" '(ess-eval-line-visibly-and-step :wk "line and step")
+    ;; debug
+    "d b" '(ess-bp-set :wk "breakpoint")
+    "d n" '(ess-debug-command-next :wk "next")
+    "d q" '(ess-debug-command-quit :wk "quit")
+    "d c" '(ess-bp-next :wk "continue")
+    "d f" '(ess-debug-flag-for-debugging :wk "flag function")
+    "d F" '(ess-debug-unflag-for-debugging :wk "unflag function")
+    "d p" '(ess-debug-goto-debug-point :wk "go to point")
+    ;; "e l" '(ess-eval-line :wk "eval line")
+    "e p" '(ess-eval-paragraph :wk "paragraph")
+    "e f" '(ess-eval-function :wk "function")
+    "h" '(:keymap ess-doc-map :which-key "help")
+    ;; "h" '(ess-display-help-on-object :wk "help")
+    )
+  (lc/local-leader-keys
+    :keymaps 'ess-r-mode-map
+    :states 'visual
+    "RET" '(ess-eval-region-or-line-visibly-and-step :wk "line and step"))
   :init
   (setq ess-eval-visibly 'nowait)
   (setq ess-R-font-lock-keywords '((ess-R-fl-keyword:keywords . t)
@@ -2478,7 +2561,27 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                                    (ess-fl-keyword:delimiters . t)
                                    (ess-fl-keyword:= . t)
                                    (ess-R-fl-keyword:F&T . t)))
+	;; (setq ess-first-continued-statement-offset 2
+  ;;         ess-continued-statement-offset 0
+  ;;         ess-expression-offset 2
+  ;;         ess-nuke-trailing-whitespace-p t
+  ;;         ess-default-style 'DEFAULT)
+	;; (setq ess-r-flymake-linters "line_length_linter = 120")
   )
+
+(use-package ess-view-data
+  :general
+  (lc/local-leader-keys
+    :keymaps 'ess-r-mode-map
+    :states 'normal
+    "hd" 'ess-R-dv-pprint
+    "ht" 'ess-R-dv-ctable
+    ))
+
+(use-package lsp-mode
+  :hook
+  (ess-r-mode . lsp-deferred)
+	)
 
 (use-package evil-lisp-state
   :after evil
@@ -2498,7 +2601,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
     :states 'normal
     "e l" '(eros-eval-last-sexp :wk "last sexp")
-    "e d" '(eros-eval-defun :wk "defun")
+    ;; "e d" '((lambda () (interactive) (eros-eval-defun t)) :wk "defun")
     "e b" '(eval-buffer :wk "buffer"))
   (lc/local-leader-keys
     :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
@@ -2506,7 +2609,14 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "e" '((lambda (start end)
             (interactive (list (region-beginning) (region-end)))
             (eval-region start end t))
-          :wk "region"))
+          :wk "region")
+    ;; "e" '((lambda (start end)
+    ;;         (interactive (list (region-beginning) (region-end)))
+    ;;         (eros--eval-overlay
+    ;;          (eval-region start end t)
+    ;;          end))
+    ;;       :wk "region")
+    )
   )
 
 (use-package nix-mode
@@ -2516,6 +2626,16 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :mode "\\.clj$"
   :init
   (setq clojure-align-forms-automatically t))
+
+(use-package clojure-mode
+  :hook
+  ((clojure-mode clojurescript-mode)
+   . (lambda ()
+       (setq-local lsp-enable-indentation nil ; cider indentation
+                   lsp-enable-completion-at-point nil ; cider completion
+                   )
+       (lsp-deferred)))
+  )
 
 (use-package cider
   :hook ((cider-repl-mode . evil-normalize-keymaps)
@@ -2529,11 +2649,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "C" '(cider-connect-cljs :wk "connect (cljs)")
     "j" '(cider-jack-in :wk "jack in")
     "J" '(cider-jack-in-cljs :wk "jack in (cljs)")
+    "d d" 'cider-debug-defun-at-point 
     "e b" 'cider-eval-buffer
     "e l" 'cider-eval-last-sexp
-    "e E" 'cider-pprint-eval-last-sexp-to-comment
+    "e L" 'cider-pprint-eval-last-sexp-to-comment
     "e d" '(cider-eval-defun-at-point :wk "defun")
     "e D" 'cider-pprint-eval-defun-to-comment
+		"h" 'cider-clojuredocs-web 
 		"K" 'cider-doc
 		"q" '(cider-quit :qk "quit")
 		)
@@ -2545,7 +2667,11 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq nrepl-hide-special-buffers t)
   (setq nrepl-sync-request-timeout nil)
 	(setq cider-repl-display-help-banner nil)
-	(defun mpereira/cider-eval-sexp-at-point (&optional output-to-current-buffer)
+  )
+
+(use-package cider
+  :init
+  (defun mpereira/cider-eval-sexp-at-point (&optional output-to-current-buffer)
     "Evaluate the expression around point.
 If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
     (interactive "P")
@@ -2559,21 +2685,6 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
 :config
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider))
-
-(use-package evil-cleverparens
-  :hook
-  ((emacs-lisp-mode . evil-cleverparens-mode)
-   (clojure-mode . evil-cleverparens-mode))
-  :init
-  (setq evil-move-beyond-eol t
-        evil-cleverparens-use-additional-bindings nil
-        evil-cleverparens-use-s-and-S nil
-        ;; evil-cleverparens-swap-move-by-word-and-symbol t
-        ;; evil-cleverparens-use-regular-insert t
-        )
-  ;; :config
-  ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
-  )
 
 ;; keep the file indented
 (use-package aggressive-indent
@@ -2631,3 +2742,101 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
                       ("http://irreal.org/blog/?tag=emacs&amp;feed=rss2" emacs)
                       ("https://www.reddit.com/search.rss?q=url%3A%28youtu.be+OR+youtube.com%29&sort=top&t=week&include_over_18=1&type=link"
                       reddit youtube popular))))
+
+(use-package emacs
+  :general
+  (lc/leader-keys
+    "s g" '(google-search :wk "google"))
+  :init
+  (defun google-search-str (str)
+    (browse-url
+     (concat "https://www.google.com/search?q=" str)))
+  (defun google-search ()
+    "Google search region, if active, or ask for search string."
+    (interactive)
+    (if (region-active-p)
+        (google-search-str
+         (buffer-substring-no-properties (region-beginning)
+                                         (region-end)))
+      (google-search-str (read-from-minibuffer "Search: "))))
+  )
+
+(use-package emacs
+  :general
+  (lc/leader-keys
+    "s c" '(github-code-search :wk "code (github)"))
+  :init
+  (defun github-code-search ()
+    "Search code on github for a given language."
+    (interactive)
+    (let ((language (completing-read
+                     "Language: "
+                     '("Emacs Lisp" "Python"  "Clojure" "R")))
+          (code (read-string "Code: ")))
+      (browse-url
+       (concat "https://github.com/search?l=" language
+               "&type=code&q=" code))))
+  )
+
+(use-package emacs
+  :general
+  (lc/leader-keys
+    "h" 'lc/help-transient)
+  :config
+  (require 'transient)
+  (transient-define-prefix lc/help-transient ()
+    ["Help Commands"
+     ["Mode & Bindings"
+      ("m" "Mode" describe-mode)
+      ("b" "Major Bindings" which-key-show-full-major-mode)
+      ("B" "Minor Bindings" which-key-show-full-minor-mode-keymap)
+      ("d" "Descbinds" describe-bindings)
+      ]
+     ["Describe"
+      ("c" "Command" helpful-command)
+      ("f" "Function" helpful-callable)
+      ("v" "Variable" helpful-variable)
+      ("k" "Key" helpful-key)
+      ]
+     ["Info on"
+      ("C-c" "Emacs Command" Info-goto-emacs-command-node)
+      ("C-f" "Function" info-lookup-symbol) 
+      ("C-v" "Variable" info-lookup-symbol)
+      ("C-k" "Emacs Key" Info-goto-emacs-key-command-node)
+      ]
+     ["Goto Source"
+      ("L" "Library" find-library)
+      ("F" "Function" find-function)
+      ("V" "Variable" find-variable)
+      ("K" "Key" find-function-on-key)
+      ]
+     ]
+    [
+     ["Internals"
+      ("e" "Echo Messages" view-echo-area-messages)
+      ("l" "Lossage" view-lossage)
+      ]
+     ["Describe"
+      ("s" "Symbol" helpful-symbol)
+      ("." "At Point   " helpful-at-point)
+      ;; ("C-f" "Face" counsel-describe-face)
+      ("w" "Where Is" where-is)
+      ("=" "Position" what-cursor-position)
+      ]
+     ["Info Manuals"
+      ("C-i" "Info" info)
+      ("C-4" "Other Window " info-other-window)
+      ("C-e" "Emacs" info-emacs-manual)
+      ;; ("C-l" "Elisp" info-elisp-manual)
+      ]
+     ["Exit"
+      ("q" "Quit" transient-quit-one)
+      ("<escape>" "Quit" transient-quit-one)
+      ]
+     ;; ["External"
+     ;;  ("W" "Dictionary" lookup-word-at-point)
+     ;;  ("D" "Dash" dash-at-point)
+     ;;  ]
+     ]
+    )
+  )
