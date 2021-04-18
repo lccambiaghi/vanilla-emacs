@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-04-06 Tue 09:47 -->
+<!-- 2021-04-18 Sun 18:51 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Luca's literate Emacs config</title>
@@ -485,22 +485,17 @@ img {
 <li><a href="#h:BB41A3C4-8047-40D7-B99D-1BFDAC930D25">4. Emacs</a>
 <ul>
 <li><a href="#h:94661C0F-79D0-4CD4-AA3F-CADB0E79398C">4.1. Sane defaults</a></li>
-<li><a href="#h:9372E70D-27A4-413D-A299-26500491FEC4">4.2. custom minor modes</a>
-<ul>
-<li><a href="#h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E">4.2.1. org-jupyter-mode</a></li>
-</ul>
-</li>
-<li><a href="#h:AC160303-DF53-4597-9BAA-3AE1E7E13431">4.3. custom variables</a></li>
-<li><a href="#h:3CDD0539-5A95-468C-85F0-71B391D7115D">4.4. Font</a></li>
-<li><a href="#h:D9DB7FA2-18C6-46A9-9567-1FEFADD523AC">4.5. Adjust font size</a></li>
-<li><a href="#h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B">4.6. macOS</a></li>
-<li><a href="#h:A17DC2B8-4E73-4F43-BD6E-07ADAEC9A3A7">4.7. Garbage collector magic hack</a></li>
-<li><a href="#h:273CA7B2-AE07-4571-AB4A-92523B11DB41">4.8. helpful</a></li>
-<li><a href="#h:FC10A86D-86E6-45C2-8759-ADE233B0D80C">4.9. eldoc</a></li>
-<li><a href="#h:B1611A44-8567-4370-80B4-9D904434E274">4.10. exec path from shell</a></li>
-<li><a href="#h:2DB2921D-434E-4321-A15E-4B3329ABC946">4.11. no littering</a></li>
-<li><a href="#h:5F50A0A6-0C8E-4804-BBF5-A8D9B1372F12">4.12. server mode</a></li>
-<li><a href="#h:BE3F251D-5F39-4337-B27C-CFB81EE9A504">4.13. Auto-pair parenthesis</a></li>
+<li><a href="#h:AC160303-DF53-4597-9BAA-3AE1E7E13431">4.2. custom variables</a></li>
+<li><a href="#h:3CDD0539-5A95-468C-85F0-71B391D7115D">4.3. Font</a></li>
+<li><a href="#h:D9DB7FA2-18C6-46A9-9567-1FEFADD523AC">4.4. Adjust font size</a></li>
+<li><a href="#h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B">4.5. macOS</a></li>
+<li><a href="#h:A17DC2B8-4E73-4F43-BD6E-07ADAEC9A3A7">4.6. Garbage collector magic hack</a></li>
+<li><a href="#h:273CA7B2-AE07-4571-AB4A-92523B11DB41">4.7. helpful</a></li>
+<li><a href="#h:FC10A86D-86E6-45C2-8759-ADE233B0D80C">4.8. eldoc</a></li>
+<li><a href="#h:B1611A44-8567-4370-80B4-9D904434E274">4.9. exec path from shell</a></li>
+<li><a href="#h:2DB2921D-434E-4321-A15E-4B3329ABC946">4.10. no littering</a></li>
+<li><a href="#h:5F50A0A6-0C8E-4804-BBF5-A8D9B1372F12">4.11. server mode</a></li>
+<li><a href="#h:BE3F251D-5F39-4337-B27C-CFB81EE9A504">4.12. Auto-pair parenthesis</a></li>
 </ul>
 </li>
 <li><a href="#h:A992628D-9095-4392-9C96-2633E8DDDE08">5. Keybindings</a>
@@ -519,6 +514,7 @@ img {
 <li><a href="#h:02F42E4A-7DB4-4150-AA74-22CB3FE7636C">5.2.9. evil-cleverparens</a></li>
 <li><a href="#h:4055D055-3521-41DE-8BC5-0196F89BB3F8">5.2.10. evil-iedit-state</a></li>
 <li><a href="#h:B26642F5-695F-4475-92B5-2EB9B1C1A96A">5.2.11. evil-mc</a></li>
+<li><a href="#h:FD4609AC-AD2E-44EA-81FC-0154D84C9701">5.2.12. Fix scroll error when centaur tabs is active</a></li>
 </ul>
 </li>
 <li><a href="#h:4F5BF801-2E48-44B3-8822-240BC6D08732">5.3. which-key</a></li>
@@ -555,6 +551,7 @@ img {
 <li><a href="#h:040DD3F1-043C-403F-A145-813BA69FC42E">6.18. automatic latex preview</a></li>
 <li><a href="#h:65931801-3A7E-4828-B052-F978731F3004">6.19. org-encrypt</a></li>
 <li><a href="#h:AC175A47-E576-4AA6-A9C7-709129F4C56F">6.20. use org-id in links</a></li>
+<li><a href="#h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E">6.21. org-jupyter-mode</a></li>
 </ul>
 </li>
 <li><a href="#h:239ABF35-3C15-416B-8C10-353F711E5541">7. UI</a>
@@ -616,7 +613,13 @@ img {
 <li><a href="#h:FEB4E3B3-47E7-4AAE-ADD7-524A57387301">9.9. undo fu</a></li>
 <li><a href="#h:55C74553-9DAF-49E6-955A-C772FD7B4402">9.10. vterm</a></li>
 <li><a href="#h:1162BDDB-9DC6-4750-8EF8-9C5D2AF51892">9.11. vterm toggle</a></li>
-<li><a href="#h:BA5D7535-070B-494B-A27C-6B9FFC3CC88E">9.12. dired</a></li>
+<li><a href="#h:BA5D7535-070B-494B-A27C-6B9FFC3CC88E">9.12. dired and friends</a>
+<ul>
+<li><a href="#h:D6BC5C09-6F03-4D08-9237-F955D6B2F39D">9.12.1. dired</a></li>
+<li><a href="#h:230AF0C3-8214-46BB-AB84-C81C047DC8C8">9.12.2. dired subtree</a></li>
+<li><a href="#h:629AEC4E-F112-457A-BAF9-6B5786DEC8EF">9.12.3. dired rsync</a></li>
+</ul>
+</li>
 <li><a href="#h:4C37CFFC-D045-47B4-BFDC-801977247199">9.13. restart-emacs</a></li>
 <li><a href="#h:4474E2AE-F934-48CD-ACB8-5729B7C26F0A">9.14. toml mode</a></li>
 <li><a href="#h:48EFC0F4-8C5C-47CF-A464-420A618A01C2">9.15. tramp</a></li>
@@ -826,6 +829,7 @@ Here they are, without any ranking:
 <li><a href="#h:FB4154EE-27F2-4B52-B0BB-5F95D7920EAD">evil-org-mode</a></li>
 <li><a href="#h:AC175A47-E576-4AA6-A9C7-709129F4C56F">use org-id in links</a></li>
 <li><a href="#h:89A2FA66-9647-4BF8-A45C-EA61D5D95FDC">org-html-themify</a></li>
+<li><a href="#h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E">org-jupyter-mode</a></li>
 <li><a href="#h:5F1EC880-5646-4E50-A460-C2F23BD864FC">Modus themes</a></li>
 <li><a href="#h:2F4C0A6C-96BE-4818-B794-D1593C23FB00">dashboard</a></li>
 <li><a href="#h:91E3AC2B-6981-4915-8508-4CA5D7182939">popup management</a></li>
@@ -834,7 +838,7 @@ Here they are, without any ranking:
 <li><a href="#h:0A172DDA-7B18-46EF-87C6-33D12234AEEC">company-mode</a></li>
 <li><a href="#h:65206410-8DD7-499E-AA70-6D9C781C0E0D">envrc</a></li>
 <li><a href="#h:8E2A5EAF-B690-457E-86E7-9070B51297A7">yasnippet</a></li>
-<li><a href="#h:BA5D7535-070B-494B-A27C-6B9FFC3CC88E">dired</a></li>
+<li><a href="#h:D6BC5C09-6F03-4D08-9237-F955D6B2F39D">dired</a></li>
 <li><a href="#h:6B214C3A-22E3-47D0-9DD7-F379E07CF960">web browser</a></li>
 <li><a href="#h:28CB5546-FBE4-481D-B620-623006DC0FDA">lsp mode</a></li>
 <li><a href="#h:85405E87-7858-4F5C-A229-B72E70F68597">dap-mode</a></li>
@@ -1008,13 +1012,16 @@ We can then restore package versions using <code>M-x straight-thaw-versions</cod
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"cfrs"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"7c42f2c82c7ae689f3ef291b066688c58ab96298"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"cider"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"9c137c52cf5b769fcc52b4e8108acda10638f766"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"clojure-mode"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"53ef8ac076ae7811627fbdd408e519ab7fca9a0b"</span><span style="color: #a8007f;">)</span>
- <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"company-box"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"ec8f44674dc10dd4d50785a1f97820b29d392ea2"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"company-mode"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"6116c4617a7934acfe84cb82a058e9b198f0f480"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"consult"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"b8ab017488b3f04bbfdc1a9610af3224339d943c"</span><span style="color: #a8007f;">)</span>
+ <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"corfu"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"5214170fd416efe395cbeb33d4fc4391189070c3"</span><span style="color: #a8007f;">)</span>
+ <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"csv-mode"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"8da54e8b4ef9e5fe8a0afa147c625ced603dc0aa"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"dap-mode"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"88eda699e77e86410cdf3eb6afb790303dd27728"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"dash.el"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"0e975782086020aa12863fdb658d6a3cc748a10c"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"diff-hl"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"89aeb2fc8b24b6c4de4394f85041c5dd5fa60dad"</span><span style="color: #a8007f;">)</span>
+ <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"dired-hacks"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"7c0ef09d57a80068a11edc74c3568e5ead5cc15a"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"dired-hide-dotfiles"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"964b860a40ac0d585c71760ed2ecdfa6ce7c4184"</span><span style="color: #a8007f;">)</span>
+ <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"dired-rsync"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"fb0f161ac3cce1b224f52547f5bc7e1dcd283191"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"dired-single"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"98c2102429fcac6fbfdba9198c126eb1b3dcc4e5"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"docker-tramp.el"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"8e2b671eff7a81af43b76d9dfcf94ddaa8333a23"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"doom-modeline"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"49816da1a6c05e6215ec3c8aac6c5eabeb47e74c"</span><span style="color: #a8007f;">)</span>
@@ -1042,6 +1049,7 @@ We can then restore package versions using <code>M-x straight-thaw-versions</cod
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"envrc"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"a7c6ca84a2b0617c94594a23a0c05246f14fa4ee"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"epl"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"78ab7a85c08222cd15582a298a364774e3282ce6"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"eros"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"dd8910279226259e100dab798b073a52f9b4233a"</span><span style="color: #a8007f;">)</span>
+ <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"ess-view-data"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"283251e8ac19ac0c0f89a4b0f0eb38482167e52b"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"evil"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"6316dae58e95fe019fcb41d2d1ca5847227a16e6"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"evil-cleverparens"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"8c45879d49bfa6d4e414b6c1df700a4a51cbb869"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"evil-collection"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"f53ef08224f709c732740d45b373ef3617f6d759"</span><span style="color: #a8007f;">)</span>
@@ -1056,7 +1064,6 @@ We can then restore package versions using <code>M-x straight-thaw-versions</cod
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"evil-surround"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"346d4d85fcf1f9517e9c4991c1efe68b4130f93a"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"exec-path-from-shell"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"d14d6d2966efe5a1409f84a6b9d998268f74761d"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"f.el"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"c4dbf8c8e83df834f5d6f72cd5649b9d8a8812ec"</span><span style="color: #a8007f;">)</span>
- <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"frame-local"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"7ee1106c3bcd4022f48421f8cb1ef4f995da816e"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"gcmh"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"0089f9c3a6d4e9a310d0791cf6fa8f35642ecfd9"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"general.el"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"a0b17d207badf462311b2eef7c065b884462cb7c"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"git-timemachine"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"8d675750e921a047707fcdc36d84f8439b19a907"</span><span style="color: #a8007f;">)</span>
@@ -1071,15 +1078,17 @@ We can then restore package versions using <code>M-x straight-thaw-versions</cod
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"hydra"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"2d553787aca1aceb3e6927e426200e9bb9f056f1"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"iedit"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"5c792f5fd44797ece83169b7ef6ac6f4b259255d"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"inheritenv"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"13c0135ddd96519ddeb993ee21163d6e11b4f464"</span><span style="color: #a8007f;">)</span>
+ <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"kubernetes-el"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"de4ff6ccdf58a939908d384efe9cf06b2bcabe12"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"lsp-mode"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"8166a1fe04891efcb7f1262609e77fc48500537b"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"lsp-pyright"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"71ff088ac4c93b0edd012f305a3dfd1602c5d21e"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"lsp-treemacs"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"3bae4a91e05d55d5ca92da272ffcd497f370e9df"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"lsp-ui"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"62568188b7cbc0758a0c4bfb57647708406ddf51"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"magit"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"25f432551347468ce97b8b03987e59092e91f8f0"</span><span style="color: #a8007f;">)</span>
+ <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"magit-popup"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"d8585fa39f88956963d877b921322530257ba9f5"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"marginalia"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"d38a27867bcec0bafa43e8d1bd3fd96a32b15d31"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"markdown-mode"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"377ce39ffe69f058994ac4e98bde8cfb58661406"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"melpa"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"ea7b38971ea1ac02d1de128d3526f9b7b9f601f9"</span><span style="color: #a8007f;">)</span>
- <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"modus-themes"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"6d8b34b89b855eff7ac203b994b689f630e9b8b0"</span><span style="color: #a8007f;">)</span>
+ <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"modus-themes"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"1903cf653055482714c0f4cfa79e53c82fba047c"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"nix-mode"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"53ea839a52335d089699d3530bae8ea5914cdbb6"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"no-littering"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"6e8950ad296c0f57d80d034eb0b7adf538c02906"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"ob-async"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"de1cd6c93242a4cb8773bbe115b7be3d4dd6b97e"</span><span style="color: #a8007f;">)</span>
@@ -1123,7 +1132,6 @@ We can then restore package versions using <code>M-x straight-thaw-versions</cod
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"straight.el"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"2d407bccd9378f1d5218f8ba2ae85c6be73fbaf1"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"templatel"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"a3458234b8e0e83c46c6aca11a757c1134752c09"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"toml-mode.el"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"f6c61817b00f9c4a3cab1bae9c309e0fc45cdd06"</span><span style="color: #a8007f;">)</span>
- <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"tramp"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"f278fd50dcab872042aa798be5cf87c703814f6f"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"transient"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"90e640fe8fa3f309c7cf347501e86ca5cd0bd85e"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"transpose-frame"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"12e523d70ff78cc8868097b56120848befab5dbc"</span><span style="color: #a8007f;">)</span>
  <span style="color: #a8007f;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"treemacs"</span> . <span style="color: var(--clr-string); background-color: var(--bg-string);">"332d4e0f1f606c472dd083c9cdd4f143ee23020a"</span><span style="color: #a8007f;">)</span>
@@ -1259,51 +1267,8 @@ To debug a LISP function use <code>debug-on-entry</code>. You step <i>in</i> wit
 </div>
 </div>
 
-<div id="outline-container-h:9372E70D-27A4-413D-A299-26500491FEC4" class="outline-3">
-<h3 id="h:9372E70D-27A4-413D-A299-26500491FEC4"><span class="section-number-3">4.2</span> custom minor modes</h3>
-<div class="outline-text-3" id="text-h:9372E70D-27A4-413D-A299-26500491FEC4">
-<p>
-Reference: <a href="https://nullprogram.com/blog/2013/02/06/">https://nullprogram.com/blog/2013/02/06/</a>
-</p>
-<ul class="org-ul">
-<li>Mode names should end in -mode</li>
-<li>The command for toggling the mode should be the same name</li>
-<li>They keymap for the mode should be called mode-map</li>
-<li>Mode’s toggle hook should be called mode-hook.</li>
-<li>The rest of define-minor-mode is a body for arbitrary Lisp, like a defun. It’s run every time the mode is toggled off or on, so it’s like a built-in hook function</li>
-</ul>
-</div>
-<div id="outline-container-h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E" class="outline-4">
-<h4 id="h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E"><span class="section-number-4">4.2.1</span> org-jupyter-mode</h4>
-<div class="outline-text-4" id="text-h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E">
-<div class="org-src-container">
-<pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">emacs</span>
-  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:init</span>
-  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">defun</span> <span style="color: var(--function-clr-name); background-color: var(--function-bg-name);">lc/is-jupyter-org-buffer?</span> <span style="color: #005f88;">()</span>
-    <span style="color: #005f88;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">with-current-buffer</span> <span style="color: #904200;">(</span>buffer-name<span style="color: #904200;">)</span>
-      <span style="color: #904200;">(</span>goto-char <span style="color: #7f10d0;">(</span>point-min<span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span>
-      <span style="color: #904200;">(</span>re-search-forward <span style="color: var(--clr-string); background-color: var(--bg-string);">"begin_src jupyter-"</span> 10000 t<span style="color: #904200;">)</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
-  
-  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">define-minor-mode</span> <span style="color: var(--function-clr-name); background-color: var(--function-bg-name);">org-jupyter-mode</span>
-    <span style="color: var(--clr-doc); background-color: var(--bg-doc);">"Minor mode which is active when an org file has the string begin_src jupyter-python</span>
-<span style="color: var(--clr-doc); background-color: var(--bg-doc);">    in the first few hundred rows"</span>
-    <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">:keymap (let ((map (make-sparse-keymap)))</span>
-    <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;             </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(define-key map (kbd "C-c f") 'insert-foo)</span>
-    <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;             </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">map)</span>
-    <span style="color: #a8007f;">)</span>
-
-  <span style="color: #a8007f;">(</span>add-hook 'org-mode-hook <span style="color: #005f88;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">lambda</span> <span style="color: #904200;">()</span>
-                             <span style="color: #904200;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">when</span> <span style="color: #7f10d0;">(</span>lc/is-jupyter-org-buffer?<span style="color: #7f10d0;">)</span>
-                               <span style="color: #7f10d0;">(</span>org-jupyter-mode<span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
-  <span style="color: #000000;">)</span>
-</pre>
-</div>
-</div>
-</div>
-</div>
-
 <div id="outline-container-h:AC160303-DF53-4597-9BAA-3AE1E7E13431" class="outline-3">
-<h3 id="h:AC160303-DF53-4597-9BAA-3AE1E7E13431"><span class="section-number-3">4.3</span> custom variables</h3>
+<h3 id="h:AC160303-DF53-4597-9BAA-3AE1E7E13431"><span class="section-number-3">4.2</span> custom variables</h3>
 <div class="outline-text-3" id="text-h:AC160303-DF53-4597-9BAA-3AE1E7E13431">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">emacs</span>
@@ -1336,7 +1301,7 @@ Reference: <a href="https://nullprogram.com/blog/2013/02/06/">https://nullprogra
 </div>
 
 <div id="outline-container-h:3CDD0539-5A95-468C-85F0-71B391D7115D" class="outline-3">
-<h3 id="h:3CDD0539-5A95-468C-85F0-71B391D7115D"><span class="section-number-3">4.4</span> Font</h3>
+<h3 id="h:3CDD0539-5A95-468C-85F0-71B391D7115D"><span class="section-number-3">4.3</span> Font</h3>
 <div class="outline-text-3" id="text-h:3CDD0539-5A95-468C-85F0-71B391D7115D">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">emacs</span>
@@ -1361,7 +1326,7 @@ Reference: <a href="https://nullprogram.com/blog/2013/02/06/">https://nullprogra
 </div>
 
 <div id="outline-container-h:D9DB7FA2-18C6-46A9-9567-1FEFADD523AC" class="outline-3">
-<h3 id="h:D9DB7FA2-18C6-46A9-9567-1FEFADD523AC"><span class="section-number-3">4.5</span> Adjust font size</h3>
+<h3 id="h:D9DB7FA2-18C6-46A9-9567-1FEFADD523AC"><span class="section-number-3">4.4</span> Adjust font size</h3>
 <div class="outline-text-3" id="text-h:D9DB7FA2-18C6-46A9-9567-1FEFADD523AC">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">emacs</span>
@@ -1401,7 +1366,7 @@ Reference: <a href="https://nullprogram.com/blog/2013/02/06/">https://nullprogra
 </div>
 
 <div id="outline-container-h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B" class="outline-3">
-<h3 id="h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B"><span class="section-number-3">4.6</span> macOS</h3>
+<h3 id="h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B"><span class="section-number-3">4.5</span> macOS</h3>
 <div class="outline-text-3" id="text-h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">emacs</span>
@@ -1421,7 +1386,7 @@ Reference: <a href="https://nullprogram.com/blog/2013/02/06/">https://nullprogra
 </div>
 
 <div id="outline-container-h:A17DC2B8-4E73-4F43-BD6E-07ADAEC9A3A7" class="outline-3">
-<h3 id="h:A17DC2B8-4E73-4F43-BD6E-07ADAEC9A3A7"><span class="section-number-3">4.7</span> Garbage collector magic hack</h3>
+<h3 id="h:A17DC2B8-4E73-4F43-BD6E-07ADAEC9A3A7"><span class="section-number-3">4.6</span> Garbage collector magic hack</h3>
 <div class="outline-text-3" id="text-h:A17DC2B8-4E73-4F43-BD6E-07ADAEC9A3A7">
 <p>
 Used by DOOM to manage garbage collection
@@ -1437,7 +1402,7 @@ Used by DOOM to manage garbage collection
 </div>
 
 <div id="outline-container-h:273CA7B2-AE07-4571-AB4A-92523B11DB41" class="outline-3">
-<h3 id="h:273CA7B2-AE07-4571-AB4A-92523B11DB41"><span class="section-number-3">4.8</span> helpful</h3>
+<h3 id="h:273CA7B2-AE07-4571-AB4A-92523B11DB41"><span class="section-number-3">4.7</span> helpful</h3>
 <div class="outline-text-3" id="text-h:273CA7B2-AE07-4571-AB4A-92523B11DB41">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">  <span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">helpful</span>
@@ -1455,7 +1420,7 @@ Used by DOOM to manage garbage collection
 </div>
 
 <div id="outline-container-h:FC10A86D-86E6-45C2-8759-ADE233B0D80C" class="outline-3">
-<h3 id="h:FC10A86D-86E6-45C2-8759-ADE233B0D80C"><span class="section-number-3">4.9</span> eldoc</h3>
+<h3 id="h:FC10A86D-86E6-45C2-8759-ADE233B0D80C"><span class="section-number-3">4.8</span> eldoc</h3>
 <div class="outline-text-3" id="text-h:FC10A86D-86E6-45C2-8759-ADE233B0D80C">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">  <span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">eldoc</span>
@@ -1466,7 +1431,7 @@ Used by DOOM to manage garbage collection
 </div>
 
 <div id="outline-container-h:B1611A44-8567-4370-80B4-9D904434E274" class="outline-3">
-<h3 id="h:B1611A44-8567-4370-80B4-9D904434E274"><span class="section-number-3">4.10</span> exec path from shell</h3>
+<h3 id="h:B1611A44-8567-4370-80B4-9D904434E274"><span class="section-number-3">4.9</span> exec path from shell</h3>
 <div class="outline-text-3" id="text-h:B1611A44-8567-4370-80B4-9D904434E274">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp">  <span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">exec-path-from-shell</span>
@@ -1487,7 +1452,7 @@ Used by DOOM to manage garbage collection
 </div>
 
 <div id="outline-container-h:2DB2921D-434E-4321-A15E-4B3329ABC946" class="outline-3">
-<h3 id="h:2DB2921D-434E-4321-A15E-4B3329ABC946"><span class="section-number-3">4.11</span> no littering</h3>
+<h3 id="h:2DB2921D-434E-4321-A15E-4B3329ABC946"><span class="section-number-3">4.10</span> no littering</h3>
 <div class="outline-text-3" id="text-h:2DB2921D-434E-4321-A15E-4B3329ABC946">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">no-littering</span>
@@ -1503,7 +1468,7 @@ Used by DOOM to manage garbage collection
 </div>
 
 <div id="outline-container-h:5F50A0A6-0C8E-4804-BBF5-A8D9B1372F12" class="outline-3">
-<h3 id="h:5F50A0A6-0C8E-4804-BBF5-A8D9B1372F12"><span class="section-number-3">4.12</span> server mode</h3>
+<h3 id="h:5F50A0A6-0C8E-4804-BBF5-A8D9B1372F12"><span class="section-number-3">4.11</span> server mode</h3>
 <div class="outline-text-3" id="text-h:5F50A0A6-0C8E-4804-BBF5-A8D9B1372F12">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">emacs</span>
@@ -1517,7 +1482,7 @@ Used by DOOM to manage garbage collection
 </div>
 
 <div id="outline-container-h:BE3F251D-5F39-4337-B27C-CFB81EE9A504" class="outline-3">
-<h3 id="h:BE3F251D-5F39-4337-B27C-CFB81EE9A504"><span class="section-number-3">4.13</span> Auto-pair parenthesis</h3>
+<h3 id="h:BE3F251D-5F39-4337-B27C-CFB81EE9A504"><span class="section-number-3">4.12</span> Auto-pair parenthesis</h3>
 <div class="outline-text-3" id="text-h:BE3F251D-5F39-4337-B27C-CFB81EE9A504">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">emacs</span>
@@ -2029,6 +1994,35 @@ Keybindings:
 </div>
 </div>
 </div>
+
+<div id="outline-container-h:FD4609AC-AD2E-44EA-81FC-0154D84C9701" class="outline-4">
+<h4 id="h:FD4609AC-AD2E-44EA-81FC-0154D84C9701"><span class="section-number-4">5.2.12</span> Fix scroll error when centaur tabs is active</h4>
+<div class="outline-text-4" id="text-h:FD4609AC-AD2E-44EA-81FC-0154D84C9701">
+<p>
+Taken from this PR: <a href="https://github.com/emacs-evil/evil/pull/1323/files">https://github.com/emacs-evil/evil/pull/1323/files</a>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">evil</span>
+  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:init</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">defun</span> <span style="color: var(--function-clr-name); background-color: var(--function-bg-name);">lc/evil-posn-x-y</span> <span style="color: #005f88;">(</span>position<span style="color: #005f88;">)</span>
+    <span style="color: #005f88;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">let</span> <span style="color: #904200;">(</span><span style="color: #7f10d0;">(</span>xy <span style="color: #006800;">(</span>posn-x-y position<span style="color: #006800;">)</span><span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span>
+      <span style="color: #904200;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">when</span> header-line-format
+        <span style="color: #7f10d0;">(</span>setcdr xy <span style="color: #006800;">(</span>+ <span style="color: #b60000;">(</span>cdr xy<span style="color: #b60000;">)</span>
+                      <span style="color: #b60000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">or</span> <span style="color: #1f1fce;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">and</span> <span style="color: #605b00;">(</span>fboundp 'window-header-line-height<span style="color: #605b00;">)</span>
+                               <span style="color: #605b00;">(</span>window-header-line-height<span style="color: #605b00;">)</span><span style="color: #1f1fce;">)</span>
+                          evil-cached-header-line-height
+                          <span style="color: #1f1fce;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> evil-cached-header-line-height <span style="color: #605b00;">(</span>evil-header-line-height<span style="color: #605b00;">)</span><span style="color: #1f1fce;">)</span><span style="color: #b60000;">)</span><span style="color: #006800;">)</span><span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span>
+      <span style="color: #904200;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">when</span> <span style="color: #7f10d0;">(</span>fboundp 'window-tab-line-height<span style="color: #7f10d0;">)</span>
+        <span style="color: #7f10d0;">(</span>setcdr xy <span style="color: #006800;">(</span>+ <span style="color: #b60000;">(</span>cdr xy<span style="color: #b60000;">)</span> <span style="color: #b60000;">(</span>window-tab-line-height<span style="color: #b60000;">)</span><span style="color: #006800;">)</span><span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span>
+      xy<span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
+  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:config</span>
+  <span style="color: #a8007f;">(</span>advice-add 'evil-posn-x-y <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:override</span> #'lc/evil-posn-x-y<span style="color: #a8007f;">)</span>
+  <span style="color: #000000;">)</span>
+</pre>
+</div>
+</div>
+</div>
 </div>
 
 <div id="outline-container-h:4F5BF801-2E48-44B3-8822-240BC6D08732" class="outline-3">
@@ -2265,13 +2259,13 @@ Interesting bits:
 <span style="color: var(--clr-string); background-color: var(--bg-string);">                 :RESOURCES:</span>
 <span style="color: var(--clr-string); background-color: var(--bg-string);">                 :END:</span>
 
-<span style="color: var(--clr-string); background-color: var(--bg-string);">                 </span><span style="color: #702d1f; background-color: var(--bg-string); font-weight: bold;">\</span><span style="color: var(--clr-string); background-color: var(--bg-string);">*What was one good thing you learned today?*:</span>
+<span style="color: var(--clr-string); background-color: var(--bg-string);">                 </span><span style="color: #702f00; background-color: var(--bg-string); font-weight: bold;">\</span><span style="color: var(--clr-string); background-color: var(--bg-string);">*What was one good thing you learned today?*:</span>
 <span style="color: var(--clr-string); background-color: var(--bg-string);">                 - %^{whatilearnedtoday}</span>
 
-<span style="color: var(--clr-string); background-color: var(--bg-string);">                 </span><span style="color: #702d1f; background-color: var(--bg-string); font-weight: bold;">\</span><span style="color: var(--clr-string); background-color: var(--bg-string);">*List one thing you could have done better*:</span>
+<span style="color: var(--clr-string); background-color: var(--bg-string);">                 </span><span style="color: #702f00; background-color: var(--bg-string); font-weight: bold;">\</span><span style="color: var(--clr-string); background-color: var(--bg-string);">*List one thing you could have done better*:</span>
 <span style="color: var(--clr-string); background-color: var(--bg-string);">                 - %^{onethingdobetter}</span>
 
-<span style="color: var(--clr-string); background-color: var(--bg-string);">                 </span><span style="color: #702d1f; background-color: var(--bg-string); font-weight: bold;">\</span><span style="color: var(--clr-string); background-color: var(--bg-string);">*Describe in your own words how your day was*:</span>
+<span style="color: var(--clr-string); background-color: var(--bg-string);">                 </span><span style="color: #702f00; background-color: var(--bg-string); font-weight: bold;">\</span><span style="color: var(--clr-string); background-color: var(--bg-string);">*Describe in your own words how your day was*:</span>
 <span style="color: var(--clr-string); background-color: var(--bg-string);">                 - %?"</span><span style="color: #904200;">)</span>
           <span style="color: #904200;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"i"</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"Inbox"</span> entry
            <span style="color: #7f10d0;">(</span>file+headline <span style="color: var(--clr-string); background-color: var(--bg-string);">"personal/todo.org"</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"Inbox"</span><span style="color: #7f10d0;">)</span>
@@ -3126,6 +3120,38 @@ Adding it as a <code>after-save-hook</code>  automatically adds a <code>CUSTOM_I
 </div>
 </div>
 </div>
+
+<div id="outline-container-h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E" class="outline-3">
+<h3 id="h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E"><span class="section-number-3">6.21</span> org-jupyter-mode</h3>
+<div class="outline-text-3" id="text-h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">emacs</span>
+  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:hook</span>
+  <span style="color: #a8007f;">(</span><span style="color: #005f88;">(</span>org-jupyter-mode . <span style="color: #904200;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">lambda</span> <span style="color: #7f10d0;">()</span> <span style="color: #7f10d0;">(</span>visual-line-mode -1<span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span><span style="color: #005f88;">)</span>
+   <span style="color: #005f88;">(</span>org-mode . <span style="color: #904200;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">lambda</span> <span style="color: #7f10d0;">()</span> <span style="color: #7f10d0;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">when</span> <span style="color: #006800;">(</span>lc/is-jupyter-org-buffer?<span style="color: #006800;">)</span> <span style="color: #006800;">(</span>org-jupyter-mode<span style="color: #006800;">)</span><span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
+  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:general</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">lc/local-leader-keys</span>
+    <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:states</span> 'normal
+    <span style="color: var(--clr-string); background-color: var(--bg-string);">"k i"</span> '<span style="color: #005f88;">(</span>jupyter-org-interrupt-kernel <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"interrupt"</span><span style="color: #005f88;">)</span>
+    <span style="color: var(--clr-string); background-color: var(--bg-string);">"k r"</span> '<span style="color: #005f88;">(</span>jupyter-repl-restart-kernel <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"restart"</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
+  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:init</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">defun</span> <span style="color: var(--function-clr-name); background-color: var(--function-bg-name);">lc/is-jupyter-org-buffer?</span> <span style="color: #005f88;">()</span>
+    <span style="color: #005f88;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">with-current-buffer</span> <span style="color: #904200;">(</span>buffer-name<span style="color: #904200;">)</span>
+      <span style="color: #904200;">(</span>goto-char <span style="color: #7f10d0;">(</span>point-min<span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span>
+      <span style="color: #904200;">(</span>re-search-forward <span style="color: var(--clr-string); background-color: var(--bg-string);">"begin_src jupyter-"</span> 10000 t<span style="color: #904200;">)</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
+  
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">define-minor-mode</span> <span style="color: var(--function-clr-name); background-color: var(--function-bg-name);">org-jupyter-mode</span>
+    <span style="color: var(--clr-doc); background-color: var(--bg-doc);">"Minor mode which is active when an org file has the string begin_src jupyter-python</span>
+<span style="color: var(--clr-doc); background-color: var(--bg-doc);">    in the first few hundred rows"</span>
+    <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">:keymap (let ((map (make-sparse-keymap)))</span>
+    <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;             </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(define-key map (kbd "C-c f") 'insert-foo)</span>
+    <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;             </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">map)</span>
+    <span style="color: #a8007f;">)</span>
+  <span style="color: #000000;">)</span>
+</pre>
+</div>
+</div>
+</div>
 </div>
 
 <div id="outline-container-h:239ABF35-3C15-416B-8C10-353F711E5541" class="outline-2">
@@ -3971,6 +3997,10 @@ TODO:
 50/72 rule for commit messages: <a href="https://www.midori-global.com/blog/2018/04/02/git-50-72-rule">https://www.midori-global.com/blog/2018/04/02/git-50-72-rule</a>
 </p>
 
+<p>
+<code>magit-cycle-margin-style</code> to show more precise commit timestamps
+</p>
+
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">magit</span>
   <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:general</span>
@@ -3991,6 +4021,7 @@ TODO:
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1<span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> magit-log-arguments '<span style="color: #005f88;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"--graph"</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"--decorate"</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"--color"</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> git-commit-fill-column 72<span style="color: #a8007f;">)</span>
+  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))</span>
   <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:config</span>
   <span style="color: #a8007f;">(</span>evil-define-key* '<span style="color: #005f88;">(</span>normal visual<span style="color: #005f88;">)</span> magit-mode-map
     <span style="color: var(--clr-string); background-color: var(--bg-string);">"zz"</span> #'evil-scroll-line-to-center<span style="color: #a8007f;">)</span>
@@ -4188,35 +4219,45 @@ This is a dependency for <a href="#h:78D6F7DF-905E-4016-BF91-4E9E38580633">Hack 
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">company</span>
   <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:demand</span>
+  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:hook</span> <span style="color: #a8007f;">(</span>after-init . global-company-mode<span style="color: #a8007f;">)</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">:hook</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(python-mode . (lambda ()</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">               (setq-local company-backends '((company-capf :with company-files)))))</span>
+  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">:general</span>
+  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(general-nmap</span>
+  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;   </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">"&lt;tab&gt;" 'company-complete-common-or-cycle)</span>
   <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:init</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-minimum-prefix-length 1<span style="color: #a8007f;">)</span>
-  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-idle-delay 0.0<span style="color: #a8007f;">)</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-idle-delay 0.3<span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-tooltip-align-annotations t<span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-tooltip-maximum-width 50
         company-tooltip-minimum-width 50<span style="color: #a8007f;">)</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-tooltip-limit 12<span style="color: #a8007f;">)</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">don't autocomplete when single candidate</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-auto-complete nil<span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-auto-complete-chars nil<span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-dabbrev-code-other-buffers nil<span style="color: #a8007f;">)</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-dabbrev-ignore-case nil<span style="color: #a8007f;">)</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-dabbrev-downcase nil<span style="color: #a8007f;">)</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">manually configure tng</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(setq company-tng-auto-configure nil)</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(setq company-frontends '(company-tng-frontend</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;                           </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">company-pseudo-tooltip-frontend</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;                           </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">company-echo-metadata-frontend))</span>
-  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(setq company-selection-default nil)</span>
-  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-backends '<span style="color: #005f88;">(</span><span style="color: #904200;">(</span>company-capf company-keywords company-files <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:with</span> company-yasnippet<span style="color: #904200;">)</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
-  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:custom-face</span>
-  <span style="color: #a8007f;">(</span>company-tooltip
-   <span style="color: #005f88;">(</span><span style="color: #904200;">(</span>t <span style="color: #7f10d0;">(</span><span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:family</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"Fira Code"</span><span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
+  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> company-backends '<span style="color: #005f88;">(</span><span style="color: #904200;">(</span>company-capf <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:with</span> company-yasnippet<span style="color: #904200;">)</span>
+                           <span style="color: #904200;">(</span>company-dabbrev-code company-keywords company-files<span style="color: #904200;">)</span>
+                           company-dabbrev<span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
+  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">:custom-face</span>
+  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(company-tooltip</span>
+  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;  </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">((t (:family "Fira Code"))))</span>
   <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:config</span>
   <span style="color: #a8007f;">(</span>global-company-mode<span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">with-eval-after-load</span> 'evil
     <span style="color: #005f88;">(</span>add-hook 'company-mode-hook #'evil-normalize-keymaps<span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
   <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">needed in case we only have one candidate</span>
   <span style="color: #a8007f;">(</span>define-key company-active-map <span style="color: #005f88;">(</span>kbd <span style="color: var(--clr-string); background-color: var(--bg-string);">"C-j"</span><span style="color: #005f88;">)</span> 'company-select-next<span style="color: #a8007f;">)</span>
+  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)</span>
   <span style="color: #000000;">)</span>
 </pre>
 </div>
@@ -4241,7 +4282,7 @@ In the <a href="#h:600809B3-9B92-43F9-9A99-3D007CEE044D">ob-jupyter</a> section 
 
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">inheritenv</span>
-  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:straight</span> <span style="color: #a8007f;">(</span>inheritenv <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:type</span> git <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:host</span> github <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:repo</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"purcell/inheritenv"</span><span style="color: #a8007f;">)</span><span style="color: #000000;">)</span>
+  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:straight</span> <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">inheritenv</span> <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:type</span> git <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:host</span> github <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:repo</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"purcell/inheritenv"</span><span style="color: #a8007f;">)</span><span style="color: #000000;">)</span>
 </pre>
 </div>
 
@@ -4344,7 +4385,7 @@ See <a href="http://joaotavora.github.io/yasnippet/snippet-organization.html#org
 </div>
 
 <div id="outline-container-h:BA5D7535-070B-494B-A27C-6B9FFC3CC88E" class="outline-3">
-<h3 id="h:BA5D7535-070B-494B-A27C-6B9FFC3CC88E"><span class="section-number-3">9.12</span> dired</h3>
+<h3 id="h:BA5D7535-070B-494B-A27C-6B9FFC3CC88E"><span class="section-number-3">9.12</span> dired and friends</h3>
 <div class="outline-text-3" id="text-h:BA5D7535-070B-494B-A27C-6B9FFC3CC88E">
 <ul class="org-ul">
 <li>Jump to current file with <code>SPC f j</code></li>
@@ -4364,7 +4405,10 @@ See <a href="http://joaotavora.github.io/yasnippet/snippet-organization.html#org
 <li>Open files with macos with <code>O</code></li>
 <li>View files with <code>go</code> and exit with <code>q</code></li>
 </ul>
-
+</div>
+<div id="outline-container-h:D6BC5C09-6F03-4D08-9237-F955D6B2F39D" class="outline-4">
+<h4 id="h:D6BC5C09-6F03-4D08-9237-F955D6B2F39D"><span class="section-number-4">9.12.1</span> dired</h4>
+<div class="outline-text-4" id="text-h:D6BC5C09-6F03-4D08-9237-F955D6B2F39D">
 <div class="org-src-container">
 <pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">dired</span>
   <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:straight</span> <span style="color: #a8007f;">(</span><span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:type</span> built-in<span style="color: #a8007f;">)</span>
@@ -4409,8 +4453,16 @@ See <a href="http://joaotavora.github.io/yasnippet/snippet-organization.html#org
   <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:config</span>
   <span style="color: #a8007f;">(</span>evil-collection-define-key 'normal 'dired-mode-map
     <span style="color: var(--clr-string); background-color: var(--bg-string);">"H"</span> 'dired-hide-dotfiles-mode<span style="color: #a8007f;">)</span><span style="color: #000000;">)</span>
+</pre>
+</div>
+</div>
+</div>
 
-<span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">dired-subtree</span>
+<div id="outline-container-h:230AF0C3-8214-46BB-AB84-C81C047DC8C8" class="outline-4">
+<h4 id="h:230AF0C3-8214-46BB-AB84-C81C047DC8C8"><span class="section-number-4">9.12.2</span> dired subtree</h4>
+<div class="outline-text-4" id="text-h:230AF0C3-8214-46BB-AB84-C81C047DC8C8">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">dired-subtree</span>
   <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:general</span>
   <span style="color: #a8007f;">(</span>dired-mode-map
    <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:states</span> 'normal
@@ -4421,6 +4473,22 @@ See <a href="http://joaotavora.github.io/yasnippet/snippet-organization.html#org
                        <span style="color: #904200;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">when</span> all-the-icons-dired-mode
                          <span style="color: #7f10d0;">(</span>revert-buffer<span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span><span style="color: #000000;">)</span>
 </pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-h:629AEC4E-F112-457A-BAF9-6B5786DEC8EF" class="outline-4">
+<h4 id="h:629AEC4E-F112-457A-BAF9-6B5786DEC8EF"><span class="section-number-4">9.12.3</span> dired rsync</h4>
+<div class="outline-text-4" id="text-h:629AEC4E-F112-457A-BAF9-6B5786DEC8EF">
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">dired-rsync</span>
+  <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:general</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">lc/local-leader-keys</span>
+    <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:keymaps</span> 'dired-mode-map
+    <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:states</span> 'normal
+    <span style="color: var(--clr-string); background-color: var(--bg-string);">"r"</span> 'dired-rsync<span style="color: #a8007f;">)</span><span style="color: #000000;">)</span>
+</pre>
+</div>
 </div>
 </div>
 </div>
@@ -4477,7 +4545,15 @@ Call e.g. <code>dired</code> and input <code>/ssh:user@hostname:/path/to/file</c
   <span style="color: #a8007f;">(</span>customize-set-variable 'tramp-ssh-controlmaster-options
                           <span style="color: #005f88;">(</span>concat
                            <span style="color: var(--clr-string); background-color: var(--bg-string);">"-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "</span>
-                           <span style="color: var(--clr-string); background-color: var(--bg-string);">"-o ControlMaster=auto -o ControlPersist=yes"</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span><span style="color: #000000;">)</span>
+                           <span style="color: var(--clr-string); background-color: var(--bg-string);">"-o ControlMaster=auto -o ControlPersist=yes"</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
+  <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">with-eval-after-load</span> 'lsp-mode
+    <span style="color: #005f88;">(</span>lsp-register-client
+     <span style="color: #904200;">(</span>make-lsp-client <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:new-connection</span> <span style="color: #7f10d0;">(</span>lsp-tramp-connection <span style="color: var(--clr-string); background-color: var(--bg-string);">"pyright"</span><span style="color: #7f10d0;">)</span>
+                      <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:major-modes</span> '<span style="color: #7f10d0;">(</span>python-mode<span style="color: #7f10d0;">)</span>
+                      <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:remote?</span> t
+                      <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:server-id</span> 'pyright-remote<span style="color: #904200;">)</span><span style="color: #005f88;">)</span>
+    <span style="color: #a8007f;">)</span>
+  <span style="color: #000000;">)</span>
 
 <span style="color: #000000;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">use-package</span> <span style="color: var(--clr-constant); background-color: var(--bg-constant);">docker-tramp</span><span style="color: #000000;">)</span>
 </pre>
@@ -4603,12 +4679,7 @@ Call e.g. <code>dired</code> and input <code>/ssh:user@hostname:/path/to/file</c
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> lsp-auto-execute-action nil<span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> lsp-before-save-edits nil<span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> lsp-diagnostics-provider <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:flymake</span><span style="color: #a8007f;">)</span>
-  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">:config</span>
-  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;; </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(lsp-register-client</span>
-  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;   </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">(make-lsp-client :new-connection (lsp-tramp-connection "&lt;binary name (e. g. pyls, rls)&gt;")</span>
-  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;                    </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">:major-modes '(python-mode)</span>
-  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;                    </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">:remote? t</span>
-  <span style="color: var(--clr-comment-delimiter); background-color: var(--bg-comment-delimiter);">;;                    </span><span style="color: var(--clr-comment); background-color: var(--bg-comment);">:server-id 'pyls-remote))</span>
+  
   <span style="color: #000000;">)</span>
 </pre>
 </div>
@@ -4804,7 +4875,7 @@ Here the configuration options: <a href="https://github.com/emacs-lsp/lsp-pyrigh
     <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:keymaps</span> 'python-mode-map
     <span style="color: var(--clr-string); background-color: var(--bg-string);">"t"</span> '<span style="color: #005f88;">(</span><span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:ignore</span> t <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"test"</span><span style="color: #005f88;">)</span>
     <span style="color: var(--clr-string); background-color: var(--bg-string);">"t d"</span> '<span style="color: #005f88;">(</span>python-pytest-dispatch <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"dispatch"</span><span style="color: #005f88;">)</span>
-    <span style="color: var(--clr-string); background-color: var(--bg-string);">"t f"</span> '<span style="color: #005f88;">(</span>python-pytest-file-dwim <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"file"</span><span style="color: #005f88;">)</span>
+    <span style="color: var(--clr-string); background-color: var(--bg-string);">"t f"</span> '<span style="color: #005f88;">(</span>python-pytest-file <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"file"</span><span style="color: #005f88;">)</span>
     <span style="color: var(--clr-string); background-color: var(--bg-string);">"t t"</span> '<span style="color: #005f88;">(</span>python-pytest-function <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"function"</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
   <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:init</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">setq</span> python-pytest-arguments '<span style="color: #005f88;">(</span><span style="color: var(--clr-string); background-color: var(--bg-string);">"--color"</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"--failed-first"</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
@@ -4874,8 +4945,8 @@ Here the configuration options: <a href="https://github.com/emacs-lsp/lsp-pyrigh
     <span style="color: var(--clr-string); background-color: var(--bg-string);">"e b"</span> '<span style="color: #005f88;">(</span><span style="color: #904200;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">lambda</span> <span style="color: #7f10d0;">()</span> <span style="color: #7f10d0;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">interactive</span><span style="color: #7f10d0;">)</span> <span style="color: #7f10d0;">(</span>lc/jupyter-eval-buffer<span style="color: #7f10d0;">)</span><span style="color: #904200;">)</span> <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"buffer"</span><span style="color: #005f88;">)</span>
     <span style="color: var(--clr-string); background-color: var(--bg-string);">"J"</span> '<span style="color: #005f88;">(</span>lc/jupyter-repl <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"jupyter REPL"</span><span style="color: #005f88;">)</span>
     <span style="color: var(--clr-string); background-color: var(--bg-string);">"k"</span> '<span style="color: #005f88;">(</span><span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:ignore</span> true <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"kernel"</span><span style="color: #005f88;">)</span>
-    <span style="color: var(--clr-string); background-color: var(--bg-string);">"k i"</span> '<span style="color: #005f88;">(</span>jupyter-org-interrupt-kernel <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"restart kernel"</span><span style="color: #005f88;">)</span>
-    <span style="color: var(--clr-string); background-color: var(--bg-string);">"k r"</span> '<span style="color: #005f88;">(</span>jupyter-repl-restart-kernel <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"restart kernel"</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
+    <span style="color: var(--clr-string); background-color: var(--bg-string);">"k i"</span> '<span style="color: #005f88;">(</span>jupyter-org-interrupt-kernel <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"interrupt"</span><span style="color: #005f88;">)</span>
+    <span style="color: var(--clr-string); background-color: var(--bg-string);">"k r"</span> '<span style="color: #005f88;">(</span>jupyter-repl-restart-kernel <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:wk</span> <span style="color: var(--clr-string); background-color: var(--bg-string);">"restart"</span><span style="color: #005f88;">)</span><span style="color: #a8007f;">)</span>
   <span style="color: #a8007f;">(</span><span style="color: var(--clr-keyword); background-color: var(--bg-keyword);">lc/local-leader-keys</span>
     <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:keymaps</span> 'python-mode-map
     <span style="color: var(--clr-builtin); background-color: var(--bg-builtin);">:states</span> 'visual

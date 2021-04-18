@@ -127,26 +127,6 @@
 
 (use-package emacs
   :init
-  (defun lc/is-jupyter-org-buffer? ()
-    (with-current-buffer (buffer-name)
-      (goto-char (point-min))
-      (re-search-forward "begin_src jupyter-" 10000 t)))
-  
-  (define-minor-mode org-jupyter-mode
-    "Minor mode which is active when an org file has the string begin_src jupyter-python
-    in the first few hundred rows"
-    ;; :keymap (let ((map (make-sparse-keymap)))
-    ;;             (define-key map (kbd "C-c f") 'insert-foo)
-    ;;             map)
-    )
-
-  (add-hook 'org-mode-hook (lambda ()
-                             (when (lc/is-jupyter-org-buffer?)
-															 (org-jupyter-mode))))
-	)
-
-(use-package emacs
-  :init
 
   (defcustom lc/default-font-family "fira code" 
 		"Default font family"
@@ -554,6 +534,23 @@ be passed to EVAL-FUNC as its rest arguments"
 	:config
 	(global-evil-mc-mode 1)
 	)
+
+(use-package evil
+  :init
+  (defun lc/evil-posn-x-y (position)
+    (let ((xy (posn-x-y position)))
+      (when header-line-format
+        (setcdr xy (+ (cdr xy)
+                      (or (and (fboundp 'window-header-line-height)
+                               (window-header-line-height))
+                          evil-cached-header-line-height
+                          (setq evil-cached-header-line-height (evil-header-line-height))))))
+      (when (fboundp 'window-tab-line-height)
+        (setcdr xy (+ (cdr xy) (window-tab-line-height))))
+      xy))
+  :config
+  (advice-add 'evil-posn-x-y :override #'lc/evil-posn-x-y)
+  )
 
 (use-package which-key
   :demand t
@@ -1352,6 +1349,30 @@ asynchronously."
   (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
   )
 
+(use-package emacs
+  :hook
+  ((org-jupyter-mode . (lambda () (visual-line-mode -1)))
+   (org-mode . (lambda () (when (lc/is-jupyter-org-buffer?) (org-jupyter-mode)))))
+  :general
+  (lc/local-leader-keys
+    :states 'normal
+    "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
+    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
+  :init
+  (defun lc/is-jupyter-org-buffer? ()
+    (with-current-buffer (buffer-name)
+      (goto-char (point-min))
+      (re-search-forward "begin_src jupyter-" 10000 t)))
+  
+  (define-minor-mode org-jupyter-mode
+    "Minor mode which is active when an org file has the string begin_src jupyter-python
+    in the first few hundred rows"
+    ;; :keymap (let ((map (make-sparse-keymap)))
+    ;;             (define-key map (kbd "C-c f") 'insert-foo)
+    ;;             map)
+    )
+  )
+
 (use-package all-the-icons)
 
 (use-package doom-modeline
@@ -1929,7 +1950,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   (setq magit-log-arguments '("--graph" "--decorate" "--color"))
   (setq git-commit-fill-column 72)
-	:config
+	;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
+  :config
   (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
   )
@@ -2031,35 +2053,45 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 (use-package company
   :demand
+  :hook (after-init . global-company-mode)
   ;; :hook
   ;; (python-mode . (lambda ()
   ;; 								(setq-local company-backends '((company-capf :with company-files)))))
+  ;; :general
+  ;; (general-nmap
+  ;;   "<tab>" 'company-complete-common-or-cycle)
   :init
   (setq company-minimum-prefix-length 1)
-  (setq company-idle-delay 0.0)
+  (setq company-idle-delay 0.3)
   (setq company-tooltip-align-annotations t)
   (setq company-tooltip-maximum-width 50
         company-tooltip-minimum-width 50)
+  (setq company-tooltip-limit 12)
   ;; don't autocomplete when single candidate
   (setq company-auto-complete nil)
   (setq company-auto-complete-chars nil)
   (setq company-dabbrev-code-other-buffers nil)
+  (setq company-dabbrev-ignore-case nil)
+  (setq company-dabbrev-downcase nil)
   ;; manually configure tng
   ;; (setq company-tng-auto-configure nil)
   ;; (setq company-frontends '(company-tng-frontend
   ;;                           company-pseudo-tooltip-frontend
   ;;                           company-echo-metadata-frontend))
-  ;; (setq company-selection-default nil)
-  (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
-  :custom-face
-  (company-tooltip
-   ((t (:family "Fira Code"))))
+  ;; (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
+  (setq company-backends '((company-capf :with company-yasnippet)
+                           (company-dabbrev-code company-keywords company-files)
+                           company-dabbrev))
+  ;; :custom-face
+  ;; (company-tooltip
+  ;;  ((t (:family "Fira Code"))))
   :config
   (global-company-mode)
   (with-eval-after-load 'evil
     (add-hook 'company-mode-hook #'evil-normalize-keymaps))
   ;; needed in case we only have one candidate
   (define-key company-active-map (kbd "C-j") 'company-select-next)
+  ;; (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
   )
 
 (use-package inheritenv
@@ -2169,6 +2201,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                        (when all-the-icons-dired-mode
                          (revert-buffer)))))
 
+(use-package dired-rsync
+  :general
+  (lc/local-leader-keys
+    :keymaps 'dired-mode-map
+    :states 'normal
+    "r" 'dired-rsync))
+
 (use-package restart-emacs
   :general
   (lc/leader-keys
@@ -2197,7 +2236,15 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (customize-set-variable 'tramp-ssh-controlmaster-options
                           (concat
                            "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
-                           "-o ControlMaster=auto -o ControlPersist=yes")))
+                           "-o ControlMaster=auto -o ControlPersist=yes"))
+  (with-eval-after-load 'lsp-mode
+    (lsp-register-client
+     (make-lsp-client :new-connection (lsp-tramp-connection "pyright")
+                      :major-modes '(python-mode)
+                      :remote? t
+                      :server-id 'pyright-remote))
+    )
+  )
 
 (use-package docker-tramp)
 
@@ -2294,12 +2341,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq lsp-auto-execute-action nil)
   (setq lsp-before-save-edits nil)
   (setq lsp-diagnostics-provider :flymake)
-  ;; :config
-  ;; (lsp-register-client
-  ;;   (make-lsp-client :new-connection (lsp-tramp-connection "<binary name (e. g. pyls, rls)>")
-  ;;                    :major-modes '(python-mode)
-  ;;                    :remote? t
-  ;;                    :server-id 'pyls-remote))
+  
   )
 
 (use-package lsp-ui
@@ -2448,7 +2490,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     :keymaps 'python-mode-map
 		"t" '(:ignore t :wk "test")
     "t d" '(python-pytest-dispatch :wk "dispatch")
-    "t f" '(python-pytest-file-dwim :wk "file")
+    "t f" '(python-pytest-file :wk "file")
     "t t" '(python-pytest-function :wk "function"))
   :init
   (setq python-pytest-arguments '("--color" "--failed-first"))
@@ -2482,8 +2524,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "e b" '((lambda () (interactive) (lc/jupyter-eval-buffer)) :wk "buffer")
     "J" '(lc/jupyter-repl :wk "jupyter REPL")
     "k" '(:ignore true :wk "kernel")
-    "k i" '(jupyter-org-interrupt-kernel :wk "restart kernel")
-    "k r" '(jupyter-repl-restart-kernel :wk "restart kernel"))
+    "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
+    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
   (lc/local-leader-keys
     :keymaps 'python-mode-map
     :states 'visual
