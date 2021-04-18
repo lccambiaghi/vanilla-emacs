@@ -102,6 +102,7 @@ Here they are, without any ranking:
 - [[*evil-org-mode][evil-org-mode]]
 - [[#h:AC175A47-E576-4AA6-A9C7-709129F4C56F][use org-id in links]] 
 - [[*org-html-themify][org-html-themify]]
+- [[#h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E][org-jupyter-mode]] 
 - [[#h:5F1EC880-5646-4E50-A460-C2F23BD864FC][Modus themes]] 
 - [[*dashboard][dashboard]]
 - [[*popup management][popup management]]
@@ -262,13 +263,16 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("cfrs" . "7c42f2c82c7ae689f3ef291b066688c58ab96298")
  ("cider" . "9c137c52cf5b769fcc52b4e8108acda10638f766")
  ("clojure-mode" . "53ef8ac076ae7811627fbdd408e519ab7fca9a0b")
- ("company-box" . "ec8f44674dc10dd4d50785a1f97820b29d392ea2")
  ("company-mode" . "6116c4617a7934acfe84cb82a058e9b198f0f480")
  ("consult" . "b8ab017488b3f04bbfdc1a9610af3224339d943c")
+ ("corfu" . "5214170fd416efe395cbeb33d4fc4391189070c3")
+ ("csv-mode" . "8da54e8b4ef9e5fe8a0afa147c625ced603dc0aa")
  ("dap-mode" . "88eda699e77e86410cdf3eb6afb790303dd27728")
  ("dash.el" . "0e975782086020aa12863fdb658d6a3cc748a10c")
  ("diff-hl" . "89aeb2fc8b24b6c4de4394f85041c5dd5fa60dad")
+ ("dired-hacks" . "7c0ef09d57a80068a11edc74c3568e5ead5cc15a")
  ("dired-hide-dotfiles" . "964b860a40ac0d585c71760ed2ecdfa6ce7c4184")
+ ("dired-rsync" . "fb0f161ac3cce1b224f52547f5bc7e1dcd283191")
  ("dired-single" . "98c2102429fcac6fbfdba9198c126eb1b3dcc4e5")
  ("docker-tramp.el" . "8e2b671eff7a81af43b76d9dfcf94ddaa8333a23")
  ("doom-modeline" . "49816da1a6c05e6215ec3c8aac6c5eabeb47e74c")
@@ -296,6 +300,7 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("envrc" . "a7c6ca84a2b0617c94594a23a0c05246f14fa4ee")
  ("epl" . "78ab7a85c08222cd15582a298a364774e3282ce6")
  ("eros" . "dd8910279226259e100dab798b073a52f9b4233a")
+ ("ess-view-data" . "283251e8ac19ac0c0f89a4b0f0eb38482167e52b")
  ("evil" . "6316dae58e95fe019fcb41d2d1ca5847227a16e6")
  ("evil-cleverparens" . "8c45879d49bfa6d4e414b6c1df700a4a51cbb869")
  ("evil-collection" . "f53ef08224f709c732740d45b373ef3617f6d759")
@@ -310,7 +315,6 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("evil-surround" . "346d4d85fcf1f9517e9c4991c1efe68b4130f93a")
  ("exec-path-from-shell" . "d14d6d2966efe5a1409f84a6b9d998268f74761d")
  ("f.el" . "c4dbf8c8e83df834f5d6f72cd5649b9d8a8812ec")
- ("frame-local" . "7ee1106c3bcd4022f48421f8cb1ef4f995da816e")
  ("gcmh" . "0089f9c3a6d4e9a310d0791cf6fa8f35642ecfd9")
  ("general.el" . "a0b17d207badf462311b2eef7c065b884462cb7c")
  ("git-timemachine" . "8d675750e921a047707fcdc36d84f8439b19a907")
@@ -325,15 +329,17 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("hydra" . "2d553787aca1aceb3e6927e426200e9bb9f056f1")
  ("iedit" . "5c792f5fd44797ece83169b7ef6ac6f4b259255d")
  ("inheritenv" . "13c0135ddd96519ddeb993ee21163d6e11b4f464")
+ ("kubernetes-el" . "de4ff6ccdf58a939908d384efe9cf06b2bcabe12")
  ("lsp-mode" . "8166a1fe04891efcb7f1262609e77fc48500537b")
  ("lsp-pyright" . "71ff088ac4c93b0edd012f305a3dfd1602c5d21e")
  ("lsp-treemacs" . "3bae4a91e05d55d5ca92da272ffcd497f370e9df")
  ("lsp-ui" . "62568188b7cbc0758a0c4bfb57647708406ddf51")
  ("magit" . "25f432551347468ce97b8b03987e59092e91f8f0")
+ ("magit-popup" . "d8585fa39f88956963d877b921322530257ba9f5")
  ("marginalia" . "d38a27867bcec0bafa43e8d1bd3fd96a32b15d31")
  ("markdown-mode" . "377ce39ffe69f058994ac4e98bde8cfb58661406")
  ("melpa" . "ea7b38971ea1ac02d1de128d3526f9b7b9f601f9")
- ("modus-themes" . "6d8b34b89b855eff7ac203b994b689f630e9b8b0")
+ ("modus-themes" . "1903cf653055482714c0f4cfa79e53c82fba047c")
  ("nix-mode" . "53ea839a52335d089699d3530bae8ea5914cdbb6")
  ("no-littering" . "6e8950ad296c0f57d80d034eb0b7adf538c02906")
  ("ob-async" . "de1cd6c93242a4cb8773bbe115b7be3d4dd6b97e")
@@ -377,7 +383,6 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("straight.el" . "2d407bccd9378f1d5218f8ba2ae85c6be73fbaf1")
  ("templatel" . "a3458234b8e0e83c46c6aca11a757c1134752c09")
  ("toml-mode.el" . "f6c61817b00f9c4a3cab1bae9c309e0fc45cdd06")
- ("tramp" . "f278fd50dcab872042aa798be5cf87c703814f6f")
  ("transient" . "90e640fe8fa3f309c7cf347501e86ca5cd0bd85e")
  ("transpose-frame" . "12e523d70ff78cc8868097b56120848befab5dbc")
  ("treemacs" . "332d4e0f1f606c472dd083c9cdd4f143ee23020a")
