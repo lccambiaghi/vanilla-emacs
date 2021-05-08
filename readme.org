@@ -1,6 +1,5 @@
 #+TITLE: Luca's literate Emacs config
 #+STARTUP: content
-#+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 #+OPTIONS: auto-id:t
 #+HTML_HEAD: <script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101260027);</script>
 #+HTML_HEAD: <script async src="//static.getclicky.com/js"></script>
@@ -118,7 +117,7 @@ Here they are, without any ranking:
 - [[*pytest][pytest]]
 - [[*jupyter][jupyter]]
 - [[*evil-lisp state][evil-lisp state]] 
-* Startup
+* early-init.el and init.el
 :PROPERTIES:
 :CUSTOM_ID: h:EC68944C-F745-45D8-9905-420E0813DBAF
 :END:
@@ -128,48 +127,52 @@ Here they are, without any ranking:
 :END:
 Taken from DOOM's early init
 #+BEGIN_SRC emacs-lisp :tangle early-init.el
-  ;; NOTE: early-init.el is now generated from readme.org.  Please edit that file instead
+;;; early-init.el --- Early Init File -*- lexical-binding: t -*-
+;; NOTE: early-init.el is now generated from readme.org.  Please edit that file instead
 
-  ;; Defer garbage collection further back in the startup process
-  (setq gc-cons-threshold most-positive-fixnum
-        gc-cons-percentage 0.6)
+;; Defer garbage collection further back in the startup process
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6)
 
-  ;; In Emacs 27+, package initialization occurs before `user-init-file' is
-  ;; loaded, but after `early-init-file'. Doom handles package initialization, so
-  ;; we must prevent Emacs from doing it early!
-  (setq package-enable-at-startup nil)
-  ;; Do not allow loading from the package cache (same reason).
-  (setq package-quickstart nil)
+;; In Emacs 27+, package initialization occurs before `user-init-file' is
+;; loaded, but after `early-init-file'. Doom handles package initialization, so
+;; we must prevent Emacs from doing it early!
+(setq package-enable-at-startup nil)
+;; Do not allow loading from the package cache (same reason).
+(setq package-quickstart nil)
 
-  ;; Prevent the glimpse of un-styled Emacs by disabling these UI elements early.
-  (push '(menu-bar-lines . 0) default-frame-alist)
-  (push '(tool-bar-lines . 0) default-frame-alist)
-  (push '(vertical-scroll-bars) default-frame-alist)
+;; Prevent the glimpse of un-styled Emacs by disabling these UI elements early.
+(push '(menu-bar-lines . 0) default-frame-alist)
+(push '(tool-bar-lines . 0) default-frame-alist)
+(push '(vertical-scroll-bars) default-frame-alist)
 
-  ;; Resizing the Emacs frame can be a terribly expensive part of changing the
-  ;; font. By inhibiting this, we easily halve startup times with fonts that are
-  ;; larger than the system default.
-  (setq frame-inhibit-implied-resize t)
+;; Resizing the Emacs frame can be a terribly expensive part of changing the
+;; font. By inhibiting this, we easily halve startup times with fonts that are
+;; larger than the system default.
+(setq frame-inhibit-implied-resize t)
 
-  ;; Disable GUI elements
-  (menu-bar-mode -1)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
-  (setq inhibit-splash-screen t)
-  (setq use-file-dialog nil)
+;; Disable GUI elements
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(setq inhibit-splash-screen t)
+(setq use-file-dialog nil)
 
-  ;; Prevent unwanted runtime builds in gccemacs (native-comp); packages are
-  ;; compiled ahead-of-time when they are installed and site files are compiled
-  ;; when gccemacs is installed.
-  (setq comp-deferred-compilation nil)
+;; Prevent unwanted runtime builds in gccemacs (native-comp); packages are
+;; compiled ahead-of-time when they are installed and site files are compiled
+;; when gccemacs is installed.
+(setq comp-deferred-compilation nil)
+
+;;; early-init.el ends here
 #+END_SRC
 
-** Startup optimization
+** init.el: startup optimization
 :PROPERTIES:
 :CUSTOM_ID: h:E6162DC2-7E1C-4843-8448-FF104A444B40
 :END:
 Taken from DOOM's init
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle init.el
+;;; init.el --- Personal configuration file -*- lexical-binding: t -*-
 ;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
 
 ;; `file-name-handler-alist' is consulted on every `require', `load' and various
@@ -197,9 +200,27 @@ Taken from DOOM's init
 (setq user-emacs-directory (file-truename (file-name-directory load-file-name)))
 #+END_SRC
 
+** init.el: load modules
+:PROPERTIES:
+:CUSTOM_ID: h:7B22A4F3-49A1-4848-A185-B4EEA060EECE
+:END:
+#+begin_src emacs-lisp :tangle init.el
+;; (add-to-list 'load-path "~/.emacs.d/lisp/")
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+
+(let ((file-name-handler-alist nil)
+      (gc-cons-threshold 100000000))
+  (require 'init-core)
+  (require 'init-extra)
+  )
+
+;;; init.el ends here
+#+end_src
+
 * Package manager
 :PROPERTIES:
 :CUSTOM_ID: h:376622D2-A6B7-4050-97C6-413B0D77B89C
+:header-args:    :emacs-lisp :tangle ./lisp/init-core.el
 :END:
 ** bootstrap straight and straight-use-package
 :PROPERTIES:
@@ -216,7 +237,8 @@ Some rules/conventions:
 (setq straight-use-package-by-default t)
 (setq straight-vc-git-default-clone-depth 1)
 (setq straight-recipes-gnu-elpa-use-mirror t)
-(setq straight-check-for-modifications '(check-on-save find-when-checking))
+;; (setq straight-check-for-modifications '(check-on-save find-when-checking))
+(setq straight-check-for-modifications nil)
 (setq use-package-always-defer t)
 (defvar bootstrap-version)
 (let* ((straight-repo-dir
@@ -414,6 +436,7 @@ From the report:
 * Emacs
 :PROPERTIES:
 :CUSTOM_ID: h:BB41A3C4-8047-40D7-B99D-1BFDAC930D25
+:header-args:    :emacs-lisp :tangle ./lisp/init-core.el
 :END:
 ** Sane defaults
 :PROPERTIES:
@@ -603,6 +626,7 @@ size. This function also handles icons and modeline font sizes."
     (setq mac-command-modifier 'super)     ; command as super
     (setq mac-option-modifier 'meta)     ; alt as meta
     (setq mac-control-modifier 'control)
+    (mac-auto-operator-composition-mode)  ;; enables font ligatures
     (global-set-key [(s c)] 'kill-ring-save)
     (global-set-key [(s v)] 'yank)
     (global-set-key [(s x)] 'kill-region)
@@ -653,7 +677,8 @@ Used by DOOM to manage garbage collection
 :END:
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
-    :if (memq window-system '(mac ns))
+    ;; :if (memq window-system '(mac ns))
+    :if (eq system-type 'darwin)
     :hook (emacs-startup . (lambda ()
                              (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
                              (exec-path-from-shell-initialize)))
@@ -722,6 +747,7 @@ Used by DOOM to manage garbage collection
 * Keybindings
 :PROPERTIES:
 :CUSTOM_ID: h:A992628D-9095-4392-9C96-2633E8DDDE08
+:header-args:    :emacs-lisp :tangle ./lisp/init-core.el
 :END:
 ** general
 :PROPERTIES:
@@ -1168,6 +1194,7 @@ Taken from this PR: https://github.com/emacs-evil/evil/pull/1323/files
 * Org
 :PROPERTIES:
 :CUSTOM_ID: h:B1DBE90D-B6C9-4BD4-B15B-185FE238D236
+:header-args:    :emacs-lisp :tangle ./lisp/init-core.el
 :END:
 ** org mode
 :PROPERTIES:
@@ -2220,6 +2247,7 @@ Adding it as a ~after-save-hook~  automatically adds a ~CUSTOM_ID~ to newly crea
 * UI
 :PROPERTIES:
 :CUSTOM_ID: h:239ABF35-3C15-416B-8C10-353F711E5541
+:header-args:    :emacs-lisp :tangle ./lisp/init-core.el
 :END:
 ** all the icons
 :PROPERTIES:
@@ -2278,32 +2306,6 @@ We use this hook to switch from light to dark theme.
   (lc/leader-keys
     "t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
   :init
-  (setq modus-themes-operandi-color-overrides
-        '((bg-main . "#fefcf4")
-          (bg-dim . "#faf6ef")
-          (bg-alt . "#f7efe5")
-          (bg-hl-line . "#f4f0e3")
-          (bg-active . "#e8dfd1")
-          (bg-inactive . "#f6ece5")
-          (bg-region . "#c6bab1")
-          (bg-header . "#ede3e0")
-          (bg-tab-bar . "#dcd3d3")
-          (bg-tab-active . "#fdf6eb")
-          (bg-tab-inactive . "#c8bab8")
-          (fg-unfocused ."#55556f")))
-  (setq modus-themes-vivendi-color-overrides
-        '((bg-main . "#100b17")
-          (bg-dim . "#161129")
-          (bg-alt . "#181732")
-          (bg-hl-line . "#191628")
-          (bg-active . "#282e46")
-          (bg-inactive . "#1a1e39")
-          (bg-region . "#393a53")
-          (bg-header . "#202037")
-          (bg-tab-bar . "#262b41")
-          (bg-tab-active . "#120f18")
-          (bg-tab-inactive . "#3a3a5a")
-          (fg-unfocused . "#9a9aab")))
   (setq modus-themes-slanted-constructs t
         ;; modus-themes-no-mixed-fonts t
         modus-themes-bold-constructs t
@@ -2323,7 +2325,35 @@ We use this hook to switch from light to dark theme.
         modus-themes-scale-2 1.15
         modus-themes-scale-3 1.21
         modus-themes-scale-4 1.27
-        modus-themes-scale-5 1.33)
+        modus-themes-scale-5 1.33)	
+  (defun lc/override-colors ()
+    (setq modus-themes-operandi-color-overrides
+          '((bg-main . "#fefcf4")
+            (bg-dim . "#faf6ef")
+            (bg-alt . "#f7efe5")
+            (bg-hl-line . "#f4f0e3")
+            (bg-active . "#e8dfd1")
+            (bg-inactive . "#f6ece5")
+            (bg-region . "#c6bab1")
+            (bg-header . "#ede3e0")
+            (bg-tab-bar . "#dcd3d3")
+            (bg-tab-active . "#fdf6eb")
+            (bg-tab-inactive . "#c8bab8")
+            (fg-unfocused ."#55556f")))
+    (setq modus-themes-vivendi-color-overrides
+          '((bg-main . "#100b17")
+            (bg-dim . "#161129")
+            (bg-alt . "#181732")
+            (bg-hl-line . "#191628")
+            (bg-active . "#282e46")
+            (bg-inactive . "#1a1e39")
+            (bg-region . "#393a53")
+            (bg-header . "#202037")
+            (bg-tab-bar . "#262b41")
+            (bg-tab-active . "#120f18")
+            (bg-tab-inactive . "#3a3a5a")
+            (fg-unfocused . "#9a9aab")))
+    )
   (defun lc/load-dark-theme ()
     (setq lc/theme 'dark)
     (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "whitesmoke"))
@@ -2344,19 +2374,26 @@ We use this hook to switch from light to dark theme.
             ((equal appearance "NSAppearanceNameDarkAqua")
              (lc/load-dark-theme)))))
   (defun lc/change-theme-with-timers ()
-    (run-at-time "00:00" (* 60 60 24) (lc/load-dark-theme))
-    (run-at-time "08:00" (* 60 60 24) (lc/load-light-theme))
-    (run-at-time "18:00" (* 60 60 24) (lc/load-dark-theme)))
+    (run-at-time "00:00" (* 60 60 24) 'lc/load-dark-theme)
+    (run-at-time "08:00" (* 60 60 24) 'lc/load-light-theme)
+    (run-at-time "18:00" (* 60 60 24) 'lc/load-dark-theme))
   (defun lc/fix-fill-column-indicator ()
-    (modus-themes-with-colors
-      (custom-set-faces
-       `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive))))))
+    (when (display-graphic-p)
+      (modus-themes-with-colors
+        (custom-set-faces
+         `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive)))))))
   :config
-  (if (boundp 'mac-effective-appearance-change-hook)
+  (when (display-graphic-p)
+    (lc/override-colors))
+  (if (and (boundp 'mac-effective-appearance-change-hook)
+           (plist-get (mac-application-state) :appearance))
       (progn
         (add-hook 'after-init-hook 'lc/change-theme-with-mac-system)
         (add-hook 'mac-effective-appearance-change-hook 'lc/change-theme-with-mac-system))
-    (add-hook 'after-init-hook 'lc/change-theme-with-timers))
+    ;; (add-hook 'after-init-hook 'lc/change-theme-with-timers)
+    ;; (add-hook 'emacs-startup-hook 'lc/load-light-theme)
+    (add-hook 'emacs-startup-hook 'lc/change-theme-with-timers)
+    )
   )
 #+END_SRC
 
@@ -2716,9 +2753,27 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 #+end_src
 
+** Alerts
+:PROPERTIES:
+:CUSTOM_ID: h:17A9115B-AB79-4445-9F12-EFD086750CDA
+:END:
+#+begin_src emacs-lisp
+(use-package alert
+  :config
+  (if (eq system-type 'darwin)
+      (setq
+       ;; alert-default-style 'notifier
+       alert-default-style 'osx-notifier
+       ))
+  ;; (alert "This is an alert" :severity 'high)
+  ;; (alert "This is an alert" :title "My Alert" :category 'debug)
+  )
+#+end_src
+
 * Completion framework
 :PROPERTIES:
 :CUSTOM_ID: h:06E0EA9F-7CF4-4B99-8A4A-2C63A4F8A6B6
+:header-args:    :emacs-lisp :tangle ./lisp/init-core.el
 :END:
 ** selectrum
 :PROPERTIES:
@@ -2893,6 +2948,7 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
 * Core packages
 :PROPERTIES:
 :CUSTOM_ID: h:EB91F91E-8984-4806-8254-B0487044D30C
+:header-args:    :emacs-lisp :tangle ./lisp/init-core.el
 :END:
 ** project
 :PROPERTIES:
@@ -3259,7 +3315,7 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
   )
 #+END_SRC
 
-** COMMENT company box
+** company box
 :PROPERTIES:
 :CUSTOM_ID: h:179D6081-F535-4869-BBF1-E92D005C5EBE
 :END:
@@ -3467,7 +3523,15 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   :init
   (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
   (setq dired-listing-switches "-lah")
-  (setq dired-dwim-target t))
+  (setq dired-dwim-target t)
+  (defun my/dired-open-externally ()
+    "Open marked dired file/folder(s) (or file/folder(s) at point if no marks)
+  with external application"
+    (interactive)
+    (let ((files (dired-get-marked-files)))
+      (dired-run-shell-command
+       (dired-shell-stuff-it "xdg-open" files t))))
+  )
 
 (use-package dired-single
   :after dired
@@ -3663,6 +3727,7 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
 * Programming languages
 :PROPERTIES:
 :CUSTOM_ID: h:844F8FAD-8F11-4727-BAC4-25B449C56B51
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra.el
 :END:
 ** lsp mode
 :PROPERTIES:
@@ -4269,9 +4334,10 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
   :init (setq markdown-command "multimarkdown"))
 #+end_src
 
-* Extras
+* Gimmicks
 :PROPERTIES:
 :CUSTOM_ID: h:7D94EA42-5F85-4E18-9029-19BAD69FBF85
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra.el
 :END:
 ** web browser
 :PROPERTIES:
@@ -4703,6 +4769,30 @@ Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
                              :color ,(face-foreground 'face-salient)
                              :style nil)
                       :inverse-video nil))
+#+end_src
+
+* Provide modules
+:PROPERTIES:
+:CUSTOM_ID: h:754DFB20-B2AB-4750-9BDA-D24E8014C504
+:END:
+** init-core
+:PROPERTIES:
+:CUSTOM_ID: h:24A7FE78-E6B9-4C81-A2BE-6A049A8209AD
+:header-args:    :emacs-lisp :tangle ./lisp/init-core.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-core)
+;;; init-core.el ends here
+#+end_src
+
+** init-extras
+:PROPERTIES:
+:CUSTOM_ID: h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-extra)
+;;; init-extra.el ends here
 #+end_src
 
 * COMMENT to add / to fix

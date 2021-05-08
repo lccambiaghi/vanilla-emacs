@@ -1,3 +1,4 @@
+;;; early-init.el --- Early Init File -*- lexical-binding: t -*-
 ;; NOTE: early-init.el is now generated from readme.org.  Please edit that file instead
 
 ;; Defer garbage collection further back in the startup process
@@ -32,3 +33,5 @@
 ;; compiled ahead-of-time when they are installed and site files are compiled
 ;; when gccemacs is installed.
 (setq comp-deferred-compilation nil)
+
+;;; early-init.el ends here
