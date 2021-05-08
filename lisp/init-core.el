@@ -176,7 +176,10 @@ size. This function also handles icons and modeline font sizes."
 
 (use-package emacs
   :init
-  (when (eq system-type 'darwin)
+  (defun lc/is-macos? ()
+    (and (eq system-type 'darwin)
+         (= 0 (length (shell-command-to-string "uname -a | grep iPad")))))
+  (when (lc/is-macos?)
     (setq mac-command-modifier 'super)     ; command as super
     (setq mac-option-modifier 'meta)     ; alt as meta
     (setq mac-control-modifier 'control)
@@ -207,7 +210,7 @@ size. This function also handles icons and modeline font sizes."
 
 (use-package exec-path-from-shell
   ;; :if (memq window-system '(mac ns))
-  :if (eq system-type 'darwin)
+  :if (lc/is-macos?)
   :hook (emacs-startup . (lambda ()
                            (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
                            (exec-path-from-shell-initialize)))
@@ -872,68 +875,6 @@ asynchronously."
   :hook (org-load . (lambda () (require 'ob-async)))
   :init
   (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
-
-(use-package jupyter
-  :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
-  :general
-  (lc/local-leader-keys
-    :keymaps 'org-mode-map
-    "=" '((lambda () (interactive) (jupyter-org-insert-src-block t nil)) :wk "block below")
-    "m" '(jupyter-org-merge-blocks :wk "merge")
-    "+" '(jupyter-org-insert-src-block :wk "block above")
-    "?" '(jupyter-inspect-at-point :wk "inspect")
-    "x" '(jupyter-org-kill-block-and-results :wk "kill block"))
-  :hook ((jupyter-org-interaction-mode . (lambda () (lc/set-local-electric-pairs '((?' . ?')))))
-         (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
-                                           (when (derived-mode-p 'org-mode)
-                                             ;; (setq-local company-backends '((company-capf)))
-																						 (setq-local evil-lookup-func #'jupyter-inspect-at-point)
-                                             (jupyter-org-interaction-mode))))
-				 (envrc-mode . lc/load-ob-jupyter))
-  :init
-  (setq org-babel-default-header-args:jupyter-python '((:async . "yes")
-                                                       (:pandoc t)
-                                                       (:kernel . "python3")))
-  (setq org-babel-default-header-args:jupyter-R '((:pandoc t)
-                                                  (:async . "yes")
-                                                  (:kernel . "ir")))
-	(defun lc/org-load-jupyter ()
-    (org-babel-do-load-languages 'org-babel-load-languages
-                                 (append org-babel-load-languages
-                                         '((jupyter . t)))))
-  (defun lc/load-ob-jupyter ()
-    ;; only try to load in org-mode
-    (when (derived-mode-p 'org-mode)
-      ;; skip if already loaded
-      (unless (member '(jupyter . t) org-babel-load-languages)
-        ;; only load if jupyter is available
-        (when (executable-find "jupyter")
-					(lc/org-load-jupyter)))))
-	
-  (cl-defmethod jupyter-org--insert-result (_req context result)
-    (let ((str
-           (org-element-interpret-data
-            (jupyter-org--wrap-result-maybe
-             context (if (jupyter-org--stream-result-p result)
-                         (thread-last result
-                           jupyter-org-strip-last-newline
-                           jupyter-org-scalar)
-                       result)))))
-      (if (< (length str) 100000)  ;; >
-          (insert str)
-        (insert (format ": Result was too long! Length was %d" (length str)))))
-    (when (/= (point) (line-beginning-position))
-      ;; Org objects such as file links do not have a newline added when
-      ;; converting to their string representation by
-      ;; `org-element-interpret-data' so insert one in these cases.
-      (insert "\n")))
-  ;; :config
-  ;;Remove text/html since it's not human readable
-  ;; (delete :text/html jupyter-org-mime-types)
-  ;; (with-eval-after-load 'org-src
-  ;;   (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
-  ;;   (add-to-list 'org-src-lang-modes '("jupyter-R" . R)))
-	)
 
 (use-package org-tree-slide
 	:after org
@@ -1731,7 +1672,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 (use-package alert
   :config
-  (if (eq system-type 'darwin)
+  (if (lc/is-macos?)
       (setq
        ;; alert-default-style 'notifier
        alert-default-style 'osx-notifier
@@ -2185,7 +2126,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
            "u" 'undo-fu-only-undo
            "\C-r" 'undo-fu-only-redo))
 
-(when (eq system-type 'darwin)
+(when (lc/is-macos?)
   (use-package undo-fu
     :general
     (:states '(normal insert)
