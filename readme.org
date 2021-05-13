@@ -1255,16 +1255,18 @@ Interesting bits:
    "z i" '(org-toggle-inline-images :wk "inline images"))
   :init
   ;; general settings
-  (setq org-directory "~/Dropbox/org"
-        +org-export-directory "~/Dropbox/org/export"
-        org-default-notes-file "~/Dropbox/org/personal/todo.org"
-        org-id-locations-file "~/Dropbox/org/.orgids"
-        ;; org-export-in-background t
-        org-src-preserve-indentation t ;; do not put two spaces on the left
-        org-startup-indented t
-        ;; org-startup-with-inline-images t
-        org-hide-emphasis-markers t
-        org-catch-invisible-edits 'smart)
+  (when (lc/is-macos?)
+    (setq org-directory "~/Dropbox/org"
+          +org-export-directory "~/Dropbox/org/export"
+          org-default-notes-file "~/Dropbox/org/personal/todo.org"
+          org-id-locations-file "~/Dropbox/org/.orgids"
+          ))	
+  (setq ;; org-export-in-background t
+   org-src-preserve-indentation t ;; do not put two spaces on the left
+   org-startup-indented t
+   ;; org-startup-with-inline-images t
+   org-hide-emphasis-markers t
+   org-catch-invisible-edits 'smart)
   (setq org-image-actual-width nil)
   (setq org-indent-indentation-per-level 1)
   (setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
@@ -1526,17 +1528,24 @@ FILTER is function that runs after the process is finished, its args should be
   "Export code blocks from the literate config file
 asynchronously."
   (interactive)
-  ;; prevent emacs from killing until tangle-process finished
-  (add-to-list 'kill-emacs-query-functions
-               (lambda ()
-                 (or (not (process-live-p (get-process "tangle-process")))
-                     (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
-  ;; tangle config asynchronously
-  (lc/async-process
-   (format "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
-           (expand-file-name "readme.org" user-emacs-directory)
-           (expand-file-name "init.el" user-emacs-directory))
-   "tangle-process"))
+  (let ((command (if (lc/is-macos?)
+                     "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                   "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                   )))
+    ;; prevent emacs from killing until tangle-process finished
+    (add-to-list 'kill-emacs-query-functions
+                 (lambda ()
+                   (or (not (process-live-p (get-process "tangle-process")))
+                       (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
+    ;; tangle config asynchronously
+    (lc/async-process
+     (format command
+             (expand-file-name "readme.org" user-emacs-directory)
+             (expand-file-name "init.el" user-emacs-directory))
+     "tangle-process")
+    )
+
+  )
 #+end_src
 
 ** org reverse datetree
@@ -2235,6 +2244,7 @@ We use this hook to switch from light to dark theme.
 (use-package modus-themes
   :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
   :demand
+  :if (display-graphic-p)
   :hook (modus-themes-after-load-theme . lc/fix-fill-column-indicator)
   :general
   (lc/leader-keys
@@ -2718,13 +2728,23 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "tf" '(darkroom-tentative-mode :wk "focus")))
 #+end_src
 
+** COMMENT Base 16 theme
+:PROPERTIES:
+:CUSTOM_ID: h:f790e6d5-dc1e-46e8-a1c6-ff14fc7fb5de
+:END:
+#+begin_src emacs-lisp
+(use-package base16-theme
+  ;; :hook (emacs-startup . (lambda () (load-theme 'base16-default-dark t)))
+  )
+#+end_src
+
 ** Custom theme
 :PROPERTIES:
 :CUSTOM_ID: h:EA99CF6B-278E-482F-A865-7E31407734CE
 :END:
 The theme defintion gets saved in ~custom-theme-directory~
 
-#+begin_src emacs-lisp :tangle themes/8colors.el
+#+begin_src emacs-lisp :tangle themes/8colors-theme.el
 (deftheme 8colors
   "Theme using only 8 colors")
 
@@ -2734,9 +2754,19 @@ The theme defintion gets saved in ~custom-theme-directory~
 ;; )
 
 (custom-theme-set-faces
-  '8colors
-  ;; ...
-)
+ '8colors
+ '(centaur-tabs-unselected ((t (:foreground "white" :background "black"))) t)
+ '(centaur-tabs-unselected-modified ((t (:foreground "white" :background "black"))) t)
+ '(tool-bar ((t (:background "black"))) t)
+ '(selectrum-current-candidate ((t (:background "blue"))) t)
+ '(org-code ((t (:foreground "magenta"))) t)
+ '(org-special-keyword ((t (:foreground "magenta"))) t)
+ '(mode-line ((t (:background "black"))) t)
+ '(doom-modeline-buffer-file ((t (:background "black"))) t)
+ '(tab-line ((t (:background "black"))) t)
+ '(magit-diff-removed-highlight ((t (:background "red" :foreground "white"))) t)
+ '(magit-diff-added-highlight ((t (:background "green" :foreground "white"))) t)
+ )
 
 (provide-theme '8colors)
 #+end_src
@@ -2744,7 +2774,7 @@ The theme defintion gets saved in ~custom-theme-directory~
 #+begin_src emacs-lisp
 (unless (lc/is-macos?)
   (setq custom-theme-directory (concat user-emacs-directory "themes"))
-  (custom-set-variables '(custom-enabled-themes '(8colors tsdh-dark)))
+  (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
 	)
 #+end_src
 
@@ -2881,10 +2911,12 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
   ;; :init
   ;; (setq consult-preview-key "C-l")
   ;; (setq consult-narrow-key ">")
+  (with-eval-after-load 'selectrum
+    (require 'consult-selectrum))
   )
 
 (use-package consult-selectrum
-  ;; :straight nil
+  :straight nil
   :after consult
   :demand)
 #+END_SRC
@@ -3519,6 +3551,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
    "q" 'kill-current-buffer))
 
 (use-package all-the-icons-dired
+  :if (display-graphic-p)
   :hook (dired-mode . (lambda () (interactive)
                         (unless (file-remote-p default-directory)
                           (all-the-icons-dired-mode)))))

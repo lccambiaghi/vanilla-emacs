@@ -585,16 +585,18 @@ be passed to EVAL-FUNC as its rest arguments"
    "z i" '(org-toggle-inline-images :wk "inline images"))
   :init
   ;; general settings
-  (setq org-directory "~/Dropbox/org"
-        +org-export-directory "~/Dropbox/org/export"
-        org-default-notes-file "~/Dropbox/org/personal/todo.org"
-        org-id-locations-file "~/Dropbox/org/.orgids"
-        ;; org-export-in-background t
-        org-src-preserve-indentation t ;; do not put two spaces on the left
-        org-startup-indented t
-        ;; org-startup-with-inline-images t
-        org-hide-emphasis-markers t
-        org-catch-invisible-edits 'smart)
+  (when (lc/is-macos?)
+    (setq org-directory "~/Dropbox/org"
+          +org-export-directory "~/Dropbox/org/export"
+          org-default-notes-file "~/Dropbox/org/personal/todo.org"
+          org-id-locations-file "~/Dropbox/org/.orgids"
+          ))	
+  (setq ;; org-export-in-background t
+   org-src-preserve-indentation t ;; do not put two spaces on the left
+   org-startup-indented t
+   ;; org-startup-with-inline-images t
+   org-hide-emphasis-markers t
+   org-catch-invisible-edits 'smart)
   (setq org-image-actual-width nil)
   (setq org-indent-indentation-per-level 1)
   (setq org-list-demote-modify-bullet '(("-" . "+") ("+" . "*")))
@@ -813,17 +815,24 @@ FILTER is function that runs after the process is finished, its args should be
   "Export code blocks from the literate config file
 asynchronously."
   (interactive)
-  ;; prevent emacs from killing until tangle-process finished
-  (add-to-list 'kill-emacs-query-functions
-               (lambda ()
-                 (or (not (process-live-p (get-process "tangle-process")))
-                     (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
-  ;; tangle config asynchronously
-  (lc/async-process
-   (format "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
-           (expand-file-name "readme.org" user-emacs-directory)
-           (expand-file-name "init.el" user-emacs-directory))
-   "tangle-process"))
+  (let ((command (if (lc/is-macos?)
+                     "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                   "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                   )))
+    ;; prevent emacs from killing until tangle-process finished
+    (add-to-list 'kill-emacs-query-functions
+                 (lambda ()
+                   (or (not (process-live-p (get-process "tangle-process")))
+                       (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
+    ;; tangle config asynchronously
+    (lc/async-process
+     (format command
+             (expand-file-name "readme.org" user-emacs-directory)
+             (expand-file-name "init.el" user-emacs-directory))
+     "tangle-process")
+    )
+
+  )
 
 (use-package org-reverse-datetree
   :after org :demand)
@@ -1320,6 +1329,7 @@ asynchronously."
 (use-package modus-themes
   :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
   :demand
+  :if (display-graphic-p)
   :hook (modus-themes-after-load-theme . lc/fix-fill-column-indicator)
   :general
   (lc/leader-keys
@@ -1695,7 +1705,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 (unless (lc/is-macos?)
   (setq custom-theme-directory (concat user-emacs-directory "themes"))
-  (custom-set-variables '(custom-enabled-themes '(8colors tsdh-dark)))
+  (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
 	)
 
 (use-package selectrum
@@ -1785,10 +1795,12 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;; :init
   ;; (setq consult-preview-key "C-l")
   ;; (setq consult-narrow-key ">")
+  (with-eval-after-load 'selectrum
+    (require 'consult-selectrum))
   )
 
 (use-package consult-selectrum
-  ;; :straight nil
+  :straight nil
   :after consult
   :demand)
 
@@ -2199,6 +2211,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
    "q" 'kill-current-buffer))
 
 (use-package all-the-icons-dired
+  :if (display-graphic-p)
   :hook (dired-mode . (lambda () (interactive)
                         (unless (file-remote-p default-directory)
                           (all-the-icons-dired-mode)))))
