@@ -1325,8 +1325,13 @@ Interesting bits:
               (find-file (concat org-directory "/personal/todo.org")))
             :wk "open todos"))
   :init
-  (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
-                           "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org"))
+  (if (lc/is-macos?)
+    (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
+                             "~/dropbox/org/personal/todo.org"
+														 "~/dropbox/Notes/Test.inbox.org"))
+		(setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
+		)
+  
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
            ((agenda "" ((org-deadline-warning-days 7)))
@@ -2766,6 +2771,7 @@ The theme defintion gets saved in ~custom-theme-directory~
  '(tab-line ((t (:background "black"))) t)
  '(magit-diff-removed-highlight ((t (:background "red" :foreground "white"))) t)
  '(magit-diff-added-highlight ((t (:background "green" :foreground "white"))) t)
+ '(iedit-occurrence ((t (:background "blue" :foreground "white"))) t)
  )
 
 (provide-theme '8colors)
@@ -3031,20 +3037,20 @@ In those cases, we need to create a ~.projectile~ file in the root of the subpro
 :CUSTOM_ID: h:6E4E5BD6-1930-4DCE-8E26-5ADAC2B9A152
 :END:
 TODO:
-- =SPC <tab> o= opens the "org" persp
+- =SPC TAB o= opens the "org" persp
 - same for main (maybe get ride of new tab)
 #+BEGIN_SRC emacs-lisp
 (use-package perspective
   :commands (persp-new persp-switch persp-state-save)
   :general
   (lc/leader-keys
-    "<tab>" '(:ignore true :wk "tab")
-    "<tab> <tab>" 'persp-switch
-    "<tab> `" 'persp-switch-last
-    "<tab> d" 'persp-kill
-    "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
-    "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
-    "<tab> m" '(lc/main-tab :wk "main"))
+    "TAB" '(:ignore true :wk "tab")
+    "TAB TAB" 'persp-switch
+    "TAB `" 'persp-switch-last
+    "TAB d" 'persp-kill
+    "TAB x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
+    "TAB X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
+    "TAB m" '(lc/main-tab :wk "main"))
   :init
 	(setq persp-state-default-file (expand-file-name ".persp" user-emacs-directory))
   (defun lc/main-tab ()
@@ -3070,7 +3076,7 @@ TODO:
   :general
   (lc/leader-keys
     "p p" 'projectile-persp-switch-project
-    ;; "<tab> o"	'((lambda () (interactive)
+    ;; "TAB o"	'((lambda () (interactive)
     ;;               (let ((projectile-switch-project-action #'projectile-find-file))
     ;;                 (projectile-persp-switch-project "org")))
     ;;             :wk "org")
@@ -3104,7 +3110,7 @@ TODO:
                magit-revision-mode-map
                magit-process-mode-map
                magit-diff-mode-map)
-    "<tab>" #'magit-section-toggle
+    "TAB" #'magit-section-toggle
     "<escape>" #'transient-quit-one)
   :init
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
@@ -3275,7 +3281,7 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
 :CUSTOM_ID: h:0A172DDA-7B18-46EF-87C6-33D12234AEEC
 :END:
 ~company-tng-mode~ (tab-n-go):
-- Select candidates with =C-j= / =C-k= or =<tab>= / =S-<tab>=
+- Select candidates with =C-j= / =C-k= or =TAB= / =S-TAB=
 - don't press =RET= to confirm
 
 #+BEGIN_SRC emacs-lisp
@@ -3287,7 +3293,7 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
   ;; 								(setq-local company-backends '((company-capf :with company-files)))))
   ;; :general
   ;; (general-nmap
-  ;;   "<tab>" 'company-complete-common-or-cycle)
+  ;;   "TAB" 'company-complete-common-or-cycle)
   :init
   (setq company-minimum-prefix-length 1)
   (setq company-idle-delay 0.3)
@@ -3417,7 +3423,7 @@ In the [[*ob-jupyter][ob-jupyter]] section I then load ~ob-jupyter~ only when ~e
 :PROPERTIES:
 :CUSTOM_ID: h:8E2A5EAF-B690-457E-86E7-9070B51297A7
 :END:
-We use =C-<tab>= to expand snippets instead of =<tab>= .
+We use =C-TAB= to expand snippets instead of =TAB= .
 
 You can have ~#condition: 'auto~ for the snippet to auto-expand.
 
@@ -3428,8 +3434,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   :general
   (yas-minor-mode-map
    :states 'insert
-   "<tab>" 'nil
-   "C-<tab>" 'yas-expand)
+   "TAB" 'nil
+   "C-TAB" 'yas-expand)
   :hook
   ((prog-mode org-mode dap-ui-repl-mode vterm-mode) . yas-minor-mode)
   :init

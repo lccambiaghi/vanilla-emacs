@@ -649,8 +649,13 @@ be passed to EVAL-FUNC as its rest arguments"
               (find-file (concat org-directory "/personal/todo.org")))
             :wk "open todos"))
   :init
-  (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
-                           "~/dropbox/org/personal/todo.org" "~/dropbox/Notes/Test.inbox.org"))
+  (if (lc/is-macos?)
+    (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
+                             "~/dropbox/org/personal/todo.org"
+														 "~/dropbox/Notes/Test.inbox.org"))
+		(setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
+		)
+  
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
            ((agenda "" ((org-deadline-warning-days 7)))
@@ -1863,13 +1868,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :commands (persp-new persp-switch persp-state-save)
   :general
   (lc/leader-keys
-    "<tab>" '(:ignore true :wk "tab")
-    "<tab> <tab>" 'persp-switch
-    "<tab> `" 'persp-switch-last
-    "<tab> d" 'persp-kill
-    "<tab> x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
-    "<tab> X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
-    "<tab> m" '(lc/main-tab :wk "main"))
+    "TAB" '(:ignore true :wk "tab")
+    "TAB TAB" 'persp-switch
+    "TAB `" 'persp-switch-last
+    "TAB d" 'persp-kill
+    "TAB x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
+    "TAB X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
+    "TAB m" '(lc/main-tab :wk "main"))
   :init
 	(setq persp-state-default-file (expand-file-name ".persp" user-emacs-directory))
   (defun lc/main-tab ()
@@ -1889,7 +1894,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :general
   (lc/leader-keys
     "p p" 'projectile-persp-switch-project
-    ;; "<tab> o"	'((lambda () (interactive)
+    ;; "TAB o"	'((lambda () (interactive)
     ;;               (let ((projectile-switch-project-action #'projectile-find-file))
     ;;                 (projectile-persp-switch-project "org")))
     ;;             :wk "org")
@@ -1909,7 +1914,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                magit-revision-mode-map
                magit-process-mode-map
                magit-diff-mode-map)
-    "<tab>" #'magit-section-toggle
+    "TAB" #'magit-section-toggle
     "<escape>" #'transient-quit-one)
   :init
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
@@ -2024,7 +2029,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;; 								(setq-local company-backends '((company-capf :with company-files)))))
   ;; :general
   ;; (general-nmap
-  ;;   "<tab>" 'company-complete-common-or-cycle)
+  ;;   "TAB" 'company-complete-common-or-cycle)
   :init
   (setq company-minimum-prefix-length 1)
   (setq company-idle-delay 0.3)
@@ -2131,8 +2136,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :general
   (yas-minor-mode-map
    :states 'insert
-   "<tab>" 'nil
-   "C-<tab>" 'yas-expand)
+   "TAB" 'nil
+   "C-TAB" 'yas-expand)
   :hook
   ((prog-mode org-mode dap-ui-repl-mode vterm-mode) . yas-minor-mode)
   :init

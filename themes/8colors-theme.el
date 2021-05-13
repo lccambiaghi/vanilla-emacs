@@ -19,6 +19,7 @@
  '(tab-line ((t (:background "black"))) t)
  '(magit-diff-removed-highlight ((t (:background "red" :foreground "white"))) t)
  '(magit-diff-added-highlight ((t (:background "green" :foreground "white"))) t)
+ '(iedit-occurrence ((t (:background "blue" :foreground "white"))) t)
  )
 
 (provide-theme '8colors)
