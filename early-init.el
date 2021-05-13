@@ -1,4 +1,4 @@
-;;; early-init.el --- Early Init File -*- lexical-binding: t -*-
+;;; early-init.el --- Early Init File -*- lexical-binding: t; no-byte-compile: t -*-
 ;; NOTE: early-init.el is now generated from readme.org.  Please edit that file instead
 
 ;; Defer garbage collection further back in the startup process

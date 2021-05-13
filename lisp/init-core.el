@@ -90,6 +90,7 @@
 
   ;; less noise when compiling elisp
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+  (setq load-prefer-newer t)
 
   ;; clean up the mode line
   (display-time-mode -1)
@@ -183,12 +184,15 @@ size. This function also handles icons and modeline font sizes."
     (setq mac-command-modifier 'super)     ; command as super
     (setq mac-option-modifier 'meta)     ; alt as meta
     (setq mac-control-modifier 'control)
-    (mac-auto-operator-composition-mode)  ;; enables font ligatures
-    (global-set-key [(s c)] 'kill-ring-save)
-    (global-set-key [(s v)] 'yank)
-    (global-set-key [(s x)] 'kill-region)
-    (global-set-key [(s q)] 'kill-emacs)
-    ))
+    (when (fboundp 'mac-auto-operator-composition-mode)
+      (mac-auto-operator-composition-mode)   ;; enables font ligatures
+      (global-set-key [(s c)] 'kill-ring-save)
+      (global-set-key [(s v)] 'yank)
+      (global-set-key [(s x)] 'kill-region)
+      (global-set-key [(s q)] 'kill-emacs)
+      )
+    )
+	)
 
 (use-package gcmh
   :demand
@@ -1681,6 +1685,19 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;; (alert "This is an alert" :title "My Alert" :category 'debug)
   )
 
+(use-package darkroom
+  :init
+  ;; Don't scale the text, so ugly man!
+  (setq darkroom-text-scale-increase 1)
+  :general
+  (lc/leader-keys
+    "tf" '(darkroom-tentative-mode :wk "focus")))
+
+(unless (lc/is-macos?)
+  (setq custom-theme-directory (concat user-emacs-directory "themes"))
+  (custom-set-variables '(custom-enabled-themes '(8colors tsdh-dark)))
+	)
+
 (use-package selectrum
   :demand
   :general
@@ -1762,18 +1779,18 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     ;; TODO consult mark
     "f r" 'consult-recent-file
     "s !" '(consult-flymake :wk "flymake"))
-  ;; (with-eval-after-load 'projectile
-  ;;   (lc/leader-keys
-  ;;     "s p" '((lambda () (interactive) (consult-ripgrep (projectile-project-root))) :wk "ripgrep")))
   :config
   (autoload 'projectile-project-root "projectile")
   (setq consult-project-root-function #'projectile-project-root)
   ;; :init
   ;; (setq consult-preview-key "C-l")
   ;; (setq consult-narrow-key ">")
-  (with-eval-after-load selectrum
-    (require 'consult-selectrum))
   )
+
+(use-package consult-selectrum
+  ;; :straight nil
+  :after consult
+  :demand)
 
 (use-package projectile
   :demand
@@ -1985,7 +2002,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                          (tree-sitter-hl-mode))))
 
 (use-package tree-sitter-langs
-  :after tree-sitter)
+	:after tree-sitter)
 
 (use-package company
   :demand
@@ -2202,13 +2219,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
               :after (lambda () (interactive)
                        (when all-the-icons-dired-mode
                          (revert-buffer)))))
-
-(use-package dired-rsync
-  :general
-  (lc/local-leader-keys
-    :keymaps 'dired-mode-map
-    :states 'normal
-    "r" 'dired-rsync))
 
 (use-package restart-emacs
   :general

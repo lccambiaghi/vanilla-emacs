@@ -1,4 +1,4 @@
-;;; init.el --- Personal configuration file -*- lexical-binding: t -*-
+;;; init.el --- Personal configuration file -*- lexical-binding: t; no-byte-compile: t; -*-
 ;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
 
 ;; `file-name-handler-alist' is consulted on every `require', `load' and various

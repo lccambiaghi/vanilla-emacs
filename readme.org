@@ -127,7 +127,7 @@ Here they are, without any ranking:
 :END:
 Taken from DOOM's early init
 #+BEGIN_SRC emacs-lisp :tangle early-init.el
-;;; early-init.el --- Early Init File -*- lexical-binding: t -*-
+;;; early-init.el --- Early Init File -*- lexical-binding: t; no-byte-compile: t -*-
 ;; NOTE: early-init.el is now generated from readme.org.  Please edit that file instead
 
 ;; Defer garbage collection further back in the startup process
@@ -172,7 +172,7 @@ Taken from DOOM's early init
 :END:
 Taken from DOOM's init
 #+BEGIN_SRC emacs-lisp :tangle init.el
-;;; init.el --- Personal configuration file -*- lexical-binding: t -*-
+;;; init.el --- Personal configuration file -*- lexical-binding: t; no-byte-compile: t; -*-
 ;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
 
 ;; `file-name-handler-alist' is consulted on every `require', `load' and various
@@ -512,6 +512,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
   ;; less noise when compiling elisp
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+  (setq load-prefer-newer t)
 
   ;; clean up the mode line
   (display-time-mode -1)
@@ -629,12 +630,15 @@ size. This function also handles icons and modeline font sizes."
     (setq mac-command-modifier 'super)     ; command as super
     (setq mac-option-modifier 'meta)     ; alt as meta
     (setq mac-control-modifier 'control)
-    (mac-auto-operator-composition-mode)  ;; enables font ligatures
-    (global-set-key [(s c)] 'kill-ring-save)
-    (global-set-key [(s v)] 'yank)
-    (global-set-key [(s x)] 'kill-region)
-    (global-set-key [(s q)] 'kill-emacs)
-    ))
+    (when (fboundp 'mac-auto-operator-composition-mode)
+      (mac-auto-operator-composition-mode)   ;; enables font ligatures
+      (global-set-key [(s c)] 'kill-ring-save)
+      (global-set-key [(s v)] 'yank)
+      (global-set-key [(s x)] 'kill-region)
+      (global-set-key [(s q)] 'kill-emacs)
+      )
+    )
+	)
 #+END_SRC
 
 ** Garbage collector magic hack
@@ -2700,6 +2704,50 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   )
 #+end_src
 
+** darkroom
+:PROPERTIES:
+:CUSTOM_ID: h:EC24FC48-E3A5-4C16-9F52-3A6E14DBA564
+:END:
+#+begin_src emacs-lisp
+(use-package darkroom
+  :init
+  ;; Don't scale the text, so ugly man!
+  (setq darkroom-text-scale-increase 1)
+  :general
+  (lc/leader-keys
+    "tf" '(darkroom-tentative-mode :wk "focus")))
+#+end_src
+
+** Custom theme
+:PROPERTIES:
+:CUSTOM_ID: h:EA99CF6B-278E-482F-A865-7E31407734CE
+:END:
+The theme defintion gets saved in ~custom-theme-directory~
+
+#+begin_src emacs-lisp :tangle themes/8colors.el
+(deftheme 8colors
+  "Theme using only 8 colors")
+
+;; (custom-theme-set-variables
+;;   '8colors
+;;   '(overline-margin 0)
+;; )
+
+(custom-theme-set-faces
+  '8colors
+  ;; ...
+)
+
+(provide-theme '8colors)
+#+end_src
+
+#+begin_src emacs-lisp
+(unless (lc/is-macos?)
+  (setq custom-theme-directory (concat user-emacs-directory "themes"))
+  (custom-set-variables '(custom-enabled-themes '(8colors tsdh-dark)))
+	)
+#+end_src
+
 * Completion framework
 :PROPERTIES:
 :CUSTOM_ID: h:06E0EA9F-7CF4-4B99-8A4A-2C63A4F8A6B6
@@ -2710,14 +2758,14 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 :CUSTOM_ID: h:7AC334FB-E159-43C3-B4BD-9D8FDC07900C
 :END:
 #+BEGIN_SRC emacs-lisp
-  (use-package selectrum
-    :demand
-    :general
-    (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
-                              "C-k" 'selectrum-previous-candidate)
-    :config
-    (selectrum-mode t)
-    )
+(use-package selectrum
+  :demand
+  :general
+  (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
+                            "C-k" 'selectrum-previous-candidate)
+  :config
+  (selectrum-mode t)
+  )
 #+END_SRC
 
 ** prescient
@@ -2725,19 +2773,19 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 :CUSTOM_ID: h:A05881AE-31E0-498C-B107-0FBD5E1103BF
 :END:
 #+BEGIN_SRC emacs-lisp
-  (use-package selectrum-prescient
-    :after selectrum
-    :demand
-    :config
-    (prescient-persist-mode t)
-    (selectrum-prescient-mode t)
-    )
+(use-package selectrum-prescient
+  :after selectrum
+  :demand
+  :config
+  (prescient-persist-mode t)
+  (selectrum-prescient-mode t)
+  )
 
-  (use-package company-prescient
-    :after company
-    :demand
-    :config
-    (company-prescient-mode t))
+(use-package company-prescient
+  :after company
+  :demand
+  :config
+  (company-prescient-mode t))
 #+END_SRC
 
 ** marginalia
@@ -2827,18 +2875,18 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
     ;; TODO consult mark
     "f r" 'consult-recent-file
     "s !" '(consult-flymake :wk "flymake"))
-  ;; (with-eval-after-load 'projectile
-  ;;   (lc/leader-keys
-  ;;     "s p" '((lambda () (interactive) (consult-ripgrep (projectile-project-root))) :wk "ripgrep")))
   :config
   (autoload 'projectile-project-root "projectile")
   (setq consult-project-root-function #'projectile-project-root)
   ;; :init
   ;; (setq consult-preview-key "C-l")
   ;; (setq consult-narrow-key ">")
-  (with-eval-after-load selectrum
-    (require 'consult-selectrum))
   )
+
+(use-package consult-selectrum
+  ;; :straight nil
+  :after consult
+  :demand)
 #+END_SRC
 
 ** COMMENT corfu
@@ -3174,20 +3222,20 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
 		)
 #+END_SRC
 
-** syntax highlighting
+** emacs tree-sitter
 :PROPERTIES:
 :CUSTOM_ID: h:1FD9CDF3-4C5D-450E-99DE-034077C3D8BC
 :END:
 #+BEGIN_SRC emacs-lisp
-  (use-package tree-sitter
-    :hook (python-mode . (lambda ()
-                           (require 'tree-sitter)
-                           (require 'tree-sitter-langs)
-                           (require 'tree-sitter-hl)
-                           (tree-sitter-hl-mode))))
+(use-package tree-sitter
+  :hook (python-mode . (lambda ()
+                         (require 'tree-sitter)
+                         (require 'tree-sitter-langs)
+                         (require 'tree-sitter-hl)
+                         (tree-sitter-hl-mode))))
 
-  (use-package tree-sitter-langs
-    :after tree-sitter)
+(use-package tree-sitter-langs
+	:after tree-sitter)
 #+END_SRC
 
 ** company-mode
@@ -3499,7 +3547,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                          (revert-buffer)))))
 #+END_SRC
 
-*** dired rsync
+*** COMMENT dired rsync
 :PROPERTIES:
 :CUSTOM_ID: h:629AEC4E-F112-457A-BAF9-6B5786DEC8EF
 :END:
