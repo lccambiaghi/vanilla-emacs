@@ -512,7 +512,9 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
   ;; less noise when compiling elisp
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+  (setq native-comp-async-report-warnings-errors nil)
   (setq load-prefer-newer t)
+
 
   ;; clean up the mode line
   (display-time-mode -1)
@@ -4089,8 +4091,8 @@ Note:
         ;; only load if jupyter is available
         (when (executable-find "jupyter")
 					(lc/org-load-jupyter)))))
-	
-  (cl-defmethod jupyter-org--insert-result (_req context result)
+  :config
+	(cl-defmethod jupyter-org--insert-result (_req context result)
     (let ((str
            (org-element-interpret-data
             (jupyter-org--wrap-result-maybe
@@ -4107,7 +4109,6 @@ Note:
       ;; converting to their string representation by
       ;; `org-element-interpret-data' so insert one in these cases.
       (insert "\n")))
-  ;; :config
   ;;Remove text/html since it's not human readable
   ;; (delete :text/html jupyter-org-mime-types)
   ;; (with-eval-after-load 'org-src

@@ -90,7 +90,9 @@
 
   ;; less noise when compiling elisp
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+  (setq native-comp-async-report-warnings-errors nil)
   (setq load-prefer-newer t)
+
 
   ;; clean up the mode line
   (display-time-mode -1)

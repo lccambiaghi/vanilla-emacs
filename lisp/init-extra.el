@@ -268,8 +268,8 @@
         ;; only load if jupyter is available
         (when (executable-find "jupyter")
 					(lc/org-load-jupyter)))))
-	
-  (cl-defmethod jupyter-org--insert-result (_req context result)
+  :config
+	(cl-defmethod jupyter-org--insert-result (_req context result)
     (let ((str
            (org-element-interpret-data
             (jupyter-org--wrap-result-maybe
@@ -286,7 +286,6 @@
       ;; converting to their string representation by
       ;; `org-element-interpret-data' so insert one in these cases.
       (insert "\n")))
-  ;; :config
   ;;Remove text/html since it's not human readable
   ;; (delete :text/html jupyter-org-mime-types)
   ;; (with-eval-after-load 'org-src
