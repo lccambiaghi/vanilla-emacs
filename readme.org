@@ -632,14 +632,15 @@ size. This function also handles icons and modeline font sizes."
     (setq mac-command-modifier 'super)     ; command as super
     (setq mac-option-modifier 'meta)     ; alt as meta
     (setq mac-control-modifier 'control)
-    (when (fboundp 'mac-auto-operator-composition-mode)
+    )
+	;; when on emacs-mac 
+	(when (fboundp 'mac-auto-operator-composition-mode)
       (mac-auto-operator-composition-mode)   ;; enables font ligatures
       (global-set-key [(s c)] 'kill-ring-save)
       (global-set-key [(s v)] 'yank)
       (global-set-key [(s x)] 'kill-region)
       (global-set-key [(s q)] 'kill-emacs)
       )
-    )
 	)
 #+END_SRC
 
@@ -733,15 +734,15 @@ Used by DOOM to manage garbage collection
 #+begin_src emacs-lisp
 (use-package emacs
   :hook
-  ((org-jupyter-mode . (lambda () (lc/set-local-electric-pairs '())))
-   (org-mode . (lambda () (lc/set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
+  ((org-jupyter-mode . (lambda () (setq-local electric-pair-text-pairs lc/default-electric-pairs)))
+   (org-mode . (lambda () (lc/add-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
   :init
   ;; auto-close parentheses
   (electric-pair-mode +1)
   (setq electric-pair-preserve-balance nil)
   ;; mode-specific local-electric pairs
   (defconst lc/default-electric-pairs electric-pair-pairs)
-  (defun lc/set-local-electric-pairs (pairs)
+  (defun lc/add-local-electric-pairs (pairs)
     "Example usage: 
     (add-hook 'jupyter-org-interaction-mode '(lambda () (set-local-electric-pairs '())))
     "
@@ -750,7 +751,8 @@ Used by DOOM to manage garbage collection
 
   ;; disable auto pairing for <  >
   (add-function :before-until electric-pair-inhibit-predicate
-                (lambda (c) (eq c ?<))))  ;; >
+                (lambda (c) (eq c ?<   ;; >
+																))))  
 #+end_src
 
 * Keybindings
@@ -936,6 +938,8 @@ in the rest of the file
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+	(define-key evil-motion-state-map "_" 'evil-end-of-line)
+	(define-key evil-motion-state-map "0" 'evil-beginning-of-line)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal)
   ;; don't move cursor after ==
@@ -1257,7 +1261,7 @@ Interesting bits:
    "z i" '(org-toggle-inline-images :wk "inline images"))
   :init
   ;; general settings
-  (when (lc/is-macos?)
+  (when (file-directory-p "~/Dropbox")
     (setq org-directory "~/Dropbox/org"
           +org-export-directory "~/Dropbox/org/export"
           org-default-notes-file "~/Dropbox/org/personal/todo.org"
@@ -1327,13 +1331,14 @@ Interesting bits:
               (find-file (concat org-directory "/personal/todo.org")))
             :wk "open todos"))
   :init
-  (if (lc/is-macos?)
+  ;; if on iPad, only add readme.org
+  (setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
+  ;; if on Mac with Dropbox, use real agenda files
+  (when (file-directory-p "~/Dropbox")
     (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
                              "~/dropbox/org/personal/todo.org"
 														 "~/dropbox/Notes/Test.inbox.org"))
-		(setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
 		)
-  
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
            ((agenda "" ((org-deadline-warning-days 7)))
@@ -1535,8 +1540,9 @@ FILTER is function that runs after the process is finished, its args should be
   "Export code blocks from the literate config file
 asynchronously."
   (interactive)
-  (let ((command (if (lc/is-macos?)
+  (let ((command (if (file-directory-p "/Applications/Emacs.app")
                      "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                   ;; on iPad
                    "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
                    )))
     ;; prevent emacs from killing until tangle-process finished
@@ -2467,14 +2473,15 @@ We use this hook to switch from light to dark theme.
   :general
   (general-nmap "gt" 'centaur-tabs-forward
     "gT" 'centaur-tabs-backward)
-	(lc/leader-keys
-		"b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
+  (lc/leader-keys
+    "b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
   :init
   (setq centaur-tabs-set-icons t)
   (setq centaur-tabs-set-modified-marker t
         centaur-tabs-modified-marker "M"
         centaur-tabs-cycle-scope 'tabs)
   (setq centaur-tabs-set-close-button nil)
+  (setq centaur-tabs-enable-ido-completion nil)
   :config
   (centaur-tabs-mode t)
   ;; (centaur-tabs-headline-match)
@@ -2510,11 +2517,19 @@ We use this hook to switch from light to dark theme.
 :END:
 Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+begin_src emacs-lisp
-  (setq display-buffer-alist
-        `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
-           (display-buffer-reuse-mode-window display-buffer-below-selected)
-           (window-height . 0.33)
-           (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+(setq display-buffer-alist
+      `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
+         (display-buffer-reuse-mode-window display-buffer-below-selected)
+         (window-height . 0.33)
+         (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+
+;; reuse existing windows
+;; (setq display-buffer-alist
+;;       '((".*"
+;;          (display-buffer-reuse-window display-buffer-same-window)
+;;          (reusable-frames . t))))
+
+;; (setq even-window-sizes nil)  ; display-buffer hint: avoid resizing
 #+end_src
 
 ** winum
@@ -2710,12 +2725,12 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 :END:
 #+begin_src emacs-lisp
 (use-package alert
+  :if (lc/is-macos?)
   :config
-  (if (lc/is-macos?)
-      (setq
-       ;; alert-default-style 'notifier
-       alert-default-style 'osx-notifier
-       ))
+  (setq
+   ;; alert-default-style 'notifier
+   alert-default-style 'osx-notifier
+   )
   ;; (alert "This is an alert" :severity 'high)
   ;; (alert "This is an alert" :title "My Alert" :category 'debug)
   )
@@ -2735,21 +2750,16 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "tf" '(darkroom-tentative-mode :wk "focus")))
 #+end_src
 
-** COMMENT Base 16 theme
-:PROPERTIES:
-:CUSTOM_ID: h:f790e6d5-dc1e-46e8-a1c6-ff14fc7fb5de
-:END:
-#+begin_src emacs-lisp
-(use-package base16-theme
-  ;; :hook (emacs-startup . (lambda () (load-theme 'base16-default-dark t)))
-  )
-#+end_src
-
-** Custom theme
+** 8 colors theme
 :PROPERTIES:
 :CUSTOM_ID: h:EA99CF6B-278E-482F-A865-7E31407734CE
 :END:
-The theme defintion gets saved in ~custom-theme-directory~
+When using ~emacs~ on my jailbroken iPad, I cannot set ~TERM=xterm-256color~ because of some ~terminfo~ error.
+I therefore do what I can with the 8 colors I can use.
+
+The default theme ~manoj-dark~ does a pretty good job OOTB.
+I add a few manual tweaks.
+The theme defintion gets saved in ~custom-theme-directory~.
 
 #+begin_src emacs-lisp :tangle themes/8colors-theme.el
 (deftheme 8colors
@@ -2780,7 +2790,7 @@ The theme defintion gets saved in ~custom-theme-directory~
 #+end_src
 
 #+begin_src emacs-lisp
-(unless (lc/is-macos?)
+(unless (> (display-color-cells) 8)
   (setq custom-theme-directory (concat user-emacs-directory "themes"))
   (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
 	)
@@ -2818,12 +2828,6 @@ The theme defintion gets saved in ~custom-theme-directory~
   (prescient-persist-mode t)
   (selectrum-prescient-mode t)
   )
-
-(use-package company-prescient
-  :after company
-  :demand
-  :config
-  (company-prescient-mode t))
 #+END_SRC
 
 ** marginalia
@@ -2831,12 +2835,11 @@ The theme defintion gets saved in ~custom-theme-directory~
 :CUSTOM_ID: h:37ACBBF7-989F-4A57-9454-06B79B8EB4F0
 :END:
 #+BEGIN_SRC emacs-lisp
-  (use-package marginalia
-    :after selectrum
-    :demand
-    :init
-    (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-    :config (marginalia-mode t))
+(use-package marginalia
+  :after selectrum
+  :init
+  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  (marginalia-mode))
 #+END_SRC
 
 ** embark
@@ -2899,6 +2902,7 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
 
 #+BEGIN_SRC emacs-lisp
 (use-package consult
+  :straight (consult :host github :repo "minad/consult" :branch "main")
   :commands (consult-ripgrep)
   :general
   (general-nmap
@@ -2913,21 +2917,172 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
     ;; TODO consult mark
     "f r" 'consult-recent-file
     "s !" '(consult-flymake :wk "flymake"))
+  :init
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)	
+  ;; (setq consult-preview-key "C-l")
+  ;; (setq consult-narrow-key ">")
   :config
   (autoload 'projectile-project-root "projectile")
   (setq consult-project-root-function #'projectile-project-root)
-  ;; :init
-  ;; (setq consult-preview-key "C-l")
-  ;; (setq consult-narrow-key ">")
   (with-eval-after-load 'selectrum
     (require 'consult-selectrum))
-  )
 
+  )
+#+END_SRC
+
+** consult-selectrum
+:PROPERTIES:
+:CUSTOM_ID: h:37452726-47A2-44E3-818C-01835F9DCBCD
+:END:
+#+BEGIN_SRC emacs-lisp
 (use-package consult-selectrum
-  :straight nil
+  :straight (consult-selectrum :host github :repo "minad/consult" :branch "main")
   :after consult
   :demand)
 #+END_SRC
+
+** COMMENT company
+:PROPERTIES:
+:CUSTOM_ID: h:DF88C7D3-3774-45BD-95DE-CD0BE0F7F043
+:END:
+*** company-mode
+:PROPERTIES:
+:CUSTOM_ID: h:0A172DDA-7B18-46EF-87C6-33D12234AEEC
+:END:
+~company-tng-mode~ (tab-n-go):
+- Select candidates with =C-j= / =C-k= or =TAB= / =S-TAB=
+- don't press =RET= to confirm
+
+#+BEGIN_SRC emacs-lisp
+(use-package company
+  ;; :demand
+  :hook ((after-init . global-company-mode)
+				 ;; (python-mode . (lambda () (setq-local company-backends '((company-capf :with company-files)))))
+				 )
+  :general
+  (company-mode-map
+	 :states 'insert
+   "TAB" 'company-indent-or-complete-common
+	 )
+  :init
+  (setq company-minimum-prefix-length 1)
+  (setq company-idle-delay nil)
+  (setq company-tooltip-align-annotations t)
+  (setq company-tooltip-maximum-width 50
+        company-tooltip-minimum-width 50)
+  (setq company-tooltip-limit 12)
+  ;; don't autocomplete when single candidate
+  (setq company-auto-complete nil)
+  (setq company-auto-complete-chars nil)
+  (setq company-dabbrev-code-other-buffers nil)
+  (setq company-dabbrev-ignore-case nil)
+  (setq company-dabbrev-downcase nil)
+  ;; manually configure tng
+  ;; (setq company-tng-auto-configure nil)
+  ;; (setq company-frontends '(company-tng-frontend
+  ;;                           company-pseudo-tooltip-frontend
+  ;;                           company-echo-metadata-frontend))
+  (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
+  ;; :custom-face
+  ;; (company-tooltip
+  ;;  ((t (:family "Fira Code"))))
+  :config
+  (global-company-mode)
+  (with-eval-after-load 'evil
+    (add-hook 'company-mode-hook #'evil-normalize-keymaps))
+  ;; needed in case we only have one candidate
+  (define-key company-active-map (kbd "C-j") 'company-select-next)
+  ;; (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
+  )
+#+END_SRC
+
+*** company prescient
+:PROPERTIES:
+:CUSTOM_ID: h:DBC4211D-4E14-4A05-9925-2B1221CD7694
+:END:
+#+BEGIN_SRC emacs-lisp
+(use-package company-prescient
+  :after company
+  :demand
+  :config
+  (company-prescient-mode t))
+#+END_SRC
+
+*** COMMENT company box
+:PROPERTIES:
+:CUSTOM_ID: h:179D6081-F535-4869-BBF1-E92D005C5EBE
+:END:
+Taken from DOOM
+#+begin_src emacs-lisp
+(use-package company-box
+  :if (display-graphic-p)
+  :hook (company-mode . company-box-mode)
+  :config
+  (with-no-warnings
+    ;; Prettify icons
+    (defun my-company-box-icons--elisp (candidate)
+      (when (derived-mode-p 'emacs-lisp-mode)
+        (let ((sym (intern candidate)))
+          (cond ((fboundp sym) 'Function)
+                ((featurep sym) 'Module)
+                ((facep sym) 'Color)
+                ((boundp sym) 'Variable)
+                ((symbolp sym) 'Text)
+                (t . nil)))))
+    (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp))
+  
+  (declare-function all-the-icons-faicon 'all-the-icons)
+  (declare-function all-the-icons-material 'all-the-icons)
+  (declare-function all-the-icons-octicon 'all-the-icons)
+
+  (setq company-box-icons-all-the-icons
+        `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.8 :v-adjust -0.15))
+          (Text . ,(all-the-icons-faicon "text-width" :height 0.8 :v-adjust -0.02))
+          (Method . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
+          (Function . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
+          (Constructor . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
+          (Field . ,(all-the-icons-octicon "tag" :height 0.85 :v-adjust 0 :face 'all-the-icons-lblue))
+          (Variable . ,(all-the-icons-octicon "tag" :height 0.85 :v-adjust 0 :face 'all-the-icons-lblue))
+          (Class . ,(all-the-icons-material "settings_input_component" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
+          (Interface . ,(all-the-icons-material "share" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
+          (Module . ,(all-the-icons-material "view_module" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
+          (Property . ,(all-the-icons-faicon "wrench" :height 0.8 :v-adjust -0.02))
+          (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.8 :v-adjust -0.15))
+          (Value . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
+          (Enum . ,(all-the-icons-material "storage" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
+          (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.8 :v-adjust -0.15))
+          (Snippet . ,(all-the-icons-material "format_align_center" :height 0.8 :v-adjust -0.15))
+          (Color . ,(all-the-icons-material "palette" :height 0.8 :v-adjust -0.15))
+          (File . ,(all-the-icons-faicon "file-o" :height 0.8 :v-adjust -0.02))
+          (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.8 :v-adjust -0.15))
+          (Folder . ,(all-the-icons-faicon "folder-open" :height 0.8 :v-adjust -0.02))
+          (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15))
+          (Constant . ,(all-the-icons-faicon "square-o" :height 0.8 :v-adjust -0.1))
+          (Struct . ,(all-the-icons-material "settings_input_component" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
+          (Event . ,(all-the-icons-octicon "zap" :height 0.8 :v-adjust 0 :face 'all-the-icons-orange))
+          (Operator . ,(all-the-icons-material "control_point" :height 0.8 :v-adjust -0.15))
+          (TypeParameter . ,(all-the-icons-faicon "arrows" :height 0.8 :v-adjust -0.02))
+          (Template . ,(all-the-icons-material "format_align_left" :height 0.8 :v-adjust -0.15)))
+        company-box-icons-alist 'company-box-icons-all-the-icons)
+
+  (setq company-box-show-single-candidate t
+        company-box-backends-colors nil
+        company-box-max-candidates 10)
+  ;; Disable tab-bar in company-box child frames
+  (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
+  )
+#+end_src
+
+*** COMMENT company posframe
+:PROPERTIES:
+:CUSTOM_ID: h:3A912EC4-EC8E-4410-8EE3-2F00311A614B
+:END:
+#+begin_src emacs-lisp
+(use-package company-posframe
+  :hook (company-mode . company-posframe-mode)
+  )
+#+end_src
 
 ** COMMENT corfu
 :PROPERTIES:
@@ -2937,15 +3092,24 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
 ;; Configure corfu
 (use-package corfu
   :straight (corfu :type git :host github :repo "minad/corfu")
+  :hook (after-init . corfu-global-mode)
   :general
   (corfu-map
-   ;; :states 'normal
+   :states 'insert
+   "C-g" 'corfu-abort
    "C-j" 'corfu-next
-   "C-k" 'corfu-previous)
-  :hook ((prog-mode . corfu-mode)
-         (org-mode . corfu-mode)
-         )
-  :config
+   "C-k" 'corfu-previous
+   )
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (org-mode . corfu-mode))
+  ;; :config
+  ;; (add-to-list 'corfu--frame-parameters '(tab-bar-lines . 0))
+  ;; (defun lc/disable-tabs (orig-fn &rest args)
+  ;;   (progn (centaur-tabs-local-mode) (apply orig-fn args)))
+  ;; (defun lc/reenable-tabs (orig-fn &rest args)
+  ;;   (progn (centaur-tabs-local-mode -1) (apply orig-fn args)))
+  ;; (advice-add 'corfu--popup-show :around #'lc/disable-tabs)
+  ;; (advice-add 'corfu--popup-hide :around #'lc/reenable-tabs)
   ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
   ;; (setq corfu-cycle t)
   )
@@ -2954,11 +3118,46 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
 (use-package emacs
   :init
   ;; TAB cycle if there are only few candidates
-  ;; (setq completion-cycle-threshold 3)
+  (setq completion-cycle-threshold 3)
 
   ;; Enable indentation+completion using the TAB key.
   ;; Completion is often bound to M-TAB.
   (setq tab-always-indent 'complete))
+
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand)))
+#+end_src
+
+** vertico
+:PROPERTIES:
+:CUSTOM_ID: h:CAEABB84-0DAE-41CB-B08B-A77B956B991E
+:END:
+#+begin_src emacs-lisp
+(use-package vertico
+	:straight (vertico :type git :host github :repo "minad/vertico")
+	:demand
+  ;; :bind (:map vertico-map
+  ;;        ("C-j" . vertico-next)
+  ;;        ("C-k" . vertico-previous)
+  ;;        ("<escape>" . vertico-exit))
+  ;; :init
+  ;; (vertico-mode)
+	)
+
+;; TODO: replace prescient with this?
+;; (use-package savehist
+;;   :init
+;;   (savehist-mode))
+
+;; TODO: use this when selectrum has been replaced
+;; (use-package marginalia
+;;   :after vertico
+;;   :custom
+;;   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+;;   :init
+;;   (marginalia-mode))
 #+end_src
 
 * Core packages
@@ -3268,133 +3467,20 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package tree-sitter
+  :straight (tree-sitter :host github :repo "ubolonton/emacs-tree-sitter" :depth full)
   :hook (python-mode . (lambda ()
                          (require 'tree-sitter)
                          (require 'tree-sitter-langs)
                          (require 'tree-sitter-hl)
-                         (tree-sitter-hl-mode))))
+                         (tree-sitter-hl-mode)
+                         )))
 
 (use-package tree-sitter-langs
-	:after tree-sitter)
+  :straight (tree-sitter-langs :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
+
+(use-package tsc
+  :straight (tsc :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
 #+END_SRC
-
-** company-mode
-:PROPERTIES:
-:CUSTOM_ID: h:0A172DDA-7B18-46EF-87C6-33D12234AEEC
-:END:
-~company-tng-mode~ (tab-n-go):
-- Select candidates with =C-j= / =C-k= or =TAB= / =S-TAB=
-- don't press =RET= to confirm
-
-#+BEGIN_SRC emacs-lisp
-(use-package company
-  :demand
-  :hook (after-init . global-company-mode)
-  ;; :hook
-  ;; (python-mode . (lambda ()
-  ;; 								(setq-local company-backends '((company-capf :with company-files)))))
-  ;; :general
-  ;; (general-nmap
-  ;;   "TAB" 'company-complete-common-or-cycle)
-  :init
-  (setq company-minimum-prefix-length 1)
-  (setq company-idle-delay 0.3)
-  (setq company-tooltip-align-annotations t)
-  (setq company-tooltip-maximum-width 50
-        company-tooltip-minimum-width 50)
-  (setq company-tooltip-limit 12)
-  ;; don't autocomplete when single candidate
-  (setq company-auto-complete nil)
-  (setq company-auto-complete-chars nil)
-  (setq company-dabbrev-code-other-buffers nil)
-  (setq company-dabbrev-ignore-case nil)
-  (setq company-dabbrev-downcase nil)
-  ;; manually configure tng
-  ;; (setq company-tng-auto-configure nil)
-  ;; (setq company-frontends '(company-tng-frontend
-  ;;                           company-pseudo-tooltip-frontend
-  ;;                           company-echo-metadata-frontend))
-  ;; (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
-  (setq company-backends '((company-capf :with company-yasnippet)
-                           (company-dabbrev-code company-keywords company-files)
-                           company-dabbrev))
-  ;; :custom-face
-  ;; (company-tooltip
-  ;;  ((t (:family "Fira Code"))))
-  :config
-  (global-company-mode)
-  (with-eval-after-load 'evil
-    (add-hook 'company-mode-hook #'evil-normalize-keymaps))
-  ;; needed in case we only have one candidate
-  (define-key company-active-map (kbd "C-j") 'company-select-next)
-  ;; (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
-  )
-#+END_SRC
-
-** company box
-:PROPERTIES:
-:CUSTOM_ID: h:179D6081-F535-4869-BBF1-E92D005C5EBE
-:END:
-Taken from DOOM
-#+begin_src emacs-lisp
-(use-package company-box
-  :if (display-graphic-p)
-  :hook (company-mode . company-box-mode)
-  :config
-  (with-no-warnings
-    ;; Prettify icons
-    (defun my-company-box-icons--elisp (candidate)
-      (when (derived-mode-p 'emacs-lisp-mode)
-        (let ((sym (intern candidate)))
-          (cond ((fboundp sym) 'Function)
-                ((featurep sym) 'Module)
-                ((facep sym) 'Color)
-                ((boundp sym) 'Variable)
-                ((symbolp sym) 'Text)
-                (t . nil)))))
-    (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp))
-  
-  (declare-function all-the-icons-faicon 'all-the-icons)
-  (declare-function all-the-icons-material 'all-the-icons)
-  (declare-function all-the-icons-octicon 'all-the-icons)
-
-  (setq company-box-icons-all-the-icons
-        `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.8 :v-adjust -0.15))
-          (Text . ,(all-the-icons-faicon "text-width" :height 0.8 :v-adjust -0.02))
-          (Method . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
-          (Function . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
-          (Constructor . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
-          (Field . ,(all-the-icons-octicon "tag" :height 0.85 :v-adjust 0 :face 'all-the-icons-lblue))
-          (Variable . ,(all-the-icons-octicon "tag" :height 0.85 :v-adjust 0 :face 'all-the-icons-lblue))
-          (Class . ,(all-the-icons-material "settings_input_component" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
-          (Interface . ,(all-the-icons-material "share" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
-          (Module . ,(all-the-icons-material "view_module" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
-          (Property . ,(all-the-icons-faicon "wrench" :height 0.8 :v-adjust -0.02))
-          (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.8 :v-adjust -0.15))
-          (Value . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
-          (Enum . ,(all-the-icons-material "storage" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
-          (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.8 :v-adjust -0.15))
-          (Snippet . ,(all-the-icons-material "format_align_center" :height 0.8 :v-adjust -0.15))
-          (Color . ,(all-the-icons-material "palette" :height 0.8 :v-adjust -0.15))
-          (File . ,(all-the-icons-faicon "file-o" :height 0.8 :v-adjust -0.02))
-          (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.8 :v-adjust -0.15))
-          (Folder . ,(all-the-icons-faicon "folder-open" :height 0.8 :v-adjust -0.02))
-          (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15))
-          (Constant . ,(all-the-icons-faicon "square-o" :height 0.8 :v-adjust -0.1))
-          (Struct . ,(all-the-icons-material "settings_input_component" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
-          (Event . ,(all-the-icons-octicon "zap" :height 0.8 :v-adjust 0 :face 'all-the-icons-orange))
-          (Operator . ,(all-the-icons-material "control_point" :height 0.8 :v-adjust -0.15))
-          (TypeParameter . ,(all-the-icons-faicon "arrows" :height 0.8 :v-adjust -0.02))
-          (Template . ,(all-the-icons-material "format_align_left" :height 0.8 :v-adjust -0.15)))
-        company-box-icons-alist 'company-box-icons-all-the-icons)
-
-  (setq company-box-show-single-candidate t
-        company-box-backends-colors nil
-        company-box-max-candidates 10)
-  ;; Disable tab-bar in company-box child frames
-  (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
-  )
-#+end_src
 
 ** envrc
 :PROPERTIES:
@@ -3462,13 +3548,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   :general
   (:states 'normal
            "u" 'undo-fu-only-undo
+           "s-z" 'undo-fu-only-undo
            "\C-r" 'undo-fu-only-redo))
-
-(when (lc/is-macos?)
-  (use-package undo-fu
-    :general
-    (:states '(normal insert)
-             "s-z" 'undo-fu-only-undo)))
 #+end_src
 
 ** vterm
@@ -3670,7 +3751,7 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
   :mode ((rx ".yml" eos) . yaml-mode))
 #+end_src
 
-** kubernetes
+** COMMENT kubernetes
 :PROPERTIES:
 :CUSTOM_ID: h:3645D06E-69FC-4B56-AEAF-A5967E66FD85
 :END:
@@ -3741,6 +3822,43 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
   )
 #+end_src
 
+** COMMENT loccurr
+:PROPERTIES:
+:CUSTOM_ID: h:3FC3E32D-BE2D-421C-B599-94E802009AB0
+:END:
+#+begin_src emacs-lisp
+(use-package loccur
+  :commands (loccur-isearch)
+  )
+#+end_src
+
+** COMMENT isearch-mb
+:PROPERTIES:
+:CUSTOM_ID: h:58E5AE2F-4E1C-4B72-9B63-B96AEF55F4DA
+:END:
+You can use ~consult-history~ to browse past searches
+
+#+begin_src emacs-lisp
+(use-package isearch-mb
+  :straight (isearch-mb :type git :host github :repo "astoff/isearch-mb")
+  :demand
+  :init
+  (setq-default
+   ;; Match count next to minibuffer prompt
+   isearch-lazy-count t
+   ;; Don't be stingy with history; default is to keep just 16 entries
+   search-ring-max 200
+   regexp-search-ring-max 200
+   ;; fuzzy match with space
+   isearch-regexp-lax-whitespace t
+   search-whitespace-regexp ".*?"
+   )
+  :config
+  (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
+  (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
+  )
+#+end_src
+
 * Programming languages
 :PROPERTIES:
 :CUSTOM_ID: h:844F8FAD-8F11-4727-BAC4-25B449C56B51
@@ -3752,7 +3870,8 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
-  :commands (lsp lsp-deferred)
+  :commands
+  (lsp lsp-deferred)
   :hook
   ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
    (lsp-mode . lsp-enable-which-key-integration))
@@ -3765,7 +3884,8 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
     "l" '(:keymap lsp-command-map :wk "lsp")
     "r" '(lsp-rename :wk "rename"))
   (lsp-mode-map
-   :states 'normal "gD" 'lsp-find-references)
+   :states 'normal
+   "gD" 'lsp-find-references)
   :init
   (setq lsp-restart 'ignore)
   (setq lsp-eldoc-enable-hover nil)
@@ -3776,7 +3896,6 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
   (setq lsp-auto-execute-action nil)
   (setq lsp-before-save-edits nil)
   (setq lsp-diagnostics-provider :flymake)
-  
   )
 #+END_SRC
 
@@ -3788,12 +3907,11 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
 (use-package lsp-ui
   :hook
   ((lsp-mode . lsp-ui-mode)
-   (lsp-mode . (lambda () (setq-local evil-goto-definition-functions
-                                      '(lambda (&rest args) (lsp-ui-peek-find-definitions)))))
+   ;; (lsp-mode . (lambda () (setq-local evil-goto-definition-functions '(lambda (&rest args) (lsp-ui-peek-find-definitions)))))
    )
-  :bind
-  (:map lsp-ui-mode-map
-        ([remap lsp-find-references] . lsp-ui-peek-find-references))
+  ;; :bind
+  ;; (:map lsp-ui-mode-map
+  ;;       ([remap lsp-find-references] . lsp-ui-peek-find-references))
   :general
   (lc/local-leader-keys
     "h" 'lsp-ui-doc-show
@@ -3916,13 +4034,32 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
   :hook ((envrc-mode . (lambda ()
                          (when (executable-find "ipython")
                            (setq python-shell-interpreter (executable-find "ipython"))))))
-	:general
-	(python-mode-map
-	 :states 'normal
+  :general
+  (python-mode-map
+   :states 'normal
    "gz" nil
-	 "C-j" nil)
+   "C-j" nil)
+  (python-mode-map
+   :states 'insert
+   "TAB" 'lc/py-indent-or-complete
+   )
   :init
   (setq python-indent-offset 0)
+  (defun lc/py-indent-or-complete ()
+    (interactive "*")
+    (window-configuration-to-register py--windows-config-register)
+    (cond ((use-region-p)
+           (py-indent-region (region-beginning) (region-end)))
+          ((or (bolp)   
+               (member (char-before) (list 9 10 12 13 32 ?:  ;; ([{
+																					 ?\) ?\] ?\}))
+               ;; (not (looking-at "[ \t]*$"))
+							 )
+           (py-indent-line))
+          ((comint-check-proc (current-buffer))
+           (ignore-errors (completion-at-point)))
+          (t
+           (completion-at-point))))
   :config
   (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
         python-shell-interpreter-args "-i --simple-prompt --no-color-info"
@@ -4065,7 +4202,7 @@ Note:
     "+" '(jupyter-org-insert-src-block :wk "block above")
     "?" '(jupyter-inspect-at-point :wk "inspect")
     "x" '(jupyter-org-kill-block-and-results :wk "kill block"))
-  :hook ((jupyter-org-interaction-mode . (lambda () (lc/set-local-electric-pairs '((?' . ?')))))
+  :hook ((jupyter-org-interaction-mode . (lambda () (lc/add-local-electric-pairs '((?' . ?')))))
          (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
                                            (when (derived-mode-p 'org-mode)
                                              ;; (setq-local company-backends '((company-capf)))
@@ -4117,7 +4254,7 @@ Note:
 	)
 #+end_src
 
-**** auto-import
+*** auto-import
 :PROPERTIES:
 :CUSTOM_ID: h:CD1D1A97-50EC-4B72-814C-3BC0297C42B1
 :END:
@@ -4129,7 +4266,7 @@ Note:
     "i i" '(pyimport-insert-missing :wk "autoimport")))
 #+end_src
 
-**** blacken
+*** blacken
 :PROPERTIES:
 :CUSTOM_ID: h:2DC8F5D9-BD12-4CEA-9CBD-34B4CAC53495
 :END:
@@ -5063,10 +5200,6 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
 *** Setting of the theme is somehow wrong, dark is always set
 :PROPERTIES:
 :CUSTOM_ID: h:E9A59F97-B380-43D7-97EB-DAE30A17328F
-:END:
-*** LaTex preview is broken
-:PROPERTIES:
-:CUSTOM_ID: h:5E9D797B-850B-484B-B4AF-312AAEE47BF3
 :END:
 * COMMENT Local variables
 :PROPERTIES:

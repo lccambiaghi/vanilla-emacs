@@ -1,5 +1,6 @@
 (use-package lsp-mode
-  :commands (lsp lsp-deferred)
+  :commands
+  (lsp lsp-deferred)
   :hook
   ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
    (lsp-mode . lsp-enable-which-key-integration))
@@ -12,7 +13,8 @@
     "l" '(:keymap lsp-command-map :wk "lsp")
     "r" '(lsp-rename :wk "rename"))
   (lsp-mode-map
-   :states 'normal "gD" 'lsp-find-references)
+   :states 'normal
+   "gD" 'lsp-find-references)
   :init
   (setq lsp-restart 'ignore)
   (setq lsp-eldoc-enable-hover nil)
@@ -23,18 +25,16 @@
   (setq lsp-auto-execute-action nil)
   (setq lsp-before-save-edits nil)
   (setq lsp-diagnostics-provider :flymake)
-  
   )
 
 (use-package lsp-ui
   :hook
   ((lsp-mode . lsp-ui-mode)
-   (lsp-mode . (lambda () (setq-local evil-goto-definition-functions
-                                      '(lambda (&rest args) (lsp-ui-peek-find-definitions)))))
+   ;; (lsp-mode . (lambda () (setq-local evil-goto-definition-functions '(lambda (&rest args) (lsp-ui-peek-find-definitions)))))
    )
-  :bind
-  (:map lsp-ui-mode-map
-        ([remap lsp-find-references] . lsp-ui-peek-find-references))
+  ;; :bind
+  ;; (:map lsp-ui-mode-map
+  ;;       ([remap lsp-find-references] . lsp-ui-peek-find-references))
   :general
   (lc/local-leader-keys
     "h" 'lsp-ui-doc-show
@@ -141,13 +141,32 @@
   :hook ((envrc-mode . (lambda ()
                          (when (executable-find "ipython")
                            (setq python-shell-interpreter (executable-find "ipython"))))))
-	:general
-	(python-mode-map
-	 :states 'normal
+  :general
+  (python-mode-map
+   :states 'normal
    "gz" nil
-	 "C-j" nil)
+   "C-j" nil)
+  (python-mode-map
+   :states 'insert
+   "TAB" 'lc/py-indent-or-complete
+   )
   :init
   (setq python-indent-offset 0)
+  (defun lc/py-indent-or-complete ()
+    (interactive "*")
+    (window-configuration-to-register py--windows-config-register)
+    (cond ((use-region-p)
+           (py-indent-region (region-beginning) (region-end)))
+          ((or (bolp)   
+               (member (char-before) (list 9 10 12 13 32 ?:  ;; ([{
+																					 ?\) ?\] ?\}))
+               ;; (not (looking-at "[ \t]*$"))
+							 )
+           (py-indent-line))
+          ((comint-check-proc (current-buffer))
+           (ignore-errors (completion-at-point)))
+          (t
+           (completion-at-point))))
   :config
   (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
         python-shell-interpreter-args "-i --simple-prompt --no-color-info"
@@ -242,7 +261,7 @@
     "+" '(jupyter-org-insert-src-block :wk "block above")
     "?" '(jupyter-inspect-at-point :wk "inspect")
     "x" '(jupyter-org-kill-block-and-results :wk "kill block"))
-  :hook ((jupyter-org-interaction-mode . (lambda () (lc/set-local-electric-pairs '((?' . ?')))))
+  :hook ((jupyter-org-interaction-mode . (lambda () (lc/add-local-electric-pairs '((?' . ?')))))
          (jupyter-repl-persistent-mode . (lambda ()  ;; we activate org-interaction-mode ourselves
                                            (when (derived-mode-p 'org-mode)
                                              ;; (setq-local company-backends '((company-capf)))

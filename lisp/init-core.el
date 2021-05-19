@@ -186,14 +186,15 @@ size. This function also handles icons and modeline font sizes."
     (setq mac-command-modifier 'super)     ; command as super
     (setq mac-option-modifier 'meta)     ; alt as meta
     (setq mac-control-modifier 'control)
-    (when (fboundp 'mac-auto-operator-composition-mode)
+    )
+	;; when on emacs-mac 
+	(when (fboundp 'mac-auto-operator-composition-mode)
       (mac-auto-operator-composition-mode)   ;; enables font ligatures
       (global-set-key [(s c)] 'kill-ring-save)
       (global-set-key [(s v)] 'yank)
       (global-set-key [(s x)] 'kill-region)
       (global-set-key [(s q)] 'kill-emacs)
       )
-    )
 	)
 
 (use-package gcmh
@@ -244,15 +245,15 @@ size. This function also handles icons and modeline font sizes."
 
 (use-package emacs
   :hook
-  ((org-jupyter-mode . (lambda () (lc/set-local-electric-pairs '())))
-   (org-mode . (lambda () (lc/set-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
+  ((org-jupyter-mode . (lambda () (setq-local electric-pair-text-pairs lc/default-electric-pairs)))
+   (org-mode . (lambda () (lc/add-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
   :init
   ;; auto-close parentheses
   (electric-pair-mode +1)
   (setq electric-pair-preserve-balance nil)
   ;; mode-specific local-electric pairs
   (defconst lc/default-electric-pairs electric-pair-pairs)
-  (defun lc/set-local-electric-pairs (pairs)
+  (defun lc/add-local-electric-pairs (pairs)
     "Example usage: 
     (add-hook 'jupyter-org-interaction-mode '(lambda () (set-local-electric-pairs '())))
     "
@@ -261,7 +262,8 @@ size. This function also handles icons and modeline font sizes."
 
   ;; disable auto pairing for <  >
   (add-function :before-until electric-pair-inhibit-predicate
-                (lambda (c) (eq c ?<))))  ;; >
+                (lambda (c) (eq c ?<   ;; >
+																))))
 
 (use-package general
   :demand t
@@ -388,6 +390,8 @@ size. This function also handles icons and modeline font sizes."
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+	(define-key evil-motion-state-map "_" 'evil-end-of-line)
+	(define-key evil-motion-state-map "0" 'evil-beginning-of-line)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal)
   ;; don't move cursor after ==
@@ -587,7 +591,7 @@ be passed to EVAL-FUNC as its rest arguments"
    "z i" '(org-toggle-inline-images :wk "inline images"))
   :init
   ;; general settings
-  (when (lc/is-macos?)
+  (when (file-directory-p "~/Dropbox")
     (setq org-directory "~/Dropbox/org"
           +org-export-directory "~/Dropbox/org/export"
           org-default-notes-file "~/Dropbox/org/personal/todo.org"
@@ -651,13 +655,14 @@ be passed to EVAL-FUNC as its rest arguments"
               (find-file (concat org-directory "/personal/todo.org")))
             :wk "open todos"))
   :init
-  (if (lc/is-macos?)
+  ;; if on iPad, only add readme.org
+  (setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
+  ;; if on Mac with Dropbox, use real agenda files
+  (when (file-directory-p "~/Dropbox")
     (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
                              "~/dropbox/org/personal/todo.org"
 														 "~/dropbox/Notes/Test.inbox.org"))
-		(setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
 		)
-  
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
            ((agenda "" ((org-deadline-warning-days 7)))
@@ -822,8 +827,9 @@ FILTER is function that runs after the process is finished, its args should be
   "Export code blocks from the literate config file
 asynchronously."
   (interactive)
-  (let ((command (if (lc/is-macos?)
+  (let ((command (if (file-directory-p "/Applications/Emacs.app")
                      "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                   ;; on iPad
                    "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
                    )))
     ;; prevent emacs from killing until tangle-process finished
@@ -1540,14 +1546,15 @@ asynchronously."
   :general
   (general-nmap "gt" 'centaur-tabs-forward
     "gT" 'centaur-tabs-backward)
-	(lc/leader-keys
-		"b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
+  (lc/leader-keys
+    "b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
   :init
   (setq centaur-tabs-set-icons t)
   (setq centaur-tabs-set-modified-marker t
         centaur-tabs-modified-marker "M"
         centaur-tabs-cycle-scope 'tabs)
   (setq centaur-tabs-set-close-button nil)
+  (setq centaur-tabs-enable-ido-completion nil)
   :config
   (centaur-tabs-mode t)
   ;; (centaur-tabs-headline-match)
@@ -1569,6 +1576,14 @@ asynchronously."
          (display-buffer-reuse-mode-window display-buffer-below-selected)
          (window-height . 0.33)
          (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+
+;; reuse existing windows
+;; (setq display-buffer-alist
+;;       '((".*"
+;;          (display-buffer-reuse-window display-buffer-same-window)
+;;          (reusable-frames . t))))
+
+;; (setq even-window-sizes nil)  ; display-buffer hint: avoid resizing
 
 (use-package winum
 :general
@@ -1692,12 +1707,12 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 	)
 
 (use-package alert
+  :if (lc/is-macos?)
   :config
-  (if (lc/is-macos?)
-      (setq
-       ;; alert-default-style 'notifier
-       alert-default-style 'osx-notifier
-       ))
+  (setq
+   ;; alert-default-style 'notifier
+   alert-default-style 'osx-notifier
+   )
   ;; (alert "This is an alert" :severity 'high)
   ;; (alert "This is an alert" :title "My Alert" :category 'debug)
   )
@@ -1710,7 +1725,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (lc/leader-keys
     "tf" '(darkroom-tentative-mode :wk "focus")))
 
-(unless (lc/is-macos?)
+(unless (> (display-color-cells) 8)
   (setq custom-theme-directory (concat user-emacs-directory "themes"))
   (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
 	)
@@ -1732,18 +1747,11 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (selectrum-prescient-mode t)
   )
 
-(use-package company-prescient
-  :after company
-  :demand
-  :config
-  (company-prescient-mode t))
-
 (use-package marginalia
   :after selectrum
-  :demand
   :init
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  :config (marginalia-mode t))
+  (marginalia-mode))
 
 (use-package embark
   :general
@@ -1782,6 +1790,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (embark-collect-mode . embark-consult-preview-minor-mode))
 
 (use-package consult
+  :straight (consult :host github :repo "minad/consult" :branch "main")
   :commands (consult-ripgrep)
   :general
   (general-nmap
@@ -1796,20 +1805,47 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     ;; TODO consult mark
     "f r" 'consult-recent-file
     "s !" '(consult-flymake :wk "flymake"))
+  :init
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)	
+  ;; (setq consult-preview-key "C-l")
+  ;; (setq consult-narrow-key ">")
   :config
   (autoload 'projectile-project-root "projectile")
   (setq consult-project-root-function #'projectile-project-root)
-  ;; :init
-  ;; (setq consult-preview-key "C-l")
-  ;; (setq consult-narrow-key ">")
   (with-eval-after-load 'selectrum
     (require 'consult-selectrum))
+
   )
 
 (use-package consult-selectrum
-  :straight nil
+  :straight (consult-selectrum :host github :repo "minad/consult" :branch "main")
   :after consult
   :demand)
+
+(use-package vertico
+	:straight (vertico :type git :host github :repo "minad/vertico")
+	:demand
+  ;; :bind (:map vertico-map
+  ;;        ("C-j" . vertico-next)
+  ;;        ("C-k" . vertico-previous)
+  ;;        ("<escape>" . vertico-exit))
+  ;; :init
+  ;; (vertico-mode)
+	)
+
+;; TODO: replace prescient with this?
+;; (use-package savehist
+;;   :init
+;;   (savehist-mode))
+
+;; TODO: use this when selectrum has been replaced
+;; (use-package marginalia
+;;   :after vertico
+;;   :custom
+;;   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+;;   :init
+;;   (marginalia-mode))
 
 (use-package projectile
   :demand
@@ -2014,115 +2050,19 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 	      )
 
 (use-package tree-sitter
+  :straight (tree-sitter :host github :repo "ubolonton/emacs-tree-sitter" :depth full)
   :hook (python-mode . (lambda ()
                          (require 'tree-sitter)
                          (require 'tree-sitter-langs)
                          (require 'tree-sitter-hl)
-                         (tree-sitter-hl-mode))))
+                         (tree-sitter-hl-mode)
+                         )))
 
 (use-package tree-sitter-langs
-	:after tree-sitter)
+  :straight (tree-sitter-langs :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
 
-(use-package company
-  :demand
-  :hook (after-init . global-company-mode)
-  ;; :hook
-  ;; (python-mode . (lambda ()
-  ;; 								(setq-local company-backends '((company-capf :with company-files)))))
-  ;; :general
-  ;; (general-nmap
-  ;;   "TAB" 'company-complete-common-or-cycle)
-  :init
-  (setq company-minimum-prefix-length 1)
-  (setq company-idle-delay 0.3)
-  (setq company-tooltip-align-annotations t)
-  (setq company-tooltip-maximum-width 50
-        company-tooltip-minimum-width 50)
-  (setq company-tooltip-limit 12)
-  ;; don't autocomplete when single candidate
-  (setq company-auto-complete nil)
-  (setq company-auto-complete-chars nil)
-  (setq company-dabbrev-code-other-buffers nil)
-  (setq company-dabbrev-ignore-case nil)
-  (setq company-dabbrev-downcase nil)
-  ;; manually configure tng
-  ;; (setq company-tng-auto-configure nil)
-  ;; (setq company-frontends '(company-tng-frontend
-  ;;                           company-pseudo-tooltip-frontend
-  ;;                           company-echo-metadata-frontend))
-  ;; (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
-  (setq company-backends '((company-capf :with company-yasnippet)
-                           (company-dabbrev-code company-keywords company-files)
-                           company-dabbrev))
-  ;; :custom-face
-  ;; (company-tooltip
-  ;;  ((t (:family "Fira Code"))))
-  :config
-  (global-company-mode)
-  (with-eval-after-load 'evil
-    (add-hook 'company-mode-hook #'evil-normalize-keymaps))
-  ;; needed in case we only have one candidate
-  (define-key company-active-map (kbd "C-j") 'company-select-next)
-  ;; (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
-  )
-
-(use-package company-box
-  :if (display-graphic-p)
-  :hook (company-mode . company-box-mode)
-  :config
-  (with-no-warnings
-    ;; Prettify icons
-    (defun my-company-box-icons--elisp (candidate)
-      (when (derived-mode-p 'emacs-lisp-mode)
-        (let ((sym (intern candidate)))
-          (cond ((fboundp sym) 'Function)
-                ((featurep sym) 'Module)
-                ((facep sym) 'Color)
-                ((boundp sym) 'Variable)
-                ((symbolp sym) 'Text)
-                (t . nil)))))
-    (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp))
-  
-  (declare-function all-the-icons-faicon 'all-the-icons)
-  (declare-function all-the-icons-material 'all-the-icons)
-  (declare-function all-the-icons-octicon 'all-the-icons)
-
-  (setq company-box-icons-all-the-icons
-        `((Unknown . ,(all-the-icons-material "find_in_page" :height 0.8 :v-adjust -0.15))
-          (Text . ,(all-the-icons-faicon "text-width" :height 0.8 :v-adjust -0.02))
-          (Method . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
-          (Function . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
-          (Constructor . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
-          (Field . ,(all-the-icons-octicon "tag" :height 0.85 :v-adjust 0 :face 'all-the-icons-lblue))
-          (Variable . ,(all-the-icons-octicon "tag" :height 0.85 :v-adjust 0 :face 'all-the-icons-lblue))
-          (Class . ,(all-the-icons-material "settings_input_component" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
-          (Interface . ,(all-the-icons-material "share" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
-          (Module . ,(all-the-icons-material "view_module" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
-          (Property . ,(all-the-icons-faicon "wrench" :height 0.8 :v-adjust -0.02))
-          (Unit . ,(all-the-icons-material "settings_system_daydream" :height 0.8 :v-adjust -0.15))
-          (Value . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
-          (Enum . ,(all-the-icons-material "storage" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
-          (Keyword . ,(all-the-icons-material "filter_center_focus" :height 0.8 :v-adjust -0.15))
-          (Snippet . ,(all-the-icons-material "format_align_center" :height 0.8 :v-adjust -0.15))
-          (Color . ,(all-the-icons-material "palette" :height 0.8 :v-adjust -0.15))
-          (File . ,(all-the-icons-faicon "file-o" :height 0.8 :v-adjust -0.02))
-          (Reference . ,(all-the-icons-material "collections_bookmark" :height 0.8 :v-adjust -0.15))
-          (Folder . ,(all-the-icons-faicon "folder-open" :height 0.8 :v-adjust -0.02))
-          (EnumMember . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15))
-          (Constant . ,(all-the-icons-faicon "square-o" :height 0.8 :v-adjust -0.1))
-          (Struct . ,(all-the-icons-material "settings_input_component" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
-          (Event . ,(all-the-icons-octicon "zap" :height 0.8 :v-adjust 0 :face 'all-the-icons-orange))
-          (Operator . ,(all-the-icons-material "control_point" :height 0.8 :v-adjust -0.15))
-          (TypeParameter . ,(all-the-icons-faicon "arrows" :height 0.8 :v-adjust -0.02))
-          (Template . ,(all-the-icons-material "format_align_left" :height 0.8 :v-adjust -0.15)))
-        company-box-icons-alist 'company-box-icons-all-the-icons)
-
-  (setq company-box-show-single-candidate t
-        company-box-backends-colors nil
-        company-box-max-candidates 10)
-  ;; Disable tab-bar in company-box child frames
-  (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
-  )
+(use-package tsc
+  :straight (tsc :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
 
 (use-package inheritenv
   :straight (inheritenv :type git :host github :repo "purcell/inheritenv"))
@@ -2158,13 +2098,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :general
   (:states 'normal
            "u" 'undo-fu-only-undo
+           "s-z" 'undo-fu-only-undo
            "\C-r" 'undo-fu-only-redo))
-
-(when (lc/is-macos?)
-  (use-package undo-fu
-    :general
-    (:states '(normal insert)
-             "s-z" 'undo-fu-only-undo)))
 
 (use-package vterm
   :config
@@ -2282,71 +2217,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 (use-package yaml-mode
   :mode ((rx ".yml" eos) . yaml-mode))
-
-(use-package kubernetes
-  :hook
-  (kubernetes-overview-mode . lc/load-kubernetes-evil)
-  :general
-  (lc/leader-keys
-    "k k" 'kubernetes-overview)
-  :init
-  ;; refresh manually with gr
-  (setq kubernetes-poll-frequency 3600)
-  (setq kubernetes-redraw-frequency 3600)
-  (defun lc/load-kubernetes-evil ()
-    "Copied from kubernetes-evil.el"
-    (evil-set-initial-state 'kubernetes-mode 'motion)
-    (evil-set-initial-state 'kubernetes-display-thing-mode 'motion)
-    (evil-set-initial-state 'kubernetes-log-line-mode 'motion)
-    (evil-set-initial-state 'kubernetes-logs-mode 'motion)
-    (evil-set-initial-state 'kubernetes-overview-mode 'motion)
-
-    (evil-define-key 'motion kubernetes-mode-map
-      (kbd "p")   #'magit-section-backward
-      (kbd "n")   #'magit-section-forward
-      (kbd "M-p") #'magit-section-backward-sibling
-      (kbd "M-n") #'magit-section-forward-sibling
-      (kbd "C-i") #'magit-section-toggle
-      (kbd "^")   #'magit-section-up
-      [tab]       #'magit-section-toggle
-      [C-tab]     #'magit-section-cycle
-      [M-tab]     #'magit-section-cycle-diffs
-      [S-tab]     #'magit-section-cycle-global
-
-      [remap evil-next-line] #'next-line
-      [remap evil-previous-line] #'previous-line
-      [remap evil-next-visual-line] #'next-line
-      [remap evil-previous-visual-line] #'previous-line
-
-      (kbd "q") #'quit-window
-      (kbd "RET") #'kubernetes-navigate
-      (kbd "M-w") #'kubernetes-copy-thing-at-point
-
-      (kbd "?") #'kubernetes-overview-popup
-      (kbd "c") #'kubernetes-config-popup
-      (kbd "g r") #'kubernetes-refresh
-      (kbd "h") #'describe-mode
-      (kbd "d") #'kubernetes-describe-popup
-      (kbd "D") #'kubernetes-mark-for-delete
-      (kbd "e") #'kubernetes-exec-popup
-      (kbd "u") #'kubernetes-unmark
-      (kbd "U") #'kubernetes-unmark-all
-      (kbd "x") #'kubernetes-execute-marks
-      (kbd "l") #'kubernetes-logs-popup
-      (kbd "L") #'kubernetes-labels-popup)
-
-    (evil-define-key 'motion kubernetes-overview-mode-map
-      (kbd "v") #'kubernetes-overview-set-sections)
-
-    (evil-define-key 'motion kubernetes-logs-mode-map
-      (kbd "n") #'kubernetes-logs-forward-line
-      (kbd "p") #'kubernetes-logs-previous-line
-      (kbd "RET") #'kubernetes-logs-inspect-line)
-
-    (evil-define-key 'motion kubernetes-log-line-mode-map
-      (kbd "n") #'kubernetes-logs-forward-line
-      (kbd "p") #'kubernetes-logs-previous-line))
-  )
 
 (provide 'init-core)
 ;;; init-core.el ends here
