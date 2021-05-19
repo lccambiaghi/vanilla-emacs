@@ -107,7 +107,6 @@ Here they are, without any ranking:
 - [[*popup management][popup management]]
 - [[*projectile][projectile]]
 - [[*hydra-smerge][hydra-smerge]]
-- [[*company-mode][company-mode]]
 - [[*envrc][envrc]]
 - [[*yasnippet][yasnippet]]
 - [[*dired][dired]]
