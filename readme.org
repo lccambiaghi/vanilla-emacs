@@ -232,6 +232,10 @@ Some rules/conventions:
 - If you specify ~:commands~, they will be autoloaded and the package will be loaded when the commands are first executed
     + If you use ~:general~ and bind commands to keys it will automatically load the package on first invokation
 
+NOTE: if you change a package recipe from ~melpa~ to ~github~ in a ~use-package~ block but
+that package is used as a dependency is used in a previous ~use-package~ block with a ~melpa~
+recipe, you will get a warning. Just make sure to declare the "base" package with the ~github~ recipe first.
+
 #+BEGIN_SRC emacs-lisp
 (setq straight-use-package-by-default t)
 (setq straight-vc-git-default-clone-depth 1)
@@ -270,6 +274,7 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
 
 #+begin_src emacs-lisp :tangle no
 (("ESS" . "a9e9367976658391126c907b6a5dfc8ad3033ebd")
+ ("Emacs-wgrep" . "f9687c28bbc2e84f87a479b6ce04407bb97cfb23")
  ("a.el" . "3d341eb7813ee02b00ab28e11c915295bfd4b5a7")
  ("ace-window" . "c7cb315c14e36fded5ac4096e158497ae974bec9")
  ("aggressive-indent-mode" . "b0ec0047aaae071ad1647159613166a253410a63")
@@ -296,6 +301,7 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("dired-single" . "98c2102429fcac6fbfdba9198c126eb1b3dcc4e5")
  ("docker-tramp.el" . "8e2b671eff7a81af43b76d9dfcf94ddaa8333a23")
  ("doom-modeline" . "49816da1a6c05e6215ec3c8aac6c5eabeb47e74c")
+ ("el-get" . "d76ac84ae9670de7bf7725b362cafe86688771f9")
  ("eldoc" . "b906386cf04029e01228fde239c3a2e3e5b53603")
  ("elfeed" . "e29c8b91450bd42d90041231f769c4e5fe5070da")
  ("elisp-refs" . "b3634a4567c655a1cda51b217629849cba0ac6a7")
@@ -315,8 +321,8 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("emacs-which-key" . "428aedfce0157920814fbb2ae5d00b4aea89df88")
  ("emacs-winum" . "c5455e866e8a5f7eab6a7263e2057aff5f1118b9")
  ("emacs-zmq" . "790033363cf0e78c616cfe117a2f681381e96f29")
- ("emacsmirror-mirror" . "73d68771488284cceb42f70fda551e0a516cb249")
- ("embark" . "26e73117910e78afa209524ecb8f07add45a9ec3")
+ ("emacsmirror-mirror" . "71c9ae8e353f18f5ff6039b2e78f7ffad24fd4e1")
+ ("embark" . "c1450983ba272993094e3048eb8b134c162bcb7d")
  ("envrc" . "a7c6ca84a2b0617c94594a23a0c05246f14fa4ee")
  ("epl" . "78ab7a85c08222cd15582a298a364774e3282ce6")
  ("eros" . "dd8910279226259e100dab798b073a52f9b4233a")
@@ -340,7 +346,7 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("git-timemachine" . "8d675750e921a047707fcdc36d84f8439b19a907")
  ("git.el" . "a3396a7027a7d986598c6a2d6d5599bac918f3da")
  ("gntp.el" . "767571135e2c0985944017dc59b0be79af222ef5")
- ("gnu-elpa-mirror" . "fcb3cf5ba5f16885f7851885c954222aee6f03ab")
+ ("gnu-elpa-mirror" . "3f69bd0d6dcc9060acfb4b9bd2456b360eb2fe51")
  ("goto-chg" . "2af612153bc9f5bed135d25abe62f46ddaa9027f")
  ("helpful" . "584ecc887bb92133119f93a6716cdf7af0b51dca")
  ("hexrgb" . "90e5f07f14bdb9966648977965094c75072691d4")
@@ -350,6 +356,7 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("hydra" . "2d553787aca1aceb3e6927e426200e9bb9f056f1")
  ("iedit" . "5c792f5fd44797ece83169b7ef6ac6f4b259255d")
  ("inheritenv" . "13c0135ddd96519ddeb993ee21163d6e11b4f464")
+ ("isearch-mb" . "781b5373c06131ca6ab45136cdca3cab022a67af")
  ("log4e" . "7df0c1ff4656f8f993b87064b1567618eadb5546")
  ("lsp-mode" . "8166a1fe04891efcb7f1262609e77fc48500537b")
  ("lsp-pyright" . "71ff088ac4c93b0edd012f305a3dfd1602c5d21e")
@@ -358,13 +365,12 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
  ("magit" . "25f432551347468ce97b8b03987e59092e91f8f0")
  ("marginalia" . "d38a27867bcec0bafa43e8d1bd3fd96a32b15d31")
  ("markdown-mode" . "377ce39ffe69f058994ac4e98bde8cfb58661406")
- ("melpa" . "ef16b4c37ad80b034f0ed682f644cb5056743e53")
+ ("melpa" . "7e9db27ec78a96e067b87bb49bbe8e37fc43a3b5")
  ("modus-themes" . "1903cf653055482714c0f4cfa79e53c82fba047c")
  ("nix-mode" . "0023fc5b100ec0c939ffe699d1a7d1afcf1f417a")
  ("no-littering" . "6e8950ad296c0f57d80d034eb0b7adf538c02906")
  ("ob-async" . "de1cd6c93242a4cb8773bbe115b7be3d4dd6b97e")
  ("olivetti" . "b76a020aedb57a6a7d0ae61cde13434f5c802a44")
- ("org" . "0b117f72a82143f544ef41cc82696337d496fe97")
  ("org-appear" . "19ea96e6e2ce01b8583b25a6e5579f1be207a119")
  ("org-cv" . "2f86bab21d35f76c641b6175d33039422b6ed0db")
  ("org-fragtog" . "0151cabc7aa9f244f82e682b87713b344d780c23")
@@ -522,6 +528,10 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   ;; use common convention for indentation by default
   (setq-default indent-tabs-mode t)
   (setq-default tab-width 2)
+
+  ;; Enable indentation+completion using the TAB key.
+  ;; Completion is often bound to M-TAB.
+  (setq tab-always-indent 'complete)
   )
 #+END_SRC
 
@@ -553,6 +563,14 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     :type 'symbol
     :options '(light dark)
     :group 'lc)
+	
+  ;; (setq lc/is-low-power (string= (system-name) "pntk"))
+
+	(setq lc/is-ipad ( 	;; <
+										> 0 (length (shell-command-to-string "uname -a | grep iPad"))))
+
+  ;; (setq lc/is-slow-ssh (string= (getenv "IS_TRAMP") "true"))
+  
   )
 #+end_src
 
@@ -706,12 +724,12 @@ Used by DOOM to manage garbage collection
 :END:
 #+begin_src emacs-lisp
 (use-package no-littering
-	:demand
-	:config
+  :demand
+  :config
   (with-eval-after-load 'recentf
     (add-to-list 'recentf-exclude no-littering-var-directory)
     (add-to-list 'recentf-exclude no-littering-etc-directory))
-	)
+  )
 #+end_src
 
 ** server mode
@@ -733,7 +751,7 @@ Used by DOOM to manage garbage collection
 #+begin_src emacs-lisp
 (use-package emacs
   :hook
-  ((org-jupyter-mode . (lambda () (setq-local electric-pair-text-pairs lc/default-electric-pairs)))
+  ((org-jupyter-mode . (lambda () (lc/add-local-electric-pairs '())))
    (org-mode . (lambda () (lc/add-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
   :init
   ;; auto-close parentheses
@@ -751,7 +769,68 @@ Used by DOOM to manage garbage collection
   ;; disable auto pairing for <  >
   (add-function :before-until electric-pair-inhibit-predicate
                 (lambda (c) (eq c ?<   ;; >
-																))))  
+																)))
+	)  
+#+end_src
+
+You can use below block to print the value of ~electric-pair-pairs~
+#+begin_src emacs-lisp :tangle no
+(mapcar (lambda (elm) (char-to-string (car elm))) electric-pair-pairs)
+#+end_src
+
+** Rename file
+:PROPERTIES:
+:CUSTOM_ID: h:6A783697-911E-433D-B8ED-CC70F5F217FA
+:END:
+#+begin_src emacs-lisp
+(use-package emacs
+  :init
+  (defun lc/rename-current-file ()
+    "Rename the current visiting file and switch buffer focus to it."
+    (interactive)
+    (let ((new-filename (lc/expand-filename-prompt
+                         (format "Rename %s to: " (file-name-nondirectory (buffer-file-name))))))
+      (if (null (file-writable-p new-filename))
+          (user-error "New file not writable: %s" new-filename))
+      (rename-file (buffer-file-name) new-filename 1)
+      (find-alternate-file new-filename)
+      (message "Renamed to and now visiting: %s" (abbreviate-file-name new-filename))))
+  (defun lc/expand-filename-prompt (prompt)
+    "Return expanded filename prompt."
+    (expand-file-name (read-file-name prompt)))
+  )
+
+#+end_src
+
+** xref
+:PROPERTIES:
+:CUSTOM_ID: h:AC4FAE7D-5AF3-4D5A-810F-55AB4C7D1C1B
+:END:
+#+begin_src emacs-lisp
+(use-package xref
+  :straight (:type built-in)
+  :init
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+  (setq xref-show-xrefs-function #'xref-show-definitions-buffer) ; for grep and the like
+  ;; (setq xref-file-name-display 'project-relative)
+  ;; (setq xref-search-program 'grep)
+  )
+#+end_src
+
+** Don't close windows on escape
+:PROPERTIES:
+:CUSTOM_ID: h:8BB05594-D909-4E99-960B-5624F915E664
+:END:
+Sometimes =ESC= kills my window layout. This advice prevents that from happening.
+#+begin_src emacs-lisp
+(use-package emacs
+  :init
+  (defadvice keyboard-escape-quit
+      (around keyboard-escape-quit-dont-close-windows activate)
+    (let ((buffer-quit-function (lambda () ())))
+      ad-do-it))
+  )
+
 #+end_src
 
 * Keybindings
@@ -785,9 +864,15 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     :prefix ","
     :global-prefix "SPC m")
 
+  (general-nmap
+    :states 'normal
+    "gD" '(xref-find-references :wk "references")
+    )
+
   (lc/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
     "`" '((lambda () (interactive) (switch-to-buffer (other-buffer (current-buffer) 1))) :which-key "prev buffer")
+    "<escape>" 'keyboard-escape-quit
     
     ";" '(eval-expression :which-key "eval sexp")
 
@@ -804,11 +889,7 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
     "ff"  'find-file
     "fs" 'save-buffer
-    "fr" 'recentf-open-files
-    "fR" '((lambda (new-path)
-             (interactive (list (read-file-name "Move file to: ") current-prefix-arg))
-             (rename-file (buffer-file-name) (expand-file-name new-path)))
-           :wk "move/rename")
+    "fR" '(lc/rename-current-file :wk "rename")
 
     "g" '(:ignore t :which-key "git")
     ;; keybindings defined in magit
@@ -1194,7 +1275,11 @@ Taken from this PR: https://github.com/emacs-evil/evil/pull/1323/files
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package which-key
-  :demand t
+  :demand
+  :general
+  (lc/leader-keys
+    "?" 'which-key-show-top-level
+    )
   :init
   (setq which-key-separator " ")
   (setq which-key-prefix-prefix "+")
@@ -1221,6 +1306,7 @@ Interesting bits:
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
+  :straight org-plus-contrib
   :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)
          (org-mode . variable-pitch-mode))
@@ -1351,7 +1437,7 @@ Interesting bits:
   )
 #+end_src
 
-** TODO Hack to get org-version to work
+** Hack to get org-version to work
 :PROPERTIES:
 :CUSTOM_ID: h:78D6F7DF-905E-4016-BF91-4E9E38580633
 :END:
@@ -1985,6 +2071,14 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
 :PROPERTIES:
 :CUSTOM_ID: h:F97C3D33-1B2E-4D80-BD51-E4052A5535DE
 :END:
+The first block of the org file is used to determine the exported language.
+To override this we can write:
+#+begin_example
+#+OX-IPYNB-LANGUAGE: ipython
+#+end_example
+
+It seems that also ~jupyter-python~ should be replaced with ~ipython~ for the export to work.
+
 #+BEGIN_SRC emacs-lisp
 (use-package ox-ipynb
   :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
@@ -2176,19 +2270,20 @@ Adding it as a ~after-save-hook~  automatically adds a ~CUSTOM_ID~ to newly crea
 #+begin_src emacs-lisp
 (use-package emacs
   :hook
-  ((org-jupyter-mode . (lambda () (visual-line-mode -1)))
+  ((org-jupyter-mode . (lambda () (visual-line-mode -1)
+												 (advice-add 'org-cycle :around #'lc/org-cycle-or-py-complete)))
    (org-mode . (lambda () (when (lc/is-jupyter-org-buffer?) (org-jupyter-mode)))))
-  :general
-  (lc/local-leader-keys
-    :states 'normal
-    "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
-    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
   :init
   (defun lc/is-jupyter-org-buffer? ()
     (with-current-buffer (buffer-name)
       (goto-char (point-min))
       (re-search-forward "begin_src jupyter-" 10000 t)))
-  
+  (defun lc/org-cycle-or-py-complete (orig-fun &rest args)
+    "If in a jupyter-python code block, call py-indent-or-complete, otherwise use org-cycle"
+    (if (and (org-in-src-block-p)
+             (eq (intern (org-element-property :language (org-element-at-point))) 'jupyter-python))
+        (lc/py-indent-or-complete)
+      (apply orig-fun args)))
   (define-minor-mode org-jupyter-mode
     "Minor mode which is active when an org file has the string begin_src jupyter-python
     in the first few hundred rows"
@@ -2845,15 +2940,18 @@ The theme defintion gets saved in ~custom-theme-directory~.
 :PROPERTIES:
 :CUSTOM_ID: h:D28488FC-484F-4AD9-8989-736BE88C9AA2
 :END:
-Taken from https://github.com/oantolin/embark
+- You can act on candidates with =C-l= and ask to remind bindings with =C-h=
+- You can run ~embark-export~ on all results (e.g. after a ~consult-line~) with =C-l E=
+  + You can run ~embark-export-snapshot~ with =C-l S=
 
-You can act on candidates with =C-l= and ask to remind bindings with =C-h=
 #+BEGIN_SRC emacs-lisp
 (use-package embark
   :general
   (general-nmap "C-l" 'embark-act)
-  (selectrum-minibuffer-map "C-l" #'embark-act)
-  (embark-file-map "o" 'find-file-other-window)	
+  (selectrum-minibuffer-map
+   "C-l" #'embark-act
+   )
+  (:keymaps 'embark-file-map "o" 'find-file-other-window)	
   :config
   ;; For Selectrum users:
   (defun current-candidate+category ()
@@ -2877,19 +2975,21 @@ You can act on candidates with =C-l= and ask to remind bindings with =C-h=
   )
 #+END_SRC
 
-** embark-consult
+** wgrep
 :PROPERTIES:
-:CUSTOM_ID: h:002E04ED-FEBA-4058-8570-561963C2450F
+:CUSTOM_ID: h:61053422-6027-47A9-8175-8F8479F78E5F
 :END:
+After running ~embark-export~, we can edit the results with ~wgrep~ and commit the edits.
+This is extremely powerful for refactorings such as changing the name of a class or a function across files in the project.
+
 #+begin_src emacs-lisp
-(use-package embark-consult
-  :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
-  :after (embark consult)
-  :demand t ; only necessary if you have the hook below
-  ;; if you want to have consult previews as you move around an
-  ;; auto-updating embark collect buffer
-  :hook
-  (embark-collect-mode . embark-consult-preview-minor-mode))
+(use-package wgrep
+  :general
+  (grep-mode-map "W" 'wgrep-change-to-wgrep-mode)
+  :init
+  (setq wgrep-auto-save-buffer t)
+  (setq wgrep-change-readonly-file t)
+  )
 #+end_src
 
 ** consult
@@ -2940,6 +3040,64 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
   :after consult
   :demand)
 #+END_SRC
+
+** embark-consult
+:PROPERTIES:
+:CUSTOM_ID: h:002E04ED-FEBA-4058-8570-561963C2450F
+:END:
+#+begin_src emacs-lisp
+(use-package embark-consult
+  :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
+  :after (embark consult)
+  ;; :demand t ; only necessary if you have the hook below
+  ;; if you want to have consult previews as you move around an
+  ;; auto-updating embark collect buffer
+  ;; :hook
+  ;; (embark-collect-mode . embark-consult-preview-minor-mode)
+	)
+#+end_src
+
+** vertico
+:PROPERTIES:
+:CUSTOM_ID: h:CAEABB84-0DAE-41CB-B08B-A77B956B991E
+:END:
+This package is somehow needed to do ~consult-ripgrep~, otherwise I get an error.
+#+begin_src emacs-lisp
+(use-package vertico
+	:straight (vertico :type git :host github :repo "minad/vertico")
+	:demand
+  ;; :bind (:map vertico-map
+  ;;        ("C-j" . vertico-next)
+  ;;        ("C-k" . vertico-previous)
+  ;;        ("<escape>" . vertico-exit))
+  ;; :init
+  ;; (vertico-mode)
+	)
+
+;; TODO: replace prescient with this?
+;; (use-package savehist
+;;   :init
+;;   (savehist-mode))
+
+;; TODO: use this when selectrum has been replaced
+;; (use-package marginalia
+;;   :after vertico
+;;   :custom
+;;   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+;;   :init
+;;   (marginalia-mode))
+#+end_src
+
+** dabbrev
+:PROPERTIES:
+:CUSTOM_ID: h:240FC4A5-CDED-4456-9EBA-9EDF05CE62B9
+:END:
+#+begin_src emacs-lisp
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand)))
+#+end_src
 
 ** COMMENT company
 :PROPERTIES:
@@ -3112,51 +3270,6 @@ Taken from DOOM
   ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
   ;; (setq corfu-cycle t)
   )
-
-;; A few more useful configurations...
-(use-package emacs
-  :init
-  ;; TAB cycle if there are only few candidates
-  (setq completion-cycle-threshold 3)
-
-  ;; Enable indentation+completion using the TAB key.
-  ;; Completion is often bound to M-TAB.
-  (setq tab-always-indent 'complete))
-
-(use-package dabbrev
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand)))
-#+end_src
-
-** vertico
-:PROPERTIES:
-:CUSTOM_ID: h:CAEABB84-0DAE-41CB-B08B-A77B956B991E
-:END:
-#+begin_src emacs-lisp
-(use-package vertico
-	:straight (vertico :type git :host github :repo "minad/vertico")
-	:demand
-  ;; :bind (:map vertico-map
-  ;;        ("C-j" . vertico-next)
-  ;;        ("C-k" . vertico-previous)
-  ;;        ("<escape>" . vertico-exit))
-  ;; :init
-  ;; (vertico-mode)
-	)
-
-;; TODO: replace prescient with this?
-;; (use-package savehist
-;;   :init
-;;   (savehist-mode))
-
-;; TODO: use this when selectrum has been replaced
-;; (use-package marginalia
-;;   :after vertico
-;;   :custom
-;;   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-;;   :init
-;;   (marginalia-mode))
 #+end_src
 
 * Core packages
@@ -3248,11 +3361,13 @@ TODO:
     "TAB TAB" 'persp-switch
     "TAB `" 'persp-switch-last
     "TAB d" 'persp-kill
+    "TAB h" 'persp-prev
+    "TAB l" 'persp-next
     "TAB x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
     "TAB X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
     "TAB m" '(lc/main-tab :wk "main"))
   :init
-	(setq persp-state-default-file (expand-file-name ".persp" user-emacs-directory))
+  (setq persp-state-default-file (expand-file-name ".persp" user-emacs-directory))
   (defun lc/main-tab ()
     "Jump to the dashboard buffer, if doesn't exists create one."
     (interactive)
@@ -3261,9 +3376,17 @@ TODO:
     (dashboard-mode)
     (dashboard-insert-startupify-lists)
     (dashboard-refresh-buffer))
+  (defun lc/is-persp-empty? ()
+    (seq-filter
+     ;; filter away buffers which should be hidden
+     (lambda (buffer-name) (not (string-prefix-p "*" buffer-name)))
+     ;; get list of buffer names in current perspective
+     (mapcar (lambda (elm) (buffer-name (car elm)))
+             (centaur-tabs-view (centaur-tabs-current-tabset)))
+     ))
   :config
   (persp-mode)
-	(add-hook 'kill-emacs-hook #'persp-state-save))
+  (add-hook 'kill-emacs-hook #'persp-state-save))
 #+END_SRC
 
 *** persp-projectile
@@ -3273,9 +3396,26 @@ TODO:
 #+BEGIN_SRC emacs-lisp
 (use-package persp-projectile
   :after projectile
+  :init
+	(defun lc/get-last-folder-from-known-proj (path)
+		"/path/to/something/ returns something"
+    (car (last (split-string path "\/") 2)))
+  (defun lc/find-project-from-persp (persp-name)
+		"known-proj returns /path/to/known-proj"
+    (car
+     (seq-filter
+      (lambda (proj) (string= persp-name (lc/get-last-folder-from-known-proj proj)))
+      projectile-known-projects-on-file)))
+  (defun lc/persp-reload-project ()
+    (interactive)
+    (let* ((persp (persp-current-name))
+           (proj-root (lc/find-project-from-persp persp)))
+      (persp-kill persp)
+      (projectile-persp-switch-project proj-root)))
   :general
   (lc/leader-keys
     "p p" 'projectile-persp-switch-project
+    "TAB r" '(lc/persp-reload-project :wk "reload")
     ;; "TAB o"	'((lambda () (interactive)
     ;;               (let ((projectile-switch-project-action #'projectile-find-file))
     ;;                 (projectile-persp-switch-project "org")))
@@ -3465,6 +3605,9 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
 :CUSTOM_ID: h:1FD9CDF3-4C5D-450E-99DE-034077C3D8BC
 :END:
 #+BEGIN_SRC emacs-lisp
+(use-package tsc
+  :straight (tsc :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
+
 (use-package tree-sitter
   :straight (tree-sitter :host github :repo "ubolonton/emacs-tree-sitter" :depth full)
   :hook (python-mode . (lambda ()
@@ -3476,9 +3619,6 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
 
 (use-package tree-sitter-langs
   :straight (tree-sitter-langs :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
-
-(use-package tsc
-  :straight (tsc :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
 #+END_SRC
 
 ** envrc
@@ -3537,6 +3677,101 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   )
 #+end_src
 
+** LaTeX yasnippets
+:PROPERTIES:
+:CUSTOM_ID: h:83403D79-9668-48DC-82FB-98FAFFD7DF11
+:END:
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :config
+  (setq lc/greek-alphabet
+        '(("a" . "\\alpha")
+          ("b" . "\\beta" )
+          ("g" . "\\gamma")
+          ("d" . "\\delta")
+          ("e" . "\\epsilon")
+          ("z" . "\\zeta")
+          ("h" . "\\eta")
+          ("t" . "\\theta")
+          ("i" . "\\iota")
+          ("k" . "\\kappa")
+          ("l" . "\\lambda")
+          ("m" . "\\mu")
+          ("n" . "\\nu")
+          ("x" . "\\xi")
+          ("p" . "\\pi")
+          ("r" . "\\rho")
+          ("s" . "\\sigma")
+          ("t" . "\\tau")
+          ("u" . "\\upsilon")
+          ("f" . "\\phi")
+          ("c" . "\\chi")
+          ("v" . "\\psi")
+          ("g" . "\\omega")))
+
+  (setq lc/latex-greek-prefix "'")
+
+  ;; The same for capitalized letters
+  (dolist (elem lc/greek-alphabet)
+    (let ((key (car elem))
+          (value (cdr elem)))
+      (when (string-equal key (downcase key))
+        (add-to-list 'lc/greek-alphabet
+                     (cons
+                      (capitalize (car elem))
+                      (concat
+                       (substring value 0 1)
+                       (capitalize (substring value 1 2))
+                       (substring value 2)))))))
+
+  (yas-define-snippets
+   'latex-mode
+   (mapcar
+    (lambda (elem)
+      (list (concat lc/latex-greek-prefix (car elem)) (cdr elem) (concat "Greek letter " (car elem))))
+    lc/greek-alphabet))
+  
+  (setq lc/english-alphabet
+        '("a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"))
+
+  (dolist (elem lc/english-alphabet)
+    (when (string-equal elem (downcase elem))
+      (add-to-list 'lc/english-alphabet (upcase elem))))
+
+  (setq lc/latex-mathbb-prefix "`")
+
+  (yas-define-snippets
+   'latex-mode
+   (mapcar
+    (lambda (elem)
+      (list (concat lc/latex-mathbb-prefix elem) (concat "\\mathbb{" elem "}") (concat "Mathbb letter " elem)))
+    lc/english-alphabet))
+
+  (setq lc/latex-math-symbols
+        '(("x" . "\\times")
+          ("." . "\\cdot")
+          ("v" . "\\forall")
+          ("s" . "\\sum_{$1}^{$2}$0")
+          ("p" . "\\prod_{$1}^{$2}$0")
+          ("e" . "\\exists")
+          ("i" . "\\int_{$1}^{$2}$0")
+          ("c" . "\\cap")
+          ("u" . "\\cup")
+          ("0" . "\\emptyset")))
+
+  (setq lc/latex-math-prefix "''")
+
+  (yas-define-snippets
+   'latex-mode
+   (mapcar
+    (lambda (elem)
+      (let ((key (car elem))
+            (value (cdr elem)))
+        (list (concat lc/latex-math-prefix key) value (concat "Math symbol " value))))
+    lc/latex-math-symbols))
+  )
+#+end_src
+
 ** undo fu
 :PROPERTIES:
 :CUSTOM_ID: h:FEB4E3B3-47E7-4AAE-ADD7-524A57387301
@@ -3557,6 +3792,11 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package vterm
+  :general
+  (general-imap
+    :keymaps 'vterm-mode-map
+    "M-l" 'vterm-send-right
+    "M-h" 'vterm-send-left)
   :config
   (setq vterm-shell (executable-find "fish")
         vterm-max-scrollback 10000))
@@ -3590,6 +3830,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   + When copying from left window, target will be right window
   + Copy with ~C~
 - Open subdir in buffer below with ~I~
+  + Open them as subtree with =i=
 - Open files with macos with =O=
 - View files with =go= and exit with ~q~
 *** dired
@@ -3619,6 +3860,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   :init
   (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
   (setq dired-listing-switches "-lah")
+	(setq ls-lisp-dirs-first t)
+	(setq ls-lisp-use-insert-directory-program nil)
   (setq dired-dwim-target t)
   (defun my/dired-open-externally ()
     "Open marked dired file/folder(s) (or file/folder(s) at point if no marks)
@@ -3724,6 +3967,7 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
         (expand-file-name "tramp-connection-history" user-emacs-directory))
   (setq password-cache-expiry nil)
   (setq tramp-use-ssh-controlmaster-options nil)
+  (setq remote-file-name-inhibit-cache nil)
   :config
   (customize-set-variable 'tramp-ssh-controlmaster-options
                           (concat
@@ -3748,6 +3992,56 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
 #+begin_src emacs-lisp
 (use-package yaml-mode
   :mode ((rx ".yml" eos) . yaml-mode))
+#+end_src
+
+** search github
+:PROPERTIES:
+:CUSTOM_ID: h:6872D17A-1A2E-4394-A83B-16D5328D88BC
+:END:
+#+begin_src emacs-lisp
+(use-package emacs
+  :general
+  (lc/leader-keys
+    "s c" '(github-code-search :wk "code (github)"))
+  :init
+  (defun github-code-search ()
+    "Search code on github for a given language."
+    (interactive)
+    (let ((language (completing-read
+                     "Language: "
+                     '("Emacs Lisp" "Python"  "Clojure" "R")))
+          (code (read-string "Code: ")))
+      (browse-url
+       (concat "https://github.com/search?l=" language
+               "&type=code&q=" code))))
+  )
+#+end_src
+
+** isearch-mb
+:PROPERTIES:
+:CUSTOM_ID: h:58E5AE2F-4E1C-4B72-9B63-B96AEF55F4DA
+:END:
+You can use ~consult-history~ to browse past searches
+
+#+begin_src emacs-lisp
+(use-package isearch-mb
+  :straight (isearch-mb :type git :host github :repo "astoff/isearch-mb")
+  :demand
+  :init
+  (setq-default
+   ;; Match count next to minibuffer prompt
+   isearch-lazy-count t
+   ;; Don't be stingy with history; default is to keep just 16 entries
+   search-ring-max 200
+   regexp-search-ring-max 200
+   ;; fuzzy match with space
+   isearch-regexp-lax-whitespace t
+   search-whitespace-regexp ".*?"
+   )
+  :config
+  (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
+  (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
+  )
 #+end_src
 
 ** COMMENT kubernetes
@@ -3831,33 +4125,6 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
   )
 #+end_src
 
-** COMMENT isearch-mb
-:PROPERTIES:
-:CUSTOM_ID: h:58E5AE2F-4E1C-4B72-9B63-B96AEF55F4DA
-:END:
-You can use ~consult-history~ to browse past searches
-
-#+begin_src emacs-lisp
-(use-package isearch-mb
-  :straight (isearch-mb :type git :host github :repo "astoff/isearch-mb")
-  :demand
-  :init
-  (setq-default
-   ;; Match count next to minibuffer prompt
-   isearch-lazy-count t
-   ;; Don't be stingy with history; default is to keep just 16 entries
-   search-ring-max 200
-   regexp-search-ring-max 200
-   ;; fuzzy match with space
-   isearch-regexp-lax-whitespace t
-   search-whitespace-regexp ".*?"
-   )
-  :config
-  (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
-  (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
-  )
-#+end_src
-
 * Programming languages
 :PROPERTIES:
 :CUSTOM_ID: h:844F8FAD-8F11-4727-BAC4-25B449C56B51
@@ -3882,9 +4149,9 @@ You can use ~consult-history~ to browse past searches
     "i o" '(lsp-organize-imports :wk "optimize")
     "l" '(:keymap lsp-command-map :wk "lsp")
     "r" '(lsp-rename :wk "rename"))
-  (lsp-mode-map
-   :states 'normal
-   "gD" 'lsp-find-references)
+  ;; (lsp-mode-map
+  ;;  :states 'normal
+  ;;  "gD" 'lsp-find-references)
   :init
   (setq lsp-restart 'ignore)
   (setq lsp-eldoc-enable-hover nil)
@@ -3952,6 +4219,8 @@ You can use ~consult-history~ to browse past searches
     "d q" '(dap-disconnect :wk "quit")
     "d r" '(dap-ui-repl :wk "repl")
     "d h" '(dap-hydra :wk "hydra"))
+	(:keymaps 'dap-ui-repl-mode-map
+	 "TAB" 'lc/py-indent-or-complete)
   :init
   ;; (setq dap-auto-configure-features '(locals repl))
   (setq dap-auto-configure-features '(repl))
@@ -4153,13 +4422,16 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     "e d" '(jupyter-eval-defun :wk "defun")
     "e b" '((lambda () (interactive) (lc/jupyter-eval-buffer)) :wk "buffer")
     "J" '(lc/jupyter-repl :wk "jupyter REPL")
-    "k" '(:ignore true :wk "kernel")
-    "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
-    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
+    "k" '(:ignore true :wk "kernel"))
   (lc/local-leader-keys
     :keymaps 'python-mode-map
     :states 'visual
     "e" '(jupyter-eval-region :wk "eval"))
+	(lc/local-leader-keys
+    :keymaps 'jupyter-org-interaction-mode-map
+    :states 'normal
+    "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
+    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
   :init
   (setq jupyter-repl-prompt-margin-width 4)
   (defun jupyter-command-venv (&rest args)
@@ -4189,6 +4461,18 @@ Note:
 - We can only load ~ob-jupyter~ when we have ~jupyter~ on our ~PATH~.
   + We assume ~jupyter~ is always installed in a virtual env associated with an ~.envrc~ file
   + We load jupyter when we activate ~envrc-mode~ if ~jupyter~ is available
+
+When exporting we can add this to the header:
+
+When exporting we can add this to the header:
+#+begin_quote
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
+#+end_quote
+
+We can avoid evaluation of code with:
+#+begin_quote
+#+PROPERTY: header-args :eval never-export
+#+end_quote
 
 #+begin_src emacs-lisp
 (use-package jupyter
@@ -4564,6 +4848,7 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
 :CUSTOM_ID: h:7D94EA42-5F85-4E18-9029-19BAD69FBF85
 :header-args:    :emacs-lisp :tangle ./lisp/init-extra.el
 :END:
+In this section packages I use seldom, which one day may be promoted to the cooler section of the config.
 ** web browser
 :PROPERTIES:
 :CUSTOM_ID: h:6B214C3A-22E3-47D0-9DD7-F379E07CF960
@@ -4649,29 +4934,6 @@ To visit a link, =SPC s l=
          (buffer-substring-no-properties (region-beginning)
                                          (region-end)))
       (google-search-str (read-from-minibuffer "Search: "))))
-  )
-#+end_src
-
-** search github
-:PROPERTIES:
-:CUSTOM_ID: h:6872D17A-1A2E-4394-A83B-16D5328D88BC
-:END:
-#+begin_src emacs-lisp
-(use-package emacs
-  :general
-  (lc/leader-keys
-    "s c" '(github-code-search :wk "code (github)"))
-  :init
-  (defun github-code-search ()
-    "Search code on github for a given language."
-    (interactive)
-    (let ((language (completing-read
-                     "Language: "
-                     '("Emacs Lisp" "Python"  "Clojure" "R")))
-          (code (read-string "Code: ")))
-      (browse-url
-       (concat "https://github.com/search?l=" language
-               "&type=code&q=" code))))
   )
 #+end_src
 
@@ -4792,208 +5054,9 @@ Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
 
 #+begin_src emacs-lisp :tangle no
 (use-package nano-emacs
-  :straight (nano-emacs :type git :host github :repo "rougier/nano-emacs")
-  :demand
-  :config
-  (require 'nano-layout)
-  (require 'nano-faces)
-  (nano-faces)
-
-  (require 'nano-theme-light)
-  ;; (require 'nano-theme-dark)
-  (require 'nano-theme)
-  (nano-theme)
-
-  (require 'nano-modeline)
+  :straight (nano-theme :type git :host github :repo "rougier/nano-theme")
+  :hook (emacs-startup . (lambda () (if (eq lc/theme 'light) (nano-light) (nano-dark))))
   )
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Nice defaults, snarfed from sanity.el
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (set-face-font 'default "Input Mono 14")
-
-;; (setq default-frame-alist '((width . 80) (height . 30) (fullscreen . maximized)))
-
-(setq default-frame-alist
-      (append (list '(vertical-scroll-bars . nil)
-                    '(internal-border-width . 48)
-		    '(width  . 80) '(height . 0.9)
-		    '(left . 0.5) '(top . 0)
-                    '(font . "Input Mono 14"))))
-
-;; (set-frame-parameter (selected-frame)
-;;                      'internal-border-width 24)
-
-;; Line spacing, can be 0 for code and 1 or 2 for text
-(setq-default line-spacing 2)
-
-;; Underline line at descent position, not baseline position
-(setq x-underline-at-descent-line t)
-
-;; No ugly button for checkboxes
-(setq widget-image-enable nil)
-
-;; Line cursor and no blink
-(set-default 'cursor-type  '(bar . 1))
-(blink-cursor-mode 0)
-
-;; No sound
-(setq visible-bell t)
-(setq ring-bell-function 'ignore)
-
-;; No Tooltips
-(tooltip-mode 0)
-
-;; Paren mode is part of the theme
-(show-paren-mode t)
-
-;; No fringe but nice glyphs for truncated and wrapped lines
-(fringe-mode '(0 . 0))
-(defface fallback '((t :family "Fira Code Light"
-                       :inherit 'face-faded)) "Fallback")
-(set-display-table-slot standard-display-table 'truncation
-                        (make-glyph-code ?… 'fallback))
-(set-display-table-slot standard-display-table 'wrap
-                        (make-glyph-code ?↩ 'fallback))
-(set-display-table-slot standard-display-table 'selective-display
-                        (string-to-vector " …"))
-
-;; Mode line (this might be slow because of the "☰" that requires substitution)
-;; This line below makes things a bit faster
-(set-fontset-font "fontset-default"  '(#x2600 . #x26ff) "Fira Code 16")
-
-(define-key mode-line-major-mode-keymap [header-line]
-  (lookup-key mode-line-major-mode-keymap [mode-line]))
-
-(defun mode-line-render (left right)
-  (let* ((available-width (- (window-width) (length left) )))
-    (format (format "%%s %%%ds" available-width) left right)))
-(setq-default mode-line-format
-     '((:eval
-       (mode-line-render
-       (format-mode-line (list
-         (propertize "☰" 'face `(:inherit mode-line-buffer-id)
-                         'help-echo "Mode(s) menu"
-                         'mouse-face 'mode-line-highlight
-                         'local-map   mode-line-major-mode-keymap)
-         " %b "
-         (if (and buffer-file-name (buffer-modified-p))
-             (propertize "(modified)" 'face `(:inherit face-faded)))))
-
-       (format-mode-line
-        (list
-	 (propertize "[ L %l : C %c ]  " 'face `(:inherit face-faded))
-	 (propertize
-	  (format "%d Words  " (count-words (point-min) (point-max)))
-	  'face `(:inherit face-faded))))))))
-
-
-;; Comment if you want to keep the modeline at the bottom
-(setq-default header-line-format mode-line-format)
-(setq-default mode-line-format'(""))
-              
-;; Vertical window divider
-(setq window-divider-default-right-width 3)
-(setq window-divider-default-places 'right-only)
-(window-divider-mode)
-
-;; When we set a face, we take care of removing any previous settings
-(defun set-face (face style)
-  "Reset a face and make it inherit style."
-  (set-face-attribute face nil
-   :foreground 'unspecified :background 'unspecified
-   :family     'unspecified :slant      'unspecified
-   :weight     'unspecified :height     'unspecified
-   :underline  'unspecified :overline   'unspecified
-   :box        'unspecified :inherit    style))
-
-;; Faces for the writer theme
-(defgroup writer nil
-  "Faces for the writer theme"
-  :prefix "writer-face-"
-  :group 'faces)
-
-;; Custom faces
-(defface face-faded nil
-  "Used for menubars"
-  :group 'writer)
-
-;; Modeline
-(defun set-modeline-faces ()
-
-  ;; Mode line at top
-  (set-face 'header-line                                 'face-strong)
-  (set-face-attribute 'header-line nil
-                                :underline (face-foreground 'default))
-  (set-face-attribute 'mode-line nil
-                      :height 10
-                      :underline (face-foreground 'face-faded)
-                      :overline nil
-                      :box nil 
-                      :foreground (face-background 'default)
-                      :background (face-background 'default))
-  (set-face 'mode-line-inactive                            'mode-line)
-  
-  ;; Mode line at bottom
-  ;; (set-face 'header-line                                 'face-strong)
-  ;; (set-face-attribute 'mode-line nil
-  ;;                     :height 1.0
-  ;;                     :overline (face-background 'default)
-  ;;                     :underline nil
-  ;;                     :foreground (face-foreground 'default)
-  ;;                     :background (face-background 'face-subtle)
-  ;;                     :box `(:line-width 2
-  ;;                            :color ,(face-background 'face-subtle)
-  ;;                            :style nil))
-  ;; (set-face 'mode-line-highlight '(face-popout mode-line))
-  ;; (set-face 'mode-line-emphasis  'face-strong)
-  ;; (set-face-attribute 'mode-line-buffer-id nil :weight 'regular)
-  ;; (set-face-attribute 'mode-line-inactive nil
-  ;;                     :height 1.0
-  ;;                     :overline (face-background 'default)
-  ;;                     :underline nil
-  ;;                     :foreground (face-foreground 'face-faded)
-  ;;                     :background (face-background 'face-subtle)
-  ;;                     :box `(:line-width 2
-  ;;                            :color ,(face-background 'face-subtle)
-  ;;                            :style nil))
-
-
-  (set-face-attribute 'cursor nil
-                      :background (face-foreground 'default))
-  (set-face-attribute 'window-divider nil
-                      :foreground (face-background 'mode-line))
-  (set-face-attribute 'window-divider-first-pixel nil
-                      :foreground (face-background 'default))
-  (set-face-attribute 'window-divider-last-pixel nil
-                      :foreground (face-background 'default))
-  )
-
-;; Buttons
-(defun set-button-faces ()
-  (set-face-attribute 'custom-button nil
-                      :foreground (face-foreground 'face-faded)
-                      :background (face-background 'face-subtle)
-                      :box `(:line-width 1
-                             :color ,(face-foreground 'face-faded)
-                             :style nil))
-  (set-face-attribute 'custom-button-mouse nil
-                      :foreground (face-foreground 'default)
-                      ;; :background (face-foreground 'face-faded)
-                      :inherit 'custom-button
-                      :box `(:line-width 1
-                             :color ,(face-foreground 'face-subtle)
-                             :style nil))
-  (set-face-attribute 'custom-button-pressed nil
-                      :foreground (face-background 'default)
-                      :background (face-foreground 'face-salient)
-                      :inherit 'face-salient
-                      :box `(:line-width 1
-                             :color ,(face-foreground 'face-salient)
-                             :style nil)
-                      :inverse-video nil))
 #+end_src
 
 * Provide modules
@@ -5180,6 +5243,12 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
  (cl-pushnew '("/" . docstr-trigger-rust) docstr-trigger-alist :test #'equal))
 #+end_src
 
+*** Switch to ~project.el~
+:PROPERTIES:
+:CUSTOM_ID: h:779BF318-A030-42EC-A00A-BAEE5CDB5A95
+:END:
+- Start here: https://protesilaos.com/dotemacs/#h:7862f39e-aed0-4d02-9f1e-60c4601a9734
+- Then here: https://github.com/CIAvash/persp-mode-project-bridge
 ** To fix
 :PROPERTIES:
 :CUSTOM_ID: h:92086A48-355B-426E-AB82-DB73FAA11A1C

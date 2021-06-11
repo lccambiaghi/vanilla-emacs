@@ -12,9 +12,9 @@
     "i o" '(lsp-organize-imports :wk "optimize")
     "l" '(:keymap lsp-command-map :wk "lsp")
     "r" '(lsp-rename :wk "rename"))
-  (lsp-mode-map
-   :states 'normal
-   "gD" 'lsp-find-references)
+  ;; (lsp-mode-map
+  ;;  :states 'normal
+  ;;  "gD" 'lsp-find-references)
   :init
   (setq lsp-restart 'ignore)
   (setq lsp-eldoc-enable-hover nil)
@@ -70,6 +70,8 @@
     "d q" '(dap-disconnect :wk "quit")
     "d r" '(dap-ui-repl :wk "repl")
     "d h" '(dap-hydra :wk "hydra"))
+	(:keymaps 'dap-ui-repl-mode-map
+	 "TAB" 'lc/py-indent-or-complete)
   :init
   ;; (setq dap-auto-configure-features '(locals repl))
   (setq dap-auto-configure-features '(repl))
@@ -224,13 +226,16 @@
     "e d" '(jupyter-eval-defun :wk "defun")
     "e b" '((lambda () (interactive) (lc/jupyter-eval-buffer)) :wk "buffer")
     "J" '(lc/jupyter-repl :wk "jupyter REPL")
-    "k" '(:ignore true :wk "kernel")
-    "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
-    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
+    "k" '(:ignore true :wk "kernel"))
   (lc/local-leader-keys
     :keymaps 'python-mode-map
     :states 'visual
     "e" '(jupyter-eval-region :wk "eval"))
+	(lc/local-leader-keys
+    :keymaps 'jupyter-org-interaction-mode-map
+    :states 'normal
+    "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
+    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
   :init
   (setq jupyter-repl-prompt-margin-width 4)
   (defun jupyter-command-venv (&rest args)
@@ -563,23 +568,6 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
          (buffer-substring-no-properties (region-beginning)
                                          (region-end)))
       (google-search-str (read-from-minibuffer "Search: "))))
-  )
-
-(use-package emacs
-  :general
-  (lc/leader-keys
-    "s c" '(github-code-search :wk "code (github)"))
-  :init
-  (defun github-code-search ()
-    "Search code on github for a given language."
-    (interactive)
-    (let ((language (completing-read
-                     "Language: "
-                     '("Emacs Lisp" "Python"  "Clojure" "R")))
-          (code (read-string "Code: ")))
-      (browse-url
-       (concat "https://github.com/search?l=" language
-               "&type=code&q=" code))))
   )
 
 (use-package emacs

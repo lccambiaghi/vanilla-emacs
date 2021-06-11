@@ -101,6 +101,10 @@
   ;; use common convention for indentation by default
   (setq-default indent-tabs-mode t)
   (setq-default tab-width 2)
+
+  ;; Enable indentation+completion using the TAB key.
+  ;; Completion is often bound to M-TAB.
+  (setq tab-always-indent 'complete)
   )
 
 (use-package emacs
@@ -126,6 +130,14 @@
     :type 'symbol
     :options '(light dark)
     :group 'lc)
+	
+  ;; (setq lc/is-low-power (string= (system-name) "pntk"))
+
+	(setq lc/is-ipad ( 	;; <
+										> 0 (length (shell-command-to-string "uname -a | grep iPad"))))
+
+  ;; (setq lc/is-slow-ssh (string= (getenv "IS_TRAMP") "true"))
+  
   )
 
 (use-package emacs
@@ -230,12 +242,12 @@ size. This function also handles icons and modeline font sizes."
   )
 
 (use-package no-littering
-	:demand
-	:config
+  :demand
+  :config
   (with-eval-after-load 'recentf
     (add-to-list 'recentf-exclude no-littering-var-directory)
     (add-to-list 'recentf-exclude no-littering-etc-directory))
-	)
+  )
 
 (use-package emacs
 	:init
@@ -245,7 +257,7 @@ size. This function also handles icons and modeline font sizes."
 
 (use-package emacs
   :hook
-  ((org-jupyter-mode . (lambda () (setq-local electric-pair-text-pairs lc/default-electric-pairs)))
+  ((org-jupyter-mode . (lambda () (lc/add-local-electric-pairs '())))
    (org-mode . (lambda () (lc/add-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
   :init
   ;; auto-close parentheses
@@ -263,7 +275,42 @@ size. This function also handles icons and modeline font sizes."
   ;; disable auto pairing for <  >
   (add-function :before-until electric-pair-inhibit-predicate
                 (lambda (c) (eq c ?<   ;; >
-																))))
+																)))
+	)
+
+(use-package emacs
+  :init
+  (defun lc/rename-current-file ()
+    "Rename the current visiting file and switch buffer focus to it."
+    (interactive)
+    (let ((new-filename (lc/expand-filename-prompt
+                         (format "Rename %s to: " (file-name-nondirectory (buffer-file-name))))))
+      (if (null (file-writable-p new-filename))
+          (user-error "New file not writable: %s" new-filename))
+      (rename-file (buffer-file-name) new-filename 1)
+      (find-alternate-file new-filename)
+      (message "Renamed to and now visiting: %s" (abbreviate-file-name new-filename))))
+  (defun lc/expand-filename-prompt (prompt)
+    "Return expanded filename prompt."
+    (expand-file-name (read-file-name prompt)))
+  )
+
+(use-package xref
+  :straight (:type built-in)
+  :init
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+  (setq xref-show-xrefs-function #'xref-show-definitions-buffer) ; for grep and the like
+  ;; (setq xref-file-name-display 'project-relative)
+  ;; (setq xref-search-program 'grep)
+  )
+
+(use-package emacs
+  :init
+  (defadvice keyboard-escape-quit
+      (around keyboard-escape-quit-dont-close-windows activate)
+    (let ((buffer-quit-function (lambda () ())))
+      ad-do-it))
+  )
 
 (use-package general
   :demand t
@@ -282,9 +329,15 @@ size. This function also handles icons and modeline font sizes."
     :prefix ","
     :global-prefix "SPC m")
 
+  (general-nmap
+    :states 'normal
+    "gD" '(xref-find-references :wk "references")
+    )
+
   (lc/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
     "`" '((lambda () (interactive) (switch-to-buffer (other-buffer (current-buffer) 1))) :which-key "prev buffer")
+    "<escape>" 'keyboard-escape-quit
     
     ";" '(eval-expression :which-key "eval sexp")
 
@@ -301,11 +354,7 @@ size. This function also handles icons and modeline font sizes."
     "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
     "ff"  'find-file
     "fs" 'save-buffer
-    "fr" 'recentf-open-files
-    "fR" '((lambda (new-path)
-             (interactive (list (read-file-name "Move file to: ") current-prefix-arg))
-             (rename-file (buffer-file-name) (expand-file-name new-path)))
-           :wk "move/rename")
+    "fR" '(lc/rename-current-file :wk "rename")
 
     "g" '(:ignore t :which-key "git")
     ;; keybindings defined in magit
@@ -543,7 +592,11 @@ be passed to EVAL-FUNC as its rest arguments"
   )
 
 (use-package which-key
-  :demand t
+  :demand
+  :general
+  (lc/leader-keys
+    "?" 'which-key-show-top-level
+    )
   :init
   (setq which-key-separator " ")
   (setq which-key-prefix-prefix "+")
@@ -552,6 +605,7 @@ be passed to EVAL-FUNC as its rest arguments"
   (which-key-mode))
 
 (use-package org
+  :straight org-plus-contrib
   :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)
          (org-mode . variable-pitch-mode))
@@ -1295,19 +1349,20 @@ asynchronously."
 
 (use-package emacs
   :hook
-  ((org-jupyter-mode . (lambda () (visual-line-mode -1)))
+  ((org-jupyter-mode . (lambda () (visual-line-mode -1)
+												 (advice-add 'org-cycle :around #'lc/org-cycle-or-py-complete)))
    (org-mode . (lambda () (when (lc/is-jupyter-org-buffer?) (org-jupyter-mode)))))
-  :general
-  (lc/local-leader-keys
-    :states 'normal
-    "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
-    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
   :init
   (defun lc/is-jupyter-org-buffer? ()
     (with-current-buffer (buffer-name)
       (goto-char (point-min))
       (re-search-forward "begin_src jupyter-" 10000 t)))
-  
+  (defun lc/org-cycle-or-py-complete (orig-fun &rest args)
+    "If in a jupyter-python code block, call py-indent-or-complete, otherwise use org-cycle"
+    (if (and (org-in-src-block-p)
+             (eq (intern (org-element-property :language (org-element-at-point))) 'jupyter-python))
+        (lc/py-indent-or-complete)
+      (apply orig-fun args)))
   (define-minor-mode org-jupyter-mode
     "Minor mode which is active when an org file has the string begin_src jupyter-python
     in the first few hundred rows"
@@ -1756,8 +1811,10 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 (use-package embark
   :general
   (general-nmap "C-l" 'embark-act)
-  (selectrum-minibuffer-map "C-l" #'embark-act)
-  (embark-file-map "o" 'find-file-other-window)	
+  (selectrum-minibuffer-map
+   "C-l" #'embark-act
+   )
+  (:keymaps 'embark-file-map "o" 'find-file-other-window)	
   :config
   ;; For Selectrum users:
   (defun current-candidate+category ()
@@ -1780,14 +1837,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
   )
 
-(use-package embark-consult
-  :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
-  :after (embark consult)
-  :demand t ; only necessary if you have the hook below
-  ;; if you want to have consult previews as you move around an
-  ;; auto-updating embark collect buffer
-  :hook
-  (embark-collect-mode . embark-consult-preview-minor-mode))
+(use-package wgrep
+  :general
+  (grep-mode-map "W" 'wgrep-change-to-wgrep-mode)
+  :init
+  (setq wgrep-auto-save-buffer t)
+  (setq wgrep-change-readonly-file t)
+  )
 
 (use-package consult
   :straight (consult :host github :repo "minad/consult" :branch "main")
@@ -1823,6 +1879,16 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :after consult
   :demand)
 
+(use-package embark-consult
+  :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
+  :after (embark consult)
+  ;; :demand t ; only necessary if you have the hook below
+  ;; if you want to have consult previews as you move around an
+  ;; auto-updating embark collect buffer
+  ;; :hook
+  ;; (embark-collect-mode . embark-consult-preview-minor-mode)
+	)
+
 (use-package vertico
 	:straight (vertico :type git :host github :repo "minad/vertico")
 	:demand
@@ -1846,6 +1912,11 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 ;;   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
 ;;   :init
 ;;   (marginalia-mode))
+
+(use-package dabbrev
+  ;; Swap M-/ and C-M-/
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand)))
 
 (use-package projectile
   :demand
@@ -1910,11 +1981,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "TAB TAB" 'persp-switch
     "TAB `" 'persp-switch-last
     "TAB d" 'persp-kill
+    "TAB h" 'persp-prev
+    "TAB l" 'persp-next
     "TAB x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
     "TAB X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
     "TAB m" '(lc/main-tab :wk "main"))
   :init
-	(setq persp-state-default-file (expand-file-name ".persp" user-emacs-directory))
+  (setq persp-state-default-file (expand-file-name ".persp" user-emacs-directory))
   (defun lc/main-tab ()
     "Jump to the dashboard buffer, if doesn't exists create one."
     (interactive)
@@ -1923,15 +1996,40 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     (dashboard-mode)
     (dashboard-insert-startupify-lists)
     (dashboard-refresh-buffer))
+  (defun lc/is-persp-empty? ()
+    (seq-filter
+     ;; filter away buffers which should be hidden
+     (lambda (buffer-name) (not (string-prefix-p "*" buffer-name)))
+     ;; get list of buffer names in current perspective
+     (mapcar (lambda (elm) (buffer-name (car elm)))
+             (centaur-tabs-view (centaur-tabs-current-tabset)))
+     ))
   :config
   (persp-mode)
-	(add-hook 'kill-emacs-hook #'persp-state-save))
+  (add-hook 'kill-emacs-hook #'persp-state-save))
 
 (use-package persp-projectile
   :after projectile
+  :init
+	(defun lc/get-last-folder-from-known-proj (path)
+		"/path/to/something/ returns something"
+    (car (last (split-string path "\/") 2)))
+  (defun lc/find-project-from-persp (persp-name)
+		"known-proj returns /path/to/known-proj"
+    (car
+     (seq-filter
+      (lambda (proj) (string= persp-name (lc/get-last-folder-from-known-proj proj)))
+      projectile-known-projects-on-file)))
+  (defun lc/persp-reload-project ()
+    (interactive)
+    (let* ((persp (persp-current-name))
+           (proj-root (lc/find-project-from-persp persp)))
+      (persp-kill persp)
+      (projectile-persp-switch-project proj-root)))
   :general
   (lc/leader-keys
     "p p" 'projectile-persp-switch-project
+    "TAB r" '(lc/persp-reload-project :wk "reload")
     ;; "TAB o"	'((lambda () (interactive)
     ;;               (let ((projectile-switch-project-action #'projectile-find-file))
     ;;                 (projectile-persp-switch-project "org")))
@@ -2049,6 +2147,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
          (clojure-mode . rainbow-delimiters-mode))
 	      )
 
+(use-package tsc
+  :straight (tsc :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
+
 (use-package tree-sitter
   :straight (tree-sitter :host github :repo "ubolonton/emacs-tree-sitter" :depth full)
   :hook (python-mode . (lambda ()
@@ -2060,9 +2161,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 (use-package tree-sitter-langs
   :straight (tree-sitter-langs :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
-
-(use-package tsc
-  :straight (tsc :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
 
 (use-package inheritenv
   :straight (inheritenv :type git :host github :repo "purcell/inheritenv"))
@@ -2093,6 +2191,95 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (add-hook 'post-command-hook #'lc/yas-try-expanding-auto-snippets)
   )
 
+(use-package yasnippet
+  :config
+  (setq lc/greek-alphabet
+        '(("a" . "\\alpha")
+          ("b" . "\\beta" )
+          ("g" . "\\gamma")
+          ("d" . "\\delta")
+          ("e" . "\\epsilon")
+          ("z" . "\\zeta")
+          ("h" . "\\eta")
+          ("t" . "\\theta")
+          ("i" . "\\iota")
+          ("k" . "\\kappa")
+          ("l" . "\\lambda")
+          ("m" . "\\mu")
+          ("n" . "\\nu")
+          ("x" . "\\xi")
+          ("p" . "\\pi")
+          ("r" . "\\rho")
+          ("s" . "\\sigma")
+          ("t" . "\\tau")
+          ("u" . "\\upsilon")
+          ("f" . "\\phi")
+          ("c" . "\\chi")
+          ("v" . "\\psi")
+          ("g" . "\\omega")))
+
+  (setq lc/latex-greek-prefix "'")
+
+  ;; The same for capitalized letters
+  (dolist (elem lc/greek-alphabet)
+    (let ((key (car elem))
+          (value (cdr elem)))
+      (when (string-equal key (downcase key))
+        (add-to-list 'lc/greek-alphabet
+                     (cons
+                      (capitalize (car elem))
+                      (concat
+                       (substring value 0 1)
+                       (capitalize (substring value 1 2))
+                       (substring value 2)))))))
+
+  (yas-define-snippets
+   'latex-mode
+   (mapcar
+    (lambda (elem)
+      (list (concat lc/latex-greek-prefix (car elem)) (cdr elem) (concat "Greek letter " (car elem))))
+    lc/greek-alphabet))
+  
+  (setq lc/english-alphabet
+        '("a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"))
+
+  (dolist (elem lc/english-alphabet)
+    (when (string-equal elem (downcase elem))
+      (add-to-list 'lc/english-alphabet (upcase elem))))
+
+  (setq lc/latex-mathbb-prefix "`")
+
+  (yas-define-snippets
+   'latex-mode
+   (mapcar
+    (lambda (elem)
+      (list (concat lc/latex-mathbb-prefix elem) (concat "\\mathbb{" elem "}") (concat "Mathbb letter " elem)))
+    lc/english-alphabet))
+
+  (setq lc/latex-math-symbols
+        '(("x" . "\\times")
+          ("." . "\\cdot")
+          ("v" . "\\forall")
+          ("s" . "\\sum_{$1}^{$2}$0")
+          ("p" . "\\prod_{$1}^{$2}$0")
+          ("e" . "\\exists")
+          ("i" . "\\int_{$1}^{$2}$0")
+          ("c" . "\\cap")
+          ("u" . "\\cup")
+          ("0" . "\\emptyset")))
+
+  (setq lc/latex-math-prefix "''")
+
+  (yas-define-snippets
+   'latex-mode
+   (mapcar
+    (lambda (elem)
+      (let ((key (car elem))
+            (value (cdr elem)))
+        (list (concat lc/latex-math-prefix key) value (concat "Math symbol " value))))
+    lc/latex-math-symbols))
+  )
+
 (use-package undo-fu
   :demand
   :general
@@ -2102,6 +2289,11 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
            "\C-r" 'undo-fu-only-redo))
 
 (use-package vterm
+  :general
+  (general-imap
+    :keymaps 'vterm-mode-map
+    "M-l" 'vterm-send-right
+    "M-h" 'vterm-send-left)
   :config
   (setq vterm-shell (executable-find "fish")
         vterm-max-scrollback 10000))
@@ -2133,6 +2325,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :init
   (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
   (setq dired-listing-switches "-lah")
+	(setq ls-lisp-dirs-first t)
+	(setq ls-lisp-use-insert-directory-program nil)
   (setq dired-dwim-target t)
   (defun my/dired-open-externally ()
     "Open marked dired file/folder(s) (or file/folder(s) at point if no marks)
@@ -2199,6 +2393,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
         (expand-file-name "tramp-connection-history" user-emacs-directory))
   (setq password-cache-expiry nil)
   (setq tramp-use-ssh-controlmaster-options nil)
+  (setq remote-file-name-inhibit-cache nil)
   :config
   (customize-set-variable 'tramp-ssh-controlmaster-options
                           (concat
@@ -2217,6 +2412,42 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 (use-package yaml-mode
   :mode ((rx ".yml" eos) . yaml-mode))
+
+(use-package emacs
+  :general
+  (lc/leader-keys
+    "s c" '(github-code-search :wk "code (github)"))
+  :init
+  (defun github-code-search ()
+    "Search code on github for a given language."
+    (interactive)
+    (let ((language (completing-read
+                     "Language: "
+                     '("Emacs Lisp" "Python"  "Clojure" "R")))
+          (code (read-string "Code: ")))
+      (browse-url
+       (concat "https://github.com/search?l=" language
+               "&type=code&q=" code))))
+  )
+
+(use-package isearch-mb
+  :straight (isearch-mb :type git :host github :repo "astoff/isearch-mb")
+  :demand
+  :init
+  (setq-default
+   ;; Match count next to minibuffer prompt
+   isearch-lazy-count t
+   ;; Don't be stingy with history; default is to keep just 16 entries
+   search-ring-max 200
+   regexp-search-ring-max 200
+   ;; fuzzy match with space
+   isearch-regexp-lax-whitespace t
+   search-whitespace-regexp ".*?"
+   )
+  :config
+  (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
+  (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
+  )
 
 (provide 'init-core)
 ;;; init-core.el ends here
