@@ -134,7 +134,7 @@
   ;; (setq lc/is-low-power (string= (system-name) "pntk"))
 
 	(setq lc/is-ipad ( 	;; <
-										> 0 (length (shell-command-to-string "uname -a | grep iPad"))))
+										> (length (shell-command-to-string "uname -a | grep iPad")) 0))
 
   ;; (setq lc/is-slow-ssh (string= (getenv "IS_TRAMP") "true"))
   
@@ -605,7 +605,8 @@ be passed to EVAL-FUNC as its rest arguments"
   (which-key-mode))
 
 (use-package org
-  :straight org-plus-contrib
+  ;; :straight org-plus-contrib
+  :straight (:type built-in)
   :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)
          (org-mode . variable-pitch-mode))
@@ -713,9 +714,9 @@ be passed to EVAL-FUNC as its rest arguments"
   (setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
   ;; if on Mac with Dropbox, use real agenda files
   (when (file-directory-p "~/Dropbox")
-    (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
-                             "~/dropbox/org/personal/todo.org"
-														 "~/dropbox/Notes/Test.inbox.org"))
+    (setq org-agenda-files '("~/Dropbox/org/personal/birthdays.org"
+                             "~/Dropbox/org/personal/todo.org"
+														 "~/Dropbox/Notes/Test.inbox.org"))
 		)
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
@@ -862,7 +863,9 @@ All my (performant) foldings needs are met between this and `org-show-subtree'
   (add-hook 'org-tab-first-hook #'+org-cycle-only-current-subtree-h)
   )
 
-(defun lc/async-process (command &optional name filter)
+(use-package org
+	:config
+	(defun lc/async-process (command &optional name filter)
   "Start an async process by running the COMMAND string with bash. Return the
 process object for it.
 
@@ -877,6 +880,7 @@ FILTER is function that runs after the process is finished, its args should be
    :filter (if filter filter
              (lambda (process output) (message (s-trim output))))))
 
+	
 (defun lc/tangle-config ()
   "Export code blocks from the literate config file
 asynchronously."
@@ -884,7 +888,7 @@ asynchronously."
   (let ((command (if (file-directory-p "/Applications/Emacs.app")
                      "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
                    ;; on iPad
-                   "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                   "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'  2>&1 | grep -v '^Loading.*\.\.\.$' | grep -v '^Using ' | grep -v '^dump '| grep -v '^Finding '"
                    )))
     ;; prevent emacs from killing until tangle-process finished
     (add-to-list 'kill-emacs-query-functions
@@ -900,6 +904,7 @@ asynchronously."
     )
 
   )
+)
 
 (use-package org-reverse-datetree
   :after org :demand)
@@ -2058,6 +2063,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq git-commit-fill-column 72)
 	;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
   :config
+  (when lc/is-ipad (require 'sendmail))
   (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
   )
@@ -2289,6 +2295,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
            "\C-r" 'undo-fu-only-redo))
 
 (use-package vterm
+	:if (not lc/is-ipad)
   :general
   (general-imap
     :keymaps 'vterm-mode-map
@@ -2299,9 +2306,18 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
         vterm-max-scrollback 10000))
 
 (use-package vterm-toggle
+  :if (not lc/is-ipad)
   :general
   (lc/leader-keys
     "'" 'vterm-toggle))
+
+(use-package term
+  :if lc/is-ipad
+  :straight (:type built-in)
+  :general
+  (lc/leader-keys
+    "'" (lambda () (interactive) (term "/bin/zsh")))
+)
 
 (use-package dired
   :straight (:type built-in)

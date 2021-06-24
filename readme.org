@@ -210,7 +210,7 @@ Taken from DOOM's init
 (let ((file-name-handler-alist nil)
       (gc-cons-threshold 100000000))
   (require 'init-core)
-  (require 'init-extra)
+  ;; (require 'init-extra)
   )
 
 ;;; init.el ends here
@@ -567,7 +567,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   ;; (setq lc/is-low-power (string= (system-name) "pntk"))
 
 	(setq lc/is-ipad ( 	;; <
-										> 0 (length (shell-command-to-string "uname -a | grep iPad"))))
+										> (length (shell-command-to-string "uname -a | grep iPad")) 0))
 
   ;; (setq lc/is-slow-ssh (string= (getenv "IS_TRAMP") "true"))
   
@@ -833,6 +833,19 @@ Sometimes =ESC= kills my window layout. This advice prevents that from happening
 
 #+end_src
 
+** COMMENT Don't print loading messages
+:PROPERTIES:
+:CUSTOM_ID: h:5e8215ad-d18f-427a-a78f-cf8c1ec1ddb6
+:END:
+#+begin_src emacs-lisp
+(use-package emacs
+:init
+(add-hook 'server-after-make-frame-hook
+          (lambda ()
+            (setq inhibit-message t)
+            (run-with-idle-timer 0 nil (lambda () (setq inhibit-message nil)))))
+)
+#+end_src
 * Keybindings
 :PROPERTIES:
 :CUSTOM_ID: h:A992628D-9095-4392-9C96-2633E8DDDE08
@@ -1306,7 +1319,8 @@ Interesting bits:
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
-  :straight org-plus-contrib
+  ;; :straight org-plus-contrib
+  :straight (:type built-in)
   :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)
          (org-mode . variable-pitch-mode))
@@ -1420,9 +1434,9 @@ Interesting bits:
   (setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
   ;; if on Mac with Dropbox, use real agenda files
   (when (file-directory-p "~/Dropbox")
-    (setq org-agenda-files '("~/dropbox/org/personal/birthdays.org"
-                             "~/dropbox/org/personal/todo.org"
-														 "~/dropbox/Notes/Test.inbox.org"))
+    (setq org-agenda-files '("~/Dropbox/org/personal/birthdays.org"
+                             "~/Dropbox/org/personal/todo.org"
+														 "~/Dropbox/Notes/Test.inbox.org"))
 		)
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
@@ -1606,7 +1620,9 @@ All my (performant) foldings needs are met between this and `org-show-subtree'
 Taken from https://github.com/KaratasFurkan/.emacs.d
 
 #+begin_src emacs-lisp
-(defun lc/async-process (command &optional name filter)
+(use-package org
+	:config
+	(defun lc/async-process (command &optional name filter)
   "Start an async process by running the COMMAND string with bash. Return the
 process object for it.
 
@@ -1621,6 +1637,7 @@ FILTER is function that runs after the process is finished, its args should be
    :filter (if filter filter
              (lambda (process output) (message (s-trim output))))))
 
+	
 (defun lc/tangle-config ()
   "Export code blocks from the literate config file
 asynchronously."
@@ -1628,7 +1645,7 @@ asynchronously."
   (let ((command (if (file-directory-p "/Applications/Emacs.app")
                      "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
                    ;; on iPad
-                   "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                   "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'  2>&1 | grep -v '^Loading.*\.\.\.$' | grep -v '^Using ' | grep -v '^dump '| grep -v '^Finding '"
                    )))
     ;; prevent emacs from killing until tangle-process finished
     (add-to-list 'kill-emacs-query-functions
@@ -1644,6 +1661,7 @@ asynchronously."
     )
 
   )
+)
 #+end_src
 
 ** org reverse datetree
@@ -2877,6 +2895,7 @@ The theme defintion gets saved in ~custom-theme-directory~.
  '(tab-line ((t (:background "black"))) t)
  '(magit-diff-removed-highlight ((t (:background "red" :foreground "white"))) t)
  '(magit-diff-added-highlight ((t (:background "green" :foreground "white"))) t)
+ '(magit-hash ((t (:background "black" :foreground "white"))) t)
  '(iedit-occurrence ((t (:background "blue" :foreground "white"))) t)
  )
 
@@ -3436,6 +3455,8 @@ TODO:
 
 ~magit-cycle-margin-style~ to show more precise commit timestamps
 
+On iPad, we may need to ~(require 'sendmail)~ before calling ~magit-status~
+
 #+BEGIN_SRC emacs-lisp
 (use-package magit
   :general
@@ -3458,6 +3479,7 @@ TODO:
   (setq git-commit-fill-column 72)
 	;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
   :config
+  (when lc/is-ipad (require 'sendmail))
   (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
   )
@@ -3792,6 +3814,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package vterm
+	:if (not lc/is-ipad)
   :general
   (general-imap
     :keymaps 'vterm-mode-map
@@ -3808,11 +3831,25 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 :END:
 #+begin_src emacs-lisp
 (use-package vterm-toggle
+  :if (not lc/is-ipad)
   :general
   (lc/leader-keys
     "'" 'vterm-toggle))
 #+end_src
 
+** term
+:PROPERTIES:
+:CUSTOM_ID: h:e38bee3c-2451-4c32-b22c-228c2f2c4d4f
+:END:
+#+begin_src emacs-lisp
+(use-package term
+  :if lc/is-ipad
+  :straight (:type built-in)
+  :general
+  (lc/leader-keys
+    "'" (lambda () (interactive) (term "/bin/zsh")))
+)
+#+end_src
 ** dired and friends
 :PROPERTIES:
 :CUSTOM_ID: h:BA5D7535-070B-494B-A27C-6B9FFC3CC88E
