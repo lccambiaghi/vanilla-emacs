@@ -210,7 +210,7 @@ Taken from DOOM's init
 (let ((file-name-handler-alist nil)
       (gc-cons-threshold 100000000))
   (require 'init-core)
-  ;; (require 'init-extra)
+  (require 'init-extra)
   )
 
 ;;; init.el ends here
@@ -635,6 +635,17 @@ size. This function also handles icons and modeline font sizes."
 	)
 #+end_src
 
+** Zoom
+:PROPERTIES:
+:CUSTOM_ID: h:f73c5fb4-246e-423c-8cfd-0482dcb1f699
+:END:
+#+begin_src emacs-lisp
+(use-package emacs
+  :init
+  (global-set-key (kbd "C-=") 'text-scale-increase)
+  (global-set-key (kbd "C--") 'text-scale-decrease)
+  )
+#+end_src
 ** macOS
 :PROPERTIES:
 :CUSTOM_ID: h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B
@@ -642,10 +653,10 @@ size. This function also handles icons and modeline font sizes."
 #+BEGIN_SRC emacs-lisp
 (use-package emacs
   :init
-  (defun lc/is-macos? ()
+  (defun lc/is-macos ()
     (and (eq system-type 'darwin)
          (= 0 (length (shell-command-to-string "uname -a | grep iPad")))))
-  (when (lc/is-macos?)
+  (when (lc/is-macos)
     (setq mac-command-modifier 'super)     ; command as super
     (setq mac-option-modifier 'meta)     ; alt as meta
     (setq mac-control-modifier 'control)
@@ -705,7 +716,7 @@ Used by DOOM to manage garbage collection
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
     ;; :if (memq window-system '(mac ns))
-    :if (lc/is-macos?)
+    :if (lc/is-macos)
     :hook (emacs-startup . (lambda ()
                              (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
                              (exec-path-from-shell-initialize)))
@@ -833,19 +844,10 @@ Sometimes =ESC= kills my window layout. This advice prevents that from happening
 
 #+end_src
 
-** COMMENT Don't print loading messages
+** emacs extra packages
 :PROPERTIES:
-:CUSTOM_ID: h:5e8215ad-d18f-427a-a78f-cf8c1ec1ddb6
+:CUSTOM_ID: h:002f2c6c-4ce4-4d59-84d6-6cea99f6f065
 :END:
-#+begin_src emacs-lisp
-(use-package emacs
-:init
-(add-hook 'server-after-make-frame-hook
-          (lambda ()
-            (setq inhibit-message t)
-            (run-with-idle-timer 0 nil (lambda () (setq inhibit-message nil)))))
-)
-#+end_src
 * Keybindings
 :PROPERTIES:
 :CUSTOM_ID: h:A992628D-9095-4392-9C96-2633E8DDDE08
@@ -935,8 +937,10 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     "t d"  '(toggle-debug-on-error :which-key "debug on error")
     "t l" '(display-line-numbers-mode :wk "line numbers")
     "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
-    "t +"	'(lc/increase-font-size :wk "+ font")
-    "t -"	'(lc/decrease-font-size :wk "- font")
+    ;; "t +"	'(lc/increase-font-size :wk "+ font")
+    ;; "t -"	'(lc/decrease-font-size :wk "- font")
+    "t +"	'text-scale-increase
+    "t -"	'text-scale-decrease
     "t 0"	'(lc/reset-font-size :wk "reset font")
 
     "u" '(universal-argument :wk "universal")
@@ -1020,7 +1024,7 @@ in the rest of the file
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   (setq evil-want-Y-yank-to-eol t)
-  (setq evil-respect-visual-line-mode t)
+  ;; (setq evil-respect-visual-line-mode t)
   (setq evil-undo-system 'undo-fu)
 	(setq evil-search-module 'evil-search)  ;; enables gn
   ;; move to window when splitting
@@ -1319,8 +1323,8 @@ Interesting bits:
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
-  ;; :straight org-plus-contrib
-  :straight (:type built-in)
+  :straight org-plus-contrib
+  ;; :straight (:type built-in)
   :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)
          (org-mode . variable-pitch-mode))
@@ -1350,6 +1354,7 @@ Interesting bits:
     "r" '(org-refile :wk "refile")
     "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
     "p" '(org-priority :wk "priority")
+    "q" '(org-set-tags-command :wk "tag")
     "s" '(org-sort :wk "sort")
     "t" '(:ignore true :wk "todo")
     "t t" '(org-todo :wk "heading todo")
@@ -1360,11 +1365,11 @@ Interesting bits:
    "z i" '(org-toggle-inline-images :wk "inline images"))
   :init
   ;; general settings
-  (when (file-directory-p "~/Dropbox")
-    (setq org-directory "~/Dropbox/org"
-          +org-export-directory "~/Dropbox/org/export"
-          org-default-notes-file "~/Dropbox/org/personal/todo.org"
-          org-id-locations-file "~/Dropbox/org/.orgids"
+  (when (file-directory-p "~/org")
+    (setq org-directory "~/org"
+          +org-export-directory "~/org/export"
+          org-default-notes-file "~/org/personal/todo.org"
+          org-id-locations-file "~/org/.orgids"
           ))	
   (setq ;; org-export-in-background t
    org-src-preserve-indentation t ;; do not put two spaces on the left
@@ -1430,13 +1435,10 @@ Interesting bits:
               (find-file (concat org-directory "/personal/todo.org")))
             :wk "open todos"))
   :init
-  ;; if on iPad, only add readme.org
-  (setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
-  ;; if on Mac with Dropbox, use real agenda files
-  (when (file-directory-p "~/Dropbox")
-    (setq org-agenda-files '("~/Dropbox/org/personal/birthdays.org"
-                             "~/Dropbox/org/personal/todo.org"
-														 "~/Dropbox/Notes/Test.inbox.org"))
+  ;; if org folder exists, use agenda files
+  (when (file-directory-p "~/org")
+    (setq org-agenda-files '("~/org/personal/birthdays.org"
+                             "~/org/personal/todo.org"))
 		)
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
@@ -1489,6 +1491,8 @@ Interesting bits:
 		)
 
   ;; (provide 'org-version)
+	
+	;; (use-package git)
   )
 #+end_src
 
@@ -1507,7 +1511,7 @@ Interesting bits:
                     ":PROPERTIES:\n"
                     ":CAPTURED: %U\n:END:\n\n"
                     "%i%?"))
-          ("d" "New Diary Entry" entry(file+olp+datetree"~/Dropbox/org/personal/diary.org" "Daily Logs")
+          ("d" "New Diary Entry" entry(file+olp+datetree"~/org/personal/diary.org" "Daily Logs")
            "* %^{thought for the day}
                  :PROPERTIES:
                  :CATEGORY: %^{category}
@@ -1533,7 +1537,7 @@ Interesting bits:
                     ":END:\n\n"
                     "%i%l"))
           ("u" "New URL Entry" entry
-           (file+function "~/Dropbox/org/personal/dailies.org" org-reverse-datetree-goto-date-in-file)
+           (file+function "~/org/personal/dailies.org" org-reverse-datetree-goto-date-in-file)
            "* [[%^{URL}][%^{Description}]] %^g %?")
           ("w" "Work" entry
            (file+headline "personal/todo.org" "Work")
@@ -1730,6 +1734,7 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
+     (ledger . t)
      (shell . t)))
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
   )
@@ -1841,10 +1846,10 @@ Taken from DOOM:
   :bind
   ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>" 
   ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>" 
-  :general
-  (general-nmap
-    :keymaps 'org-mode-map :states 'normal
-    "RET"   #'+org/dwim-at-point)
+  ;; :general
+  ;; (general-nmap
+  ;;   :keymaps 'org-mode-map :states 'normal
+  ;;   "RET"   #'+org/dwim-at-point)
   :init
   (defun +org--insert-item (direction)
     (let ((context (org-element-lineage
@@ -2049,7 +2054,7 @@ Taken from DOOM:
             (org-element-property :end context))))))))
 #+end_src
 
-** exporters
+** exporters                                                     :org_export:
 :PROPERTIES:
 :CUSTOM_ID: h:EB525EBF-91AA-4A9F-8D49-5D1DFFE670FB
 :END:
@@ -2312,6 +2317,43 @@ Adding it as a ~after-save-hook~  automatically adds a ~CUSTOM_ID~ to newly crea
   )
 #+end_src
 
+** org-roam
+:PROPERTIES:
+:CUSTOM_ID: h:7a406451-6ae8-4d26-a80b-3b7d9e29c023
+:END:
+#+begin_src emacs-lisp
+(use-package org-roam
+  :after org
+  :demand
+  :init
+  (setq org-roam-directory (file-truename (concat org-directory "/roam")))
+  (setq org-roam-v2-ack t)
+  :general
+  (general-nmap
+    "SPC n b" 'org-roam-buffer-toggle
+    "SPC n f" 'org-roam-node-find
+    "SPC n g" 'org-roam-graph
+    "SPC n i" 'org-roam-node-insert
+    "SPC n c" 'org-roam-capture
+    "SPC n t" 'org-roam-tag-add
+    "SPC n r" 'org-roam-ref-add
+    "SPC n a" 'org-roam-alias-add
+    ;; Dailies
+    "SPC n j" 'org-roam-dailies-capture-today
+    "SPC n J" 'org-roam-dailies-goto-today
+    )
+  :config
+  (org-roam-setup)
+  ;; If using org-roam-protocol
+  ;; (require 'org-roam-protocol)
+  (add-to-list 'display-buffer-alist
+               '(("*org-roam*"
+                  (display-buffer-in-direction)
+                  (direction . right)
+                  (window-width . 0.33)
+                  (window-height . fit-window-to-buffer))))
+  )
+#+end_src
 * UI
 :PROPERTIES:
 :CUSTOM_ID: h:239ABF35-3C15-416B-8C10-353F711E5541
@@ -2322,7 +2364,9 @@ Adding it as a ~after-save-hook~  automatically adds a ~CUSTOM_ID~ to newly crea
 :CUSTOM_ID: h:502F0F06-A555-40FF-8ADA-0A7AA9E67D7E
 :END:
 #+BEGIN_SRC emacs-lisp
-  (use-package all-the-icons)
+(use-package all-the-icons
+	:if (not lc/is-ipad)
+	)
 #+END_SRC
 
 ** doom modeline
@@ -2341,20 +2385,6 @@ Adding it as a ~after-save-hook~  automatically adds a ~CUSTOM_ID~ to newly crea
     (doom-modeline-mode 1)
     (set-face-attribute 'doom-modeline-evil-insert-state nil :foreground "orange")
 )
-#+END_SRC
-
-** Fancy titlebar for macOS
-:PROPERTIES:
-:CUSTOM_ID: h:73688165-BE4C-411D-904C-2DD65E56766E
-:END:
-#+BEGIN_SRC emacs-lisp
-(use-package emacs
-	:init
-	(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-	(add-to-list 'default-frame-alist '(ns-appearance . dark))
-  (setq ns-use-proxy-icon  nil)
-  (setq frame-title-format nil)
-	)
 #+END_SRC
 
 ** Modus themes + alternate light/dark themes
@@ -2601,28 +2631,6 @@ We use this hook to switch from light to dark theme.
   )
 #+end_src
 
-** centered cursor mode
-:PROPERTIES:
-:CUSTOM_ID: h:26FC27A5-5E20-4440-BA86-48FAA8707D00
-:END:
-#+begin_src emacs-lisp
-(use-package centered-cursor-mode
-  :general
-	(lc/leader-keys
-		"t =" '((lambda () (interactive) (centered-cursor-mode 'toggle)) :wk "center cursor")
-		)
-	)
-#+end_src
-
-** hide mode line
-:PROPERTIES:
-:CUSTOM_ID: h:89BB7025-084D-4465-897D-C731EB02161A
-:END:
-#+begin_src emacs-lisp
-  (use-package hide-mode-line
-    :commands (hide-mode-line-mode))
-#+end_src
-
 ** popup management
 :PROPERTIES:
 :CUSTOM_ID: h:91E3AC2B-6981-4915-8508-4CA5D7182939
@@ -2644,7 +2652,29 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 ;; (setq even-window-sizes nil)  ; display-buffer hint: avoid resizing
 #+end_src
 
-** winum
+** centered cursor mode                                            :ui_extra:
+:PROPERTIES:
+:CUSTOM_ID: h:26FC27A5-5E20-4440-BA86-48FAA8707D00
+:END:
+#+begin_src emacs-lisp
+(use-package centered-cursor-mode
+  :general
+	(lc/leader-keys
+		"t =" '((lambda () (interactive) (centered-cursor-mode 'toggle)) :wk "center cursor")
+		)
+	)
+#+end_src
+
+** hide mode line                                                  :ui_extra:
+:PROPERTIES:
+:CUSTOM_ID: h:89BB7025-084D-4465-897D-C731EB02161A
+:END:
+#+begin_src emacs-lisp
+  (use-package hide-mode-line
+    :commands (hide-mode-line-mode))
+#+end_src
+
+** winum                                                           :ui_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:991499E8-6FF8-41DB-B533-6D627602DFD4
 :END:
@@ -2659,7 +2689,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 (winum-mode))
 #+end_src
 
-** transpose frame
+** transpose frame                                                 :ui_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:9E3C0942-1D8C-403F-9D44-5BEDA2966C58
 :END:
@@ -2669,46 +2699,6 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
     (lc/leader-keys
       "w t" '(transpose-frame :wk "transpose")
       "w f" '(rotate-frame :wk "flip")))
-#+end_src
-
-** persistent scratch
-:PROPERTIES:
-:CUSTOM_ID: h:FF4B176D-E133-4013-9926-87F9A20E3BBD
-:END:
-#+begin_src emacs-lisp
-(use-package persistent-scratch
-  :hook
-  (org-mode . (lambda ()
-                "only set initial-major-mode after loading org"
-                (setq initial-major-mode 'org-mode)))
-  :general
-  (lc/leader-keys
-    "bs" '((lambda ()
-             "Load persistent-scratch if not already loaded"
-             (interactive)
-             (progn 
-               (unless (boundp 'persistent-scratch-mode)
-                 (require 'persistent-scratch))
-               (pop-to-buffer "*scratch*")))
-           :wk "scratch"))
-  :init
-  (setq persistent-scratch-autosave-interval 60)
-  :config
-  (persistent-scratch-setup-default))
-#+end_src
-
-** olivetti mode
-:PROPERTIES:
-:CUSTOM_ID: h:78EE4DFB-9A75-4BB0-BD4D-CFF94ACE3CF6
-:END:
-#+begin_src emacs-lisp
-  (use-package olivetti
-    :general
-    (lc/leader-keys
-      "t o" '(olivetti-mode :wk "olivetti"))
-    :init
-    (setq olivetti-body-width 100)
-    (setq olivetti-recall-visual-line-mode-entry-state t))
 #+end_src
 
 ** Fill column indicator
@@ -2769,16 +2759,6 @@ With ~evil~ you can:
   )
 #+END_SRC
 
-** COMMENT Show emoji
-:PROPERTIES:
-:CUSTOM_ID: h:CDFFE28E-AD1A-4C9D-9B70-EF7D1E22CE56
-:END:
-#+begin_src emacs-lisp
-(use-package emojify
-  :disabled t
-  :hook (after-init . global-emojify-mode))
-#+end_src
-
 ** Enlarge window
 :PROPERTIES:
 :CUSTOM_ID: h:2D8DEB14-A1F1-4B46-B08A-CF97A0A9B237
@@ -2831,37 +2811,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 #+end_src
 
-** Alerts
-:PROPERTIES:
-:CUSTOM_ID: h:17A9115B-AB79-4445-9F12-EFD086750CDA
-:END:
-#+begin_src emacs-lisp
-(use-package alert
-  :if (lc/is-macos?)
-  :config
-  (setq
-   ;; alert-default-style 'notifier
-   alert-default-style 'osx-notifier
-   )
-  ;; (alert "This is an alert" :severity 'high)
-  ;; (alert "This is an alert" :title "My Alert" :category 'debug)
-  )
-#+end_src
-
-** darkroom
-:PROPERTIES:
-:CUSTOM_ID: h:EC24FC48-E3A5-4C16-9F52-3A6E14DBA564
-:END:
-#+begin_src emacs-lisp
-(use-package darkroom
-  :init
-  ;; Don't scale the text, so ugly man!
-  (setq darkroom-text-scale-increase 1)
-  :general
-  (lc/leader-keys
-    "tf" '(darkroom-tentative-mode :wk "focus")))
-#+end_src
-
 ** 8 colors theme
 :PROPERTIES:
 :CUSTOM_ID: h:EA99CF6B-278E-482F-A865-7E31407734CE
@@ -2907,6 +2856,56 @@ The theme defintion gets saved in ~custom-theme-directory~.
   (setq custom-theme-directory (concat user-emacs-directory "themes"))
   (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
 	)
+#+end_src
+
+** COMMENT Fancy titlebar for macOS
+:PROPERTIES:
+:CUSTOM_ID: h:73688165-BE4C-411D-904C-2DD65E56766E
+:END:
+#+BEGIN_SRC emacs-lisp
+(use-package emacs
+  :init
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+  (add-to-list 'default-frame-alist '(ns-appearance . dark))
+  (setq ns-use-proxy-icon  nil)
+  (setq frame-title-format nil)
+  )
+#+END_SRC
+
+** COMMENT Show emoji on macOS
+:PROPERTIES:
+:CUSTOM_ID: h:CDFFE28E-AD1A-4C9D-9B70-EF7D1E22CE56
+:END:
+You can use ~insert-char~ to insert the emoji or ~emojify-insert-emoji~
+
+#+begin_src emacs-lisp
+(use-package emojify
+  :commands (emojify-insert-emoji)
+  :hook (after-init . global-emojify-mode)
+  :config
+  (when (member "Apple Emoji" (font-family-list))
+    (set-fontset-font
+     t 'symbol (font-spec :family "Apple Emoji") nil 'prepend))
+  )
+
+
+#+end_src
+
+** COMMENT Alerts
+:PROPERTIES:
+:CUSTOM_ID: h:17A9115B-AB79-4445-9F12-EFD086750CDA
+:END:
+#+begin_src emacs-lisp
+(use-package alert
+  :if (lc/is-macos)
+  :config
+  (setq
+   ;; alert-default-style 'notifier
+   alert-default-style 'osx-notifier
+   )
+  ;; (alert "This is an alert" :severity 'high)
+  ;; (alert "This is an alert" :title "My Alert" :category 'debug)
+  )
 #+end_src
 
 * Completion framework
@@ -3076,7 +3075,7 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
 	)
 #+end_src
 
-** vertico
+** TODO vertico
 :PROPERTIES:
 :CUSTOM_ID: h:CAEABB84-0DAE-41CB-B08B-A77B956B991E
 :END:
@@ -3116,6 +3115,32 @@ This package is somehow needed to do ~consult-ripgrep~, otherwise I get an error
   ;; Swap M-/ and C-M-/
   :bind (("M-/" . dabbrev-completion)
          ("C-M-/" . dabbrev-expand)))
+#+end_src
+
+** COMMENT fancy dabbrev
+:PROPERTIES:
+:CUSTOM_ID: h:f59f64dc-f38f-474c-95eb-d404c5f598b7
+:END:
+#+begin_src emacs-lisp
+(use-package fancy-dabbrev
+  :demand
+  :commands (fancy-dabbrev-mode)
+  :config
+  (setq fancy-dabbrev-preview-delay 0.1)
+  (setq fancy-dabbrev-preview-context 'before-non-word)
+
+  (setq fancy-dabbrev-expansion-on-preview-only t)
+  (setq fancy-dabbrev-indent-command 'tab-to-tab-stop)
+
+  (define-key evil-insert-state-map (kbd "<tab>") 'fancy-dabbrev-expand-or-indent)
+
+  ;; Only while in insert mode.
+  (with-eval-after-load 'evil
+    (add-hook 'evil-insert-state-entry-hook (lambda () (fancy-dabbrev-mode 1)))
+    (add-hook 'evil-insert-state-exit-hook (lambda () (fancy-dabbrev-mode 0))))
+  )
+
+
 #+end_src
 
 ** COMMENT company
@@ -3291,7 +3316,7 @@ Taken from DOOM
   )
 #+end_src
 
-* Core packages
+* Programming
 :PROPERTIES:
 :CUSTOM_ID: h:EB91F91E-8984-4806-8254-B0487044D30C
 :header-args:    :emacs-lisp :tangle ./lisp/init-core.el
@@ -3443,7 +3468,7 @@ TODO:
   )
 #+END_SRC
 
-** git
+** git                                                                  :git:
 :PROPERTIES:
 :CUSTOM_ID: h:0D3218A4-4F45-4C20-9320-087750D5A961
 :END:
@@ -3478,8 +3503,8 @@ On iPad, we may need to ~(require 'sendmail)~ before calling ~magit-status~
   (setq magit-log-arguments '("--graph" "--decorate" "--color"))
   (setq git-commit-fill-column 72)
 	;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
+	;; (when lc/is-ipad (require 'sendmail))
   :config
-  (when lc/is-ipad (require 'sendmail))
   (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
   )
@@ -3540,6 +3565,19 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
   )
 #+end_src
 
+** hydras                                                             :hydra:
+:PROPERTIES:
+:CUSTOM_ID: h:6C6EA9DD-42EE-49CD-A7FC-5BE9FAB42F7F
+:END:
+*** hydra
+:PROPERTIES:
+:CUSTOM_ID: h:948bce3f-6a7c-4eb3-a074-3e2e36645184
+:END:
+#+begin_src emacs-lisp
+(use-package hydra
+  :demand)
+#+end_src
+
 *** hydra-smerge
 :PROPERTIES:
 :CUSTOM_ID: h:DADD41F3-F805-4E89-9EDB-B21350A81A19
@@ -3593,24 +3631,6 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
     ("q" nil :color blue)))
 #+end_src
 
-*** emacs git
-:PROPERTIES:
-:CUSTOM_ID: h:F23D595C-875E-449C-85C5-7E4F1BF24F30
-:END:
-This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get org-version to work]] 
-#+begin_src emacs-lisp
-(use-package git)
-#+end_src
-
-** hydra
-:PROPERTIES:
-:CUSTOM_ID: h:6C6EA9DD-42EE-49CD-A7FC-5BE9FAB42F7F
-:END:
-#+begin_src emacs-lisp
-(use-package hydra
-  :demand)
-#+end_src
-
 ** rainbow parenthesis
 :PROPERTIES:
 :CUSTOM_ID: h:D5084868-D46D-4AC7-ACE4-A7EDB10703EE
@@ -3622,7 +3642,33 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
 		)
 #+END_SRC
 
-** emacs tree-sitter
+** persistent scratch
+:PROPERTIES:
+:CUSTOM_ID: h:FF4B176D-E133-4013-9926-87F9A20E3BBD
+:END:
+#+begin_src emacs-lisp
+(use-package persistent-scratch
+  :hook
+  (org-mode . (lambda ()
+                "only set initial-major-mode after loading org"
+                (setq initial-major-mode 'org-mode)))
+  :general
+  (lc/leader-keys
+    "bs" '((lambda ()
+             "Load persistent-scratch if not already loaded"
+             (interactive)
+             (progn 
+               (unless (boundp 'persistent-scratch-mode)
+                 (require 'persistent-scratch))
+               (pop-to-buffer "*scratch*")))
+           :wk "scratch"))
+  :init
+  (setq persistent-scratch-autosave-interval 60)
+  :config
+  (persistent-scratch-setup-default))
+#+end_src
+
+** emacs tree-sitter                                            :tree_sitter:
 :PROPERTIES:
 :CUSTOM_ID: h:1FD9CDF3-4C5D-450E-99DE-034077C3D8BC
 :END:
@@ -3643,7 +3689,7 @@ This is a dependency for [[#h:78D6F7DF-905E-4016-BF91-4E9E38580633][Hack to get 
   :straight (tree-sitter-langs :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
 #+END_SRC
 
-** envrc
+** envrc                                                             :direnv:
 :PROPERTIES:
 :CUSTOM_ID: h:65206410-8DD7-499E-AA70-6D9C781C0E0D
 :END:
@@ -3668,9 +3714,13 @@ In the [[*ob-jupyter][ob-jupyter]] section I then load ~ob-jupyter~ only when ~e
   )
 #+end_src
 
-** yasnippet
+** snippets                                                       :yasnippet:
 :PROPERTIES:
 :CUSTOM_ID: h:8E2A5EAF-B690-457E-86E7-9070B51297A7
+:END:
+*** yasnippet
+:PROPERTIES:
+:CUSTOM_ID: h:ae484d90-a853-4e7a-a073-42485a76f0aa
 :END:
 We use =C-TAB= to expand snippets instead of =TAB= .
 
@@ -3699,7 +3749,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   )
 #+end_src
 
-** LaTeX yasnippets
+*** LaTeX yasnippets
 :PROPERTIES:
 :CUSTOM_ID: h:83403D79-9668-48DC-82FB-98FAFFD7DF11
 :END:
@@ -3808,9 +3858,13 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
            "\C-r" 'undo-fu-only-redo))
 #+end_src
 
-** vterm
+** vterm and friends                                                  :vterm:
 :PROPERTIES:
 :CUSTOM_ID: h:55C74553-9DAF-49E6-955A-C772FD7B4402
+:END:
+*** vterm
+:PROPERTIES:
+:CUSTOM_ID: h:2dc32a09-6e88-4d10-9e30-f138f4345143
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package vterm
@@ -3825,7 +3879,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
         vterm-max-scrollback 10000))
 #+END_SRC
 
-** vterm toggle
+*** vterm toggle
 :PROPERTIES:
 :CUSTOM_ID: h:1162BDDB-9DC6-4750-8EF8-9C5D2AF51892
 :END:
@@ -3973,20 +4027,12 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     )
 #+end_src
 
-** toml mode
-:PROPERTIES:
-:CUSTOM_ID: h:4474E2AE-F934-48CD-ACB8-5729B7C26F0A
-:END:
-#+begin_src emacs-lisp
-(use-package toml-mode
-	:mode "\\.toml\\'")
-#+end_src
-
 ** tramp
 :PROPERTIES:
 :CUSTOM_ID: h:48EFC0F4-8C5C-47CF-A464-420A618A01C2
 :END:
-Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
+- Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
+- In ~.ssh/config~ you can set ~ControlMaster Yes~ for a host, then ssh with the terminal
 
 #+begin_src emacs-lisp
 (use-package tramp
@@ -4031,7 +4077,31 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
   :mode ((rx ".yml" eos) . yaml-mode))
 #+end_src
 
-** search github
+** search google                                                 :prog_extra:
+:PROPERTIES:
+:CUSTOM_ID: h:01E26AB9-2829-4076-9665-E218832FB1A3
+:END:
+#+begin_src emacs-lisp
+(use-package emacs
+  :general
+  (lc/leader-keys
+    "s g" '(google-search :wk "google"))
+  :init
+  (defun google-search-str (str)
+    (browse-url
+     (concat "https://www.google.com/search?q=" str)))
+  (defun google-search ()
+    "Google search region, if active, or ask for search string."
+    (interactive)
+    (if (region-active-p)
+        (google-search-str
+         (buffer-substring-no-properties (region-beginning)
+                                         (region-end)))
+      (google-search-str (read-from-minibuffer "Search: "))))
+  )
+#+end_src
+
+** search github                                                 :prog_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:6872D17A-1A2E-4394-A83B-16D5328D88BC
 :END:
@@ -4054,7 +4124,76 @@ Call e.g. ~dired~ and input ~/ssh:user@hostname:/path/to/file~
   )
 #+end_src
 
-** isearch-mb
+** transient help commands                                       :prog_extra:
+:PROPERTIES:
+:CUSTOM_ID: h:14F8ECDE-9E15-46F7-B903-ECE383251C48
+:END:
+#+begin_src emacs-lisp
+(use-package emacs
+  :general
+  (lc/leader-keys
+    "h" 'lc/help-transient)
+  :config
+  (require 'transient)
+  (transient-define-prefix lc/help-transient ()
+    ["Help Commands"
+     ["Mode & Bindings"
+      ("m" "Mode" describe-mode)
+      ("b" "Major Bindings" which-key-show-full-major-mode)
+      ("B" "Minor Bindings" which-key-show-full-minor-mode-keymap)
+      ("d" "Descbinds" describe-bindings)
+      ]
+     ["Describe"
+      ("c" "Command" helpful-command)
+      ("f" "Function" helpful-callable)
+      ("v" "Variable" helpful-variable)
+      ("k" "Key" helpful-key)
+      ]
+     ["Info on"
+      ("C-c" "Emacs Command" Info-goto-emacs-command-node)
+      ("C-f" "Function" info-lookup-symbol) 
+      ("C-v" "Variable" info-lookup-symbol)
+      ("C-k" "Emacs Key" Info-goto-emacs-key-command-node)
+      ]
+     ["Goto Source"
+      ("L" "Library" find-library)
+      ("F" "Function" find-function)
+      ("V" "Variable" find-variable)
+      ("K" "Key" find-function-on-key)
+      ]
+     ]
+    [
+     ["Internals"
+      ("e" "Echo Messages" view-echo-area-messages)
+      ("l" "Lossage" view-lossage)
+      ]
+     ["Describe"
+      ("s" "Symbol" helpful-symbol)
+      ("." "At Point   " helpful-at-point)
+      ;; ("C-f" "Face" counsel-describe-face)
+      ("w" "Where Is" where-is)
+      ("=" "Position" what-cursor-position)
+      ]
+     ["Info Manuals"
+      ("C-i" "Info" info)
+      ("C-4" "Other Window " info-other-window)
+      ("C-e" "Emacs" info-emacs-manual)
+      ;; ("C-l" "Elisp" info-elisp-manual)
+      ]
+     ["Exit"
+      ("q" "Quit" transient-quit-one)
+      ("<escape>" "Quit" transient-quit-one)
+      ]
+     ;; ["External"
+     ;;  ("W" "Dictionary" lookup-word-at-point)
+     ;;  ("D" "Dash" dash-at-point)
+     ;;  ]
+     ]
+    )
+  )
+#+end_src
+
+** isearch-mb                                                    :prog_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:58E5AE2F-4E1C-4B72-9B63-B96AEF55F4DA
 :END:
@@ -4079,6 +4218,34 @@ You can use ~consult-history~ to browse past searches
   (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
   (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
   )
+#+end_src
+
+** olivetti mode                                                      :focus:
+:PROPERTIES:
+:CUSTOM_ID: h:78EE4DFB-9A75-4BB0-BD4D-CFF94ACE3CF6
+:END:
+#+begin_src emacs-lisp
+  (use-package olivetti
+    :general
+    (lc/leader-keys
+      "t o" '(olivetti-mode :wk "olivetti"))
+    :init
+    (setq olivetti-body-width 100)
+    (setq olivetti-recall-visual-line-mode-entry-state t))
+#+end_src
+
+** darkroom                                                           :focus:
+:PROPERTIES:
+:CUSTOM_ID: h:EC24FC48-E3A5-4C16-9F52-3A6E14DBA564
+:END:
+#+begin_src emacs-lisp
+(use-package darkroom
+  :init
+  ;; Don't scale the text, so ugly man!
+  (setq darkroom-text-scale-increase 1)
+  :general
+  (lc/leader-keys
+    "tf" '(darkroom-tentative-mode :wk "focus")))
 #+end_src
 
 ** COMMENT kubernetes
@@ -4167,7 +4334,7 @@ You can use ~consult-history~ to browse past searches
 :CUSTOM_ID: h:844F8FAD-8F11-4727-BAC4-25B449C56B51
 :header-args:    :emacs-lisp :tangle ./lisp/init-extra.el
 :END:
-** lsp mode
+** lsp mode                                                             :lsp:
 :PROPERTIES:
 :CUSTOM_ID: h:28CB5546-FBE4-481D-B620-623006DC0FDA
 :END:
@@ -4202,7 +4369,7 @@ You can use ~consult-history~ to browse past searches
   )
 #+END_SRC
 
-** lsp-ui
+** lsp-ui                                                               :lsp:
 :PROPERTIES:
 :CUSTOM_ID: h:B69B077F-B96E-4A86-859D-A3D29547D39C
 :END:
@@ -4235,7 +4402,7 @@ You can use ~consult-history~ to browse past searches
   )
 #+END_SRC
 
-** dap-mode
+** dap-mode                                                             :dap:
 :PROPERTIES:
 :CUSTOM_ID: h:85405E87-7858-4F5C-A229-B72E70F68597
 :END:
@@ -4326,7 +4493,7 @@ You can use ~consult-history~ to browse past searches
   )
 #+END_SRC
 
-** Python
+** Python                                                            :python:
 :PROPERTIES:
 :CUSTOM_ID: h:541B5295-9C9C-4138-8A42-EA8DC9D4FD87
 :END:
@@ -4599,7 +4766,16 @@ We can avoid evaluation of code with:
 	)
 #+end_src
 
-** R
+*** toml mode
+:PROPERTIES:
+:CUSTOM_ID: h:4474E2AE-F934-48CD-ACB8-5729B7C26F0A
+:END:
+#+begin_src emacs-lisp
+(use-package toml-mode
+	:mode "\\.toml\\'")
+#+end_src
+
+** R                                                                      :R:
 :PROPERTIES:
 :CUSTOM_ID: h:74BD1AAB-0C5A-4BF2-927E-D11FEEA4C08A
 :END:
@@ -4740,7 +4916,7 @@ We can avoid evaluation of code with:
   )
 #+end_src
 
-** Nix
+** Nix                                                                  :nix:
 :PROPERTIES:
 :CUSTOM_ID: h:88E57F7B-DA1F-4BC1-BAD3-5BA459D054B7
 :END:
@@ -4753,7 +4929,7 @@ We can avoid evaluation of code with:
 :mode "\\.nix\\'")
 #+end_src
 
-** Clojure
+** Clojure                                                          :clojure:
 :PROPERTIES:
 :CUSTOM_ID: h:2A226DAE-B566-464B-AF20-4BE86E554DC6
 :END:
@@ -4880,7 +5056,7 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
   :init (setq markdown-command "multimarkdown"))
 #+end_src
 
-* Gimmicks
+* Gimmicks                                                         :gimmicks:
 :PROPERTIES:
 :CUSTOM_ID: h:7D94EA42-5F85-4E18-9029-19BAD69FBF85
 :header-args:    :emacs-lisp :tangle ./lisp/init-extra.el
@@ -4950,99 +5126,6 @@ To visit a link, =SPC s l=
                       reddit youtube popular))))
 #+end_src
  
-** search google
-:PROPERTIES:
-:CUSTOM_ID: h:01E26AB9-2829-4076-9665-E218832FB1A3
-:END:
-#+begin_src emacs-lisp
-(use-package emacs
-  :general
-  (lc/leader-keys
-    "s g" '(google-search :wk "google"))
-  :init
-  (defun google-search-str (str)
-    (browse-url
-     (concat "https://www.google.com/search?q=" str)))
-  (defun google-search ()
-    "Google search region, if active, or ask for search string."
-    (interactive)
-    (if (region-active-p)
-        (google-search-str
-         (buffer-substring-no-properties (region-beginning)
-                                         (region-end)))
-      (google-search-str (read-from-minibuffer "Search: "))))
-  )
-#+end_src
-
-** transient help commands
-:PROPERTIES:
-:CUSTOM_ID: h:14F8ECDE-9E15-46F7-B903-ECE383251C48
-:END:
-#+begin_src emacs-lisp
-(use-package emacs
-  :general
-  (lc/leader-keys
-    "h" 'lc/help-transient)
-  :config
-  (require 'transient)
-  (transient-define-prefix lc/help-transient ()
-    ["Help Commands"
-     ["Mode & Bindings"
-      ("m" "Mode" describe-mode)
-      ("b" "Major Bindings" which-key-show-full-major-mode)
-      ("B" "Minor Bindings" which-key-show-full-minor-mode-keymap)
-      ("d" "Descbinds" describe-bindings)
-      ]
-     ["Describe"
-      ("c" "Command" helpful-command)
-      ("f" "Function" helpful-callable)
-      ("v" "Variable" helpful-variable)
-      ("k" "Key" helpful-key)
-      ]
-     ["Info on"
-      ("C-c" "Emacs Command" Info-goto-emacs-command-node)
-      ("C-f" "Function" info-lookup-symbol) 
-      ("C-v" "Variable" info-lookup-symbol)
-      ("C-k" "Emacs Key" Info-goto-emacs-key-command-node)
-      ]
-     ["Goto Source"
-      ("L" "Library" find-library)
-      ("F" "Function" find-function)
-      ("V" "Variable" find-variable)
-      ("K" "Key" find-function-on-key)
-      ]
-     ]
-    [
-     ["Internals"
-      ("e" "Echo Messages" view-echo-area-messages)
-      ("l" "Lossage" view-lossage)
-      ]
-     ["Describe"
-      ("s" "Symbol" helpful-symbol)
-      ("." "At Point   " helpful-at-point)
-      ;; ("C-f" "Face" counsel-describe-face)
-      ("w" "Where Is" where-is)
-      ("=" "Position" what-cursor-position)
-      ]
-     ["Info Manuals"
-      ("C-i" "Info" info)
-      ("C-4" "Other Window " info-other-window)
-      ("C-e" "Emacs" info-emacs-manual)
-      ;; ("C-l" "Elisp" info-elisp-manual)
-      ]
-     ["Exit"
-      ("q" "Quit" transient-quit-one)
-      ("<escape>" "Quit" transient-quit-one)
-      ]
-     ;; ["External"
-     ;;  ("W" "Dictionary" lookup-word-at-point)
-     ;;  ("D" "Dash" dash-at-point)
-     ;;  ]
-     ]
-    )
-  )
-#+end_src
-
 ** COMMENT reddit
 :PROPERTIES:
 :CUSTOM_ID: h:B616A404-0B56-4C56-9A8C-343E212F536A

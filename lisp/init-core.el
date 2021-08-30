@@ -191,10 +191,16 @@ size. This function also handles icons and modeline font sizes."
 
 (use-package emacs
   :init
-  (defun lc/is-macos? ()
+  (global-set-key (kbd "C-=") 'text-scale-increase)
+  (global-set-key (kbd "C--") 'text-scale-decrease)
+  )
+
+(use-package emacs
+  :init
+  (defun lc/is-macos ()
     (and (eq system-type 'darwin)
          (= 0 (length (shell-command-to-string "uname -a | grep iPad")))))
-  (when (lc/is-macos?)
+  (when (lc/is-macos)
     (setq mac-command-modifier 'super)     ; command as super
     (setq mac-option-modifier 'meta)     ; alt as meta
     (setq mac-control-modifier 'control)
@@ -229,7 +235,7 @@ size. This function also handles icons and modeline font sizes."
 
 (use-package exec-path-from-shell
   ;; :if (memq window-system '(mac ns))
-  :if (lc/is-macos?)
+  :if (lc/is-macos)
   :hook (emacs-startup . (lambda ()
                            (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
                            (exec-path-from-shell-initialize)))
@@ -387,8 +393,10 @@ size. This function also handles icons and modeline font sizes."
     "t d"  '(toggle-debug-on-error :which-key "debug on error")
     "t l" '(display-line-numbers-mode :wk "line numbers")
     "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
-    "t +"	'(lc/increase-font-size :wk "+ font")
-    "t -"	'(lc/decrease-font-size :wk "- font")
+    ;; "t +"	'(lc/increase-font-size :wk "+ font")
+    ;; "t -"	'(lc/decrease-font-size :wk "- font")
+    "t +"	'text-scale-increase
+    "t -"	'text-scale-decrease
     "t 0"	'(lc/reset-font-size :wk "reset font")
 
     "u" '(universal-argument :wk "universal")
@@ -428,7 +436,7 @@ size. This function also handles icons and modeline font sizes."
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   (setq evil-want-Y-yank-to-eol t)
-  (setq evil-respect-visual-line-mode t)
+  ;; (setq evil-respect-visual-line-mode t)
   (setq evil-undo-system 'undo-fu)
 	(setq evil-search-module 'evil-search)  ;; enables gn
   ;; move to window when splitting
@@ -605,8 +613,8 @@ be passed to EVAL-FUNC as its rest arguments"
   (which-key-mode))
 
 (use-package org
-  ;; :straight org-plus-contrib
-  :straight (:type built-in)
+  :straight org-plus-contrib
+  ;; :straight (:type built-in)
   :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)
          (org-mode . variable-pitch-mode))
@@ -636,6 +644,7 @@ be passed to EVAL-FUNC as its rest arguments"
     "r" '(org-refile :wk "refile")
     "n" '(org-toggle-narrow-to-subtree :wk "narrow subtree")
     "p" '(org-priority :wk "priority")
+    "q" '(org-set-tags-command :wk "tag")
     "s" '(org-sort :wk "sort")
     "t" '(:ignore true :wk "todo")
     "t t" '(org-todo :wk "heading todo")
@@ -646,11 +655,11 @@ be passed to EVAL-FUNC as its rest arguments"
    "z i" '(org-toggle-inline-images :wk "inline images"))
   :init
   ;; general settings
-  (when (file-directory-p "~/Dropbox")
-    (setq org-directory "~/Dropbox/org"
-          +org-export-directory "~/Dropbox/org/export"
-          org-default-notes-file "~/Dropbox/org/personal/todo.org"
-          org-id-locations-file "~/Dropbox/org/.orgids"
+  (when (file-directory-p "~/org")
+    (setq org-directory "~/org"
+          +org-export-directory "~/org/export"
+          org-default-notes-file "~/org/personal/todo.org"
+          org-id-locations-file "~/org/.orgids"
           ))	
   (setq ;; org-export-in-background t
    org-src-preserve-indentation t ;; do not put two spaces on the left
@@ -710,13 +719,10 @@ be passed to EVAL-FUNC as its rest arguments"
               (find-file (concat org-directory "/personal/todo.org")))
             :wk "open todos"))
   :init
-  ;; if on iPad, only add readme.org
-  (setq org-agenda-files (list (concat user-emacs-directory "readme.org")))
-  ;; if on Mac with Dropbox, use real agenda files
-  (when (file-directory-p "~/Dropbox")
-    (setq org-agenda-files '("~/Dropbox/org/personal/birthdays.org"
-                             "~/Dropbox/org/personal/todo.org"
-														 "~/Dropbox/Notes/Test.inbox.org"))
+  ;; if org folder exists, use agenda files
+  (when (file-directory-p "~/org")
+    (setq org-agenda-files '("~/org/personal/birthdays.org"
+                             "~/org/personal/todo.org"))
 		)
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
@@ -763,6 +769,8 @@ be passed to EVAL-FUNC as its rest arguments"
 		)
 
   ;; (provide 'org-version)
+	
+	;; (use-package git)
   )
 
 (use-package org
@@ -775,7 +783,7 @@ be passed to EVAL-FUNC as its rest arguments"
                     ":PROPERTIES:\n"
                     ":CAPTURED: %U\n:END:\n\n"
                     "%i%?"))
-          ("d" "New Diary Entry" entry(file+olp+datetree"~/Dropbox/org/personal/diary.org" "Daily Logs")
+          ("d" "New Diary Entry" entry(file+olp+datetree"~/org/personal/diary.org" "Daily Logs")
            "* %^{thought for the day}
                  :PROPERTIES:
                  :CATEGORY: %^{category}
@@ -801,7 +809,7 @@ be passed to EVAL-FUNC as its rest arguments"
                     ":END:\n\n"
                     "%i%l"))
           ("u" "New URL Entry" entry
-           (file+function "~/Dropbox/org/personal/dailies.org" org-reverse-datetree-goto-date-in-file)
+           (file+function "~/org/personal/dailies.org" org-reverse-datetree-goto-date-in-file)
            "* [[%^{URL}][%^{Description}]] %^g %?")
           ("w" "Work" entry
            (file+headline "personal/todo.org" "Work")
@@ -948,6 +956,7 @@ asynchronously."
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
+     (ledger . t)
      (shell . t)))
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
   )
@@ -1033,10 +1042,10 @@ asynchronously."
   :bind
   ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>" 
   ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>" 
-  :general
-  (general-nmap
-    :keymaps 'org-mode-map :states 'normal
-    "RET"   #'+org/dwim-at-point)
+  ;; :general
+  ;; (general-nmap
+  ;;   :keymaps 'org-mode-map :states 'normal
+  ;;   "RET"   #'+org/dwim-at-point)
   :init
   (defun +org--insert-item (direction)
     (let ((context (org-element-lineage
@@ -1377,7 +1386,41 @@ asynchronously."
     )
   )
 
-(use-package all-the-icons)
+(use-package org-roam
+  :after org
+  :demand
+  :init
+  (setq org-roam-directory (file-truename (concat org-directory "/roam")))
+  (setq org-roam-v2-ack t)
+  :general
+  (general-nmap
+    "SPC n b" 'org-roam-buffer-toggle
+    "SPC n f" 'org-roam-node-find
+    "SPC n g" 'org-roam-graph
+    "SPC n i" 'org-roam-node-insert
+    "SPC n c" 'org-roam-capture
+    "SPC n t" 'org-roam-tag-add
+    "SPC n r" 'org-roam-ref-add
+    "SPC n a" 'org-roam-alias-add
+    ;; Dailies
+    "SPC n j" 'org-roam-dailies-capture-today
+    "SPC n J" 'org-roam-dailies-goto-today
+    )
+  :config
+  (org-roam-setup)
+  ;; If using org-roam-protocol
+  ;; (require 'org-roam-protocol)
+  (add-to-list 'display-buffer-alist
+               '(("*org-roam*"
+                  (display-buffer-in-direction)
+                  (direction . right)
+                  (window-width . 0.33)
+                  (window-height . fit-window-to-buffer))))
+  )
+
+(use-package all-the-icons
+	:if (not lc/is-ipad)
+	)
 
 (use-package doom-modeline
     :demand
@@ -1390,14 +1433,6 @@ asynchronously."
     (doom-modeline-mode 1)
     (set-face-attribute 'doom-modeline-evil-insert-state nil :foreground "orange")
 )
-
-(use-package emacs
-	:init
-	(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-	(add-to-list 'default-frame-alist '(ns-appearance . dark))
-  (setq ns-use-proxy-icon  nil)
-  (setq frame-title-format nil)
-	)
 
 (use-package modus-themes
   :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
@@ -1621,16 +1656,6 @@ asynchronously."
   (centaur-tabs-group-by-projectile-project)
   )
 
-(use-package centered-cursor-mode
-  :general
-	(lc/leader-keys
-		"t =" '((lambda () (interactive) (centered-cursor-mode 'toggle)) :wk "center cursor")
-		)
-	)
-
-(use-package hide-mode-line
-  :commands (hide-mode-line-mode))
-
 (setq display-buffer-alist
       `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
          (display-buffer-reuse-mode-window display-buffer-below-selected)
@@ -1644,6 +1669,16 @@ asynchronously."
 ;;          (reusable-frames . t))))
 
 ;; (setq even-window-sizes nil)  ; display-buffer hint: avoid resizing
+
+(use-package centered-cursor-mode
+  :general
+	(lc/leader-keys
+		"t =" '((lambda () (interactive) (centered-cursor-mode 'toggle)) :wk "center cursor")
+		)
+	)
+
+(use-package hide-mode-line
+  :commands (hide-mode-line-mode))
 
 (use-package winum
 :general
@@ -1659,34 +1694,6 @@ asynchronously."
   (lc/leader-keys
     "w t" '(transpose-frame :wk "transpose")
     "w f" '(rotate-frame :wk "flip")))
-
-(use-package persistent-scratch
-  :hook
-  (org-mode . (lambda ()
-                "only set initial-major-mode after loading org"
-                (setq initial-major-mode 'org-mode)))
-  :general
-  (lc/leader-keys
-    "bs" '((lambda ()
-             "Load persistent-scratch if not already loaded"
-             (interactive)
-             (progn 
-               (unless (boundp 'persistent-scratch-mode)
-                 (require 'persistent-scratch))
-               (pop-to-buffer "*scratch*")))
-           :wk "scratch"))
-  :init
-  (setq persistent-scratch-autosave-interval 60)
-  :config
-  (persistent-scratch-setup-default))
-
-(use-package olivetti
-  :general
-  (lc/leader-keys
-    "t o" '(olivetti-mode :wk "olivetti"))
-  :init
-  (setq olivetti-body-width 100)
-  (setq olivetti-recall-visual-line-mode-entry-state t))
 
 (use-package display-fill-column-indicator
   :straight (:type built-in)
@@ -1765,25 +1772,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 									 (set-window-parameter window 'window-preserved-size preserved-p))
 								 (add-hook 'doom-switch-window-hook #'doom--enlargened-forget-last-wconf-h)))))))))
 	)
-
-(use-package alert
-  :if (lc/is-macos?)
-  :config
-  (setq
-   ;; alert-default-style 'notifier
-   alert-default-style 'osx-notifier
-   )
-  ;; (alert "This is an alert" :severity 'high)
-  ;; (alert "This is an alert" :title "My Alert" :category 'debug)
-  )
-
-(use-package darkroom
-  :init
-  ;; Don't scale the text, so ugly man!
-  (setq darkroom-text-scale-increase 1)
-  :general
-  (lc/leader-keys
-    "tf" '(darkroom-tentative-mode :wk "focus")))
 
 (unless (> (display-color-cells) 8)
   (setq custom-theme-directory (concat user-emacs-directory "themes"))
@@ -2062,8 +2050,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq magit-log-arguments '("--graph" "--decorate" "--color"))
   (setq git-commit-fill-column 72)
 	;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
+	;; (when lc/is-ipad (require 'sendmail))
   :config
-  (when lc/is-ipad (require 'sendmail))
   (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
   )
@@ -2095,6 +2083,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :config
   (global-diff-hl-mode)
   )
+
+(use-package hydra
+  :demand)
 
 (use-package smerge-mode
   :straight (:type built-in)
@@ -2143,15 +2134,30 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     ("R" smerge-kill-current)
     ("q" nil :color blue)))
 
-(use-package git)
-
-(use-package hydra
-  :demand)
-
 (use-package rainbow-delimiters
   :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
          (clojure-mode . rainbow-delimiters-mode))
 	      )
+
+(use-package persistent-scratch
+  :hook
+  (org-mode . (lambda ()
+                "only set initial-major-mode after loading org"
+                (setq initial-major-mode 'org-mode)))
+  :general
+  (lc/leader-keys
+    "bs" '((lambda ()
+             "Load persistent-scratch if not already loaded"
+             (interactive)
+             (progn 
+               (unless (boundp 'persistent-scratch-mode)
+                 (require 'persistent-scratch))
+               (pop-to-buffer "*scratch*")))
+           :wk "scratch"))
+  :init
+  (setq persistent-scratch-autosave-interval 60)
+  :config
+  (persistent-scratch-setup-default))
 
 (use-package tsc
   :straight (tsc :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
@@ -2391,9 +2397,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "R" '(restart-emacs :wk "restart"))
   )
 
-(use-package toml-mode
-	:mode "\\.toml\\'")
-
 (use-package tramp
   :straight (:type built-in)
   :init
@@ -2432,6 +2435,24 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 (use-package emacs
   :general
   (lc/leader-keys
+    "s g" '(google-search :wk "google"))
+  :init
+  (defun google-search-str (str)
+    (browse-url
+     (concat "https://www.google.com/search?q=" str)))
+  (defun google-search ()
+    "Google search region, if active, or ask for search string."
+    (interactive)
+    (if (region-active-p)
+        (google-search-str
+         (buffer-substring-no-properties (region-beginning)
+                                         (region-end)))
+      (google-search-str (read-from-minibuffer "Search: "))))
+  )
+
+(use-package emacs
+  :general
+  (lc/leader-keys
     "s c" '(github-code-search :wk "code (github)"))
   :init
   (defun github-code-search ()
@@ -2444,6 +2465,69 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
       (browse-url
        (concat "https://github.com/search?l=" language
                "&type=code&q=" code))))
+  )
+
+(use-package emacs
+  :general
+  (lc/leader-keys
+    "h" 'lc/help-transient)
+  :config
+  (require 'transient)
+  (transient-define-prefix lc/help-transient ()
+    ["Help Commands"
+     ["Mode & Bindings"
+      ("m" "Mode" describe-mode)
+      ("b" "Major Bindings" which-key-show-full-major-mode)
+      ("B" "Minor Bindings" which-key-show-full-minor-mode-keymap)
+      ("d" "Descbinds" describe-bindings)
+      ]
+     ["Describe"
+      ("c" "Command" helpful-command)
+      ("f" "Function" helpful-callable)
+      ("v" "Variable" helpful-variable)
+      ("k" "Key" helpful-key)
+      ]
+     ["Info on"
+      ("C-c" "Emacs Command" Info-goto-emacs-command-node)
+      ("C-f" "Function" info-lookup-symbol) 
+      ("C-v" "Variable" info-lookup-symbol)
+      ("C-k" "Emacs Key" Info-goto-emacs-key-command-node)
+      ]
+     ["Goto Source"
+      ("L" "Library" find-library)
+      ("F" "Function" find-function)
+      ("V" "Variable" find-variable)
+      ("K" "Key" find-function-on-key)
+      ]
+     ]
+    [
+     ["Internals"
+      ("e" "Echo Messages" view-echo-area-messages)
+      ("l" "Lossage" view-lossage)
+      ]
+     ["Describe"
+      ("s" "Symbol" helpful-symbol)
+      ("." "At Point   " helpful-at-point)
+      ;; ("C-f" "Face" counsel-describe-face)
+      ("w" "Where Is" where-is)
+      ("=" "Position" what-cursor-position)
+      ]
+     ["Info Manuals"
+      ("C-i" "Info" info)
+      ("C-4" "Other Window " info-other-window)
+      ("C-e" "Emacs" info-emacs-manual)
+      ;; ("C-l" "Elisp" info-elisp-manual)
+      ]
+     ["Exit"
+      ("q" "Quit" transient-quit-one)
+      ("<escape>" "Quit" transient-quit-one)
+      ]
+     ;; ["External"
+     ;;  ("W" "Dictionary" lookup-word-at-point)
+     ;;  ("D" "Dash" dash-at-point)
+     ;;  ]
+     ]
+    )
   )
 
 (use-package isearch-mb
@@ -2464,6 +2548,22 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
   (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
   )
+
+(use-package olivetti
+  :general
+  (lc/leader-keys
+    "t o" '(olivetti-mode :wk "olivetti"))
+  :init
+  (setq olivetti-body-width 100)
+  (setq olivetti-recall-visual-line-mode-entry-state t))
+
+(use-package darkroom
+  :init
+  ;; Don't scale the text, so ugly man!
+  (setq darkroom-text-scale-increase 1)
+  :general
+  (lc/leader-keys
+    "tf" '(darkroom-tentative-mode :wk "focus")))
 
 (provide 'init-core)
 ;;; init-core.el ends here

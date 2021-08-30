@@ -330,6 +330,9 @@
       "=" '(blacken-buffer :wk "format"))
 	)
 
+(use-package toml-mode
+	:mode "\\.toml\\'")
+
 (use-package ess
   :general
   (lc/local-leader-keys
@@ -551,87 +554,6 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
                       ("http://irreal.org/blog/?tag=emacs&amp;feed=rss2" emacs)
                       ("https://www.reddit.com/search.rss?q=url%3A%28youtu.be+OR+youtube.com%29&sort=top&t=week&include_over_18=1&type=link"
                       reddit youtube popular))))
-
-(use-package emacs
-  :general
-  (lc/leader-keys
-    "s g" '(google-search :wk "google"))
-  :init
-  (defun google-search-str (str)
-    (browse-url
-     (concat "https://www.google.com/search?q=" str)))
-  (defun google-search ()
-    "Google search region, if active, or ask for search string."
-    (interactive)
-    (if (region-active-p)
-        (google-search-str
-         (buffer-substring-no-properties (region-beginning)
-                                         (region-end)))
-      (google-search-str (read-from-minibuffer "Search: "))))
-  )
-
-(use-package emacs
-  :general
-  (lc/leader-keys
-    "h" 'lc/help-transient)
-  :config
-  (require 'transient)
-  (transient-define-prefix lc/help-transient ()
-    ["Help Commands"
-     ["Mode & Bindings"
-      ("m" "Mode" describe-mode)
-      ("b" "Major Bindings" which-key-show-full-major-mode)
-      ("B" "Minor Bindings" which-key-show-full-minor-mode-keymap)
-      ("d" "Descbinds" describe-bindings)
-      ]
-     ["Describe"
-      ("c" "Command" helpful-command)
-      ("f" "Function" helpful-callable)
-      ("v" "Variable" helpful-variable)
-      ("k" "Key" helpful-key)
-      ]
-     ["Info on"
-      ("C-c" "Emacs Command" Info-goto-emacs-command-node)
-      ("C-f" "Function" info-lookup-symbol) 
-      ("C-v" "Variable" info-lookup-symbol)
-      ("C-k" "Emacs Key" Info-goto-emacs-key-command-node)
-      ]
-     ["Goto Source"
-      ("L" "Library" find-library)
-      ("F" "Function" find-function)
-      ("V" "Variable" find-variable)
-      ("K" "Key" find-function-on-key)
-      ]
-     ]
-    [
-     ["Internals"
-      ("e" "Echo Messages" view-echo-area-messages)
-      ("l" "Lossage" view-lossage)
-      ]
-     ["Describe"
-      ("s" "Symbol" helpful-symbol)
-      ("." "At Point   " helpful-at-point)
-      ;; ("C-f" "Face" counsel-describe-face)
-      ("w" "Where Is" where-is)
-      ("=" "Position" what-cursor-position)
-      ]
-     ["Info Manuals"
-      ("C-i" "Info" info)
-      ("C-4" "Other Window " info-other-window)
-      ("C-e" "Emacs" info-emacs-manual)
-      ;; ("C-l" "Elisp" info-elisp-manual)
-      ]
-     ["Exit"
-      ("q" "Quit" transient-quit-one)
-      ("<escape>" "Quit" transient-quit-one)
-      ]
-     ;; ["External"
-     ;;  ("W" "Dictionary" lookup-word-at-point)
-     ;;  ("D" "Dash" dash-at-point)
-     ;;  ]
-     ]
-    )
-  )
 
 (provide 'init-extra)
 ;;; init-extra.el ends here
