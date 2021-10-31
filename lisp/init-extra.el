@@ -498,10 +498,10 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider))
 
-;; keep the file indented
-(use-package aggressive-indent
-  :hook ((clojure-mode . aggressive-indent-mode)
-         (emacs-lisp-mode . aggressive-indent-mode)))
+  ;; keep the file indented
+  (use-package aggressive-indent
+    :hook ((clojure-mode . aggressive-indent-mode)
+           (emacs-lisp-mode . aggressive-indent-mode)))
 
 (use-package markdown-mode
   :commands (markdown-mode gfm-mode)

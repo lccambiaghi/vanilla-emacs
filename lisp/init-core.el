@@ -111,17 +111,17 @@
   :init
 
   (defcustom lc/default-font-family "fira code" 
-		"Default font family"
+    "Default font family"
     :type 'string
     :group 'lc)
 
   (defcustom lc/variable-pitch-font-family  "cantarell"
-		"Variable pitch font family"
+    "Variable pitch font family"
     :type 'string
     :group 'lc)
-	
-  (defcustom lc/laptop-font-size 150
-		"Font size used for laptop"
+  
+  (defcustom lc/laptop-font-size 100
+    "Font size used for laptop"
     :type 'int
     :group 'lc)
 
@@ -130,12 +130,14 @@
     :type 'symbol
     :options '(light dark)
     :group 'lc)
-	
+  
   ;; (setq lc/is-low-power (string= (system-name) "pntk"))
 
-	(setq lc/is-ipad ( 	;; <
-										> (length (shell-command-to-string "uname -a | grep iPad")) 0))
+  (setq lc/is-ipad ( 	;; <
+                    > (length (shell-command-to-string "uname -a | grep iPad")) 0))
 
+  (setq lc/is-windows (eq system-type 'windows-nt))
+  
   ;; (setq lc/is-slow-ssh (string= (getenv "IS_TRAMP") "true"))
   
   )
@@ -220,32 +222,32 @@ size. This function also handles icons and modeline font sizes."
   :config
   (gcmh-mode 1))
 
-(use-package helpful
-  :after evil
-  :init
-  (setq evil-lookup-func #'helpful-at-point)
-  :bind
-  ([remap describe-function] . helpful-callable)
-  ([remap describe-command] . helpful-command)
-  ([remap describe-variable] . helpful-variable)
-  ([remap describe-key] . helpful-key))
+  (use-package helpful
+    :after evil
+    :init
+    (setq evil-lookup-func #'helpful-at-point)
+    :bind
+    ([remap describe-function] . helpful-callable)
+    ([remap describe-command] . helpful-command)
+    ([remap describe-variable] . helpful-variable)
+    ([remap describe-key] . helpful-key))
 
-(use-package eldoc
-  :hook (emacs-lisp-mode cider-mode))
+  (use-package eldoc
+    :hook (emacs-lisp-mode cider-mode))
 
-(use-package exec-path-from-shell
-  ;; :if (memq window-system '(mac ns))
-  :if (lc/is-macos)
-  :hook (emacs-startup . (lambda ()
-                           (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
-                           (exec-path-from-shell-initialize)))
-  ;; :config
-  ;; (exec-path-from-shell-copy-envs
-  ;;  '("GOPATH" "GO111MODULE" "GOPROXY"
-  ;;    "NPMBIN" "LC_ALL" "LANG" "LC_TYPE"
-  ;;    "SSH_AGENT_PID" "SSH_AUTH_SOCK" "SHELL"
-  ;;    "JAVA_HOME"))
-  )
+  (use-package exec-path-from-shell
+    ;; :if (memq window-system '(mac ns))
+    :if (lc/is-macos)
+    :hook (emacs-startup . (lambda ()
+                             (setq exec-path-from-shell-arguments '("-l")) ; removed the -i for faster startup
+                             (exec-path-from-shell-initialize)))
+    ;; :config
+    ;; (exec-path-from-shell-copy-envs
+    ;;  '("GOPATH" "GO111MODULE" "GOPROXY"
+    ;;    "NPMBIN" "LC_ALL" "LANG" "LC_TYPE"
+    ;;    "SSH_AGENT_PID" "SSH_AUTH_SOCK" "SHELL"
+    ;;    "JAVA_HOME"))
+    )
 
 (use-package no-littering
   :demand
@@ -264,7 +266,8 @@ size. This function also handles icons and modeline font sizes."
 (use-package emacs
   :hook
   ((org-jupyter-mode . (lambda () (lc/add-local-electric-pairs '())))
-   (org-mode . (lambda () (lc/add-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
+   (org-mode . (lambda () (lc/add-local-electric-pairs '(;(?= . ?=)
+																												 (?~ . ?~))))))
   :init
   ;; auto-close parentheses
   (electric-pair-mode +1)
@@ -613,8 +616,8 @@ be passed to EVAL-FUNC as its rest arguments"
   (which-key-mode))
 
 (use-package org
-  :straight org-plus-contrib
-  ;; :straight (:type built-in)
+  ;; :straight org-plus-contrib
+  :straight (:type built-in)
   :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)
          (org-mode . variable-pitch-mode))
@@ -722,8 +725,14 @@ be passed to EVAL-FUNC as its rest arguments"
   ;; if org folder exists, use agenda files
   (when (file-directory-p "~/org")
     (setq org-agenda-files '("~/org/personal/birthdays.org"
-                             "~/org/personal/todo.org"))
-		)
+                             ;; "~/org/personal/todo.org"
+                             )))
+  ;; if roam work folder exists, add to agenda files
+  (when (file-directory-p "~/roam/work")
+    (setq org-agenda-files
+          (append org-agenda-files
+                  '("~/roam/work/todo.org"))))   
+  
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
            ((agenda "" ((org-deadline-warning-days 7)))
@@ -926,7 +935,7 @@ asynchronously."
   )
 
 (use-package hl-todo
-	:hook ((prog-mode org-mode) . lc/hl-todo-init)
+	;; :hook ((prog-mode org-mode) . lc/hl-todo-init)
 	:init
 	(defun lc/hl-todo-init ()
 		(setq-local hl-todo-keyword-faces '(("HOLD" . "#cfdf30")
@@ -1390,8 +1399,20 @@ asynchronously."
   :after org
   :demand
   :init
-  (setq org-roam-directory (file-truename (concat org-directory "/roam")))
+  (setq org-roam-directory (file-truename "~/roam"))
   (setq org-roam-v2-ack t)
+  (setq org-roam-capture-templates
+        '(("d" "default" plain "%?" :target
+           ;; (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           (file+head "C:/Users/cambiaghi luca/roam/personal/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           ;; (file+head "C:/Users/cambiaghi luca/iCloudDrive/iCloud~com~appsonthemove~beorg/org/roam/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           ;; (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           :unnarrowed t)
+          ("w" "work" plain "%?" :target
+           (file+head "C:/Users/cambiaghi luca/roam/work/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           ;; (file+head "c:/Users/cambiaghi luca/Egnyte/Private/cambiaghi.luca/worknotes/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           :unnarrowed t)
+          ))
   :general
   (general-nmap
     "SPC n b" 'org-roam-buffer-toggle
@@ -1416,13 +1437,14 @@ asynchronously."
                   (direction . right)
                   (window-width . 0.33)
                   (window-height . fit-window-to-buffer))))
+  
   )
 
 (use-package all-the-icons
 	:if (not lc/is-ipad)
 	)
 
-(use-package doom-modeline
+  (use-package doom-modeline
     :demand
     :init
     (setq doom-modeline-buffer-encoding nil)
@@ -1677,8 +1699,8 @@ asynchronously."
 		)
 	)
 
-(use-package hide-mode-line
-  :commands (hide-mode-line-mode))
+  (use-package hide-mode-line
+    :commands (hide-mode-line-mode))
 
 (use-package winum
 :general
@@ -1689,11 +1711,11 @@ asynchronously."
 :config
 (winum-mode))
 
-(use-package transpose-frame
-  :general
-  (lc/leader-keys
-    "w t" '(transpose-frame :wk "transpose")
-    "w f" '(rotate-frame :wk "flip")))
+  (use-package transpose-frame
+    :general
+    (lc/leader-keys
+      "w t" '(transpose-frame :wk "transpose")
+      "w f" '(rotate-frame :wk "flip")))
 
 (use-package display-fill-column-indicator
   :straight (:type built-in)
@@ -1703,15 +1725,6 @@ asynchronously."
   (setq-default fill-column  90)
   ;; (setq display-fill-column-indicator-character "|")
 	)
-
-(use-package emacs
-  :hook
-  ((org-jupyter-mode . (lambda () (whitespace-mode -1)))
-   (org-mode . whitespace-mode))
-  :init
-  (setq-default
-   whitespace-line-column 90
-   whitespace-style       '(face lines-tail)))
 
 ;; add a visual intent guide
 (use-package highlight-indent-guides
@@ -2056,15 +2069,15 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "zz" #'evil-scroll-line-to-center)
   )
 
-(use-package git-timemachine
-  :hook (git-time-machine-mode . evil-normalize-keymaps)
-  :init (setq git-timemachine-show-minibuffer-details t)
-  :general
-  (general-nmap "SPC g t" 'git-timemachine-toggle)
-  (git-timemachine-mode-map
-   "C-k" 'git-timemachine-show-previous-revision
-   "C-j" 'git-timemachine-show-next-revision
-   "q" 'git-timemachine-quit))
+  (use-package git-timemachine
+    :hook (git-time-machine-mode . evil-normalize-keymaps)
+    :init (setq git-timemachine-show-minibuffer-details t)
+    :general
+    (general-nmap "SPC g t" 'git-timemachine-toggle)
+    (git-timemachine-mode-map
+     "C-k" 'git-timemachine-show-previous-revision
+     "C-j" 'git-timemachine-show-next-revision
+     "q" 'git-timemachine-quit))
 
 (use-package diff-hl
   :demand
@@ -2134,10 +2147,10 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     ("R" smerge-kill-current)
     ("q" nil :color blue)))
 
-(use-package rainbow-delimiters
-  :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
-         (clojure-mode . rainbow-delimiters-mode))
-	      )
+  (use-package rainbow-delimiters
+    :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+           (clojure-mode . rainbow-delimiters-mode))
+		)
 
 (use-package persistent-scratch
   :hook
@@ -2323,7 +2336,19 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :general
   (lc/leader-keys
     "'" (lambda () (interactive) (term "/bin/zsh")))
-)
+  )
+
+(use-package term
+  :if lc/is-windows
+  :straight (:type built-in)
+  :general
+  (lc/leader-keys
+    "'" (lambda () (interactive)
+          (let ((explicit-shell-file-name "C:/Program Files/Git/bin/bash"))
+            (call-interactively 'shell))))
+  ;; (setq explicit-shell-file-name "C:/Program Files/Git/bin/bash")
+  ;; (setq explicit-bash.exe-args '("--login" "-i"))
+  )
 
 (use-package dired
   :straight (:type built-in)
@@ -2391,11 +2416,11 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                        (when all-the-icons-dired-mode
                          (revert-buffer)))))
 
-(use-package restart-emacs
-  :general
-  (lc/leader-keys
-    "R" '(restart-emacs :wk "restart"))
-  )
+  (use-package restart-emacs
+    :general
+    (lc/leader-keys
+      "R" '(restart-emacs :wk "restart"))
+    )
 
 (use-package tramp
   :straight (:type built-in)
@@ -2549,13 +2574,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
   )
 
-(use-package olivetti
-  :general
-  (lc/leader-keys
-    "t o" '(olivetti-mode :wk "olivetti"))
-  :init
-  (setq olivetti-body-width 100)
-  (setq olivetti-recall-visual-line-mode-entry-state t))
+  (use-package olivetti
+    :general
+    (lc/leader-keys
+      "t o" '(olivetti-mode :wk "olivetti"))
+    :init
+    (setq olivetti-body-width 100)
+    (setq olivetti-recall-visual-line-mode-entry-state t))
 
 (use-package darkroom
   :init
