@@ -109,19 +109,24 @@
 
 (use-package emacs
   :init
+  (setq lc/is-ipad ( 	;; <
+                    > (length (shell-command-to-string "uname -a | grep iPad")) 0))
+
+  (setq lc/is-windows (eq system-type 'windows-nt))
 
   (defcustom lc/default-font-family "fira code" 
-		"Default font family"
+    "Default font family"
     :type 'string
     :group 'lc)
 
-  (defcustom lc/variable-pitch-font-family  "cantarell"
-		"Variable pitch font family"
+  (defcustom lc/variable-pitch-font-family "Sans Serif"  ;;"cantarell"
+    "Variable pitch font family"
     :type 'string
     :group 'lc)
-	
-  (defcustom lc/laptop-font-size 150
-		"Font size used for laptop"
+  
+  (defcustom lc/laptop-font-size
+		(if lc/is-windows 100 150)
+    "Font size used for laptop"
     :type 'int
     :group 'lc)
 
@@ -130,12 +135,10 @@
     :type 'symbol
     :options '(light dark)
     :group 'lc)
-	
+  
   ;; (setq lc/is-low-power (string= (system-name) "pntk"))
 
-	(setq lc/is-ipad ( 	;; <
-										> (length (shell-command-to-string "uname -a | grep iPad")) 0))
-
+  
   ;; (setq lc/is-slow-ssh (string= (getenv "IS_TRAMP") "true"))
   
   )
@@ -264,7 +267,8 @@ size. This function also handles icons and modeline font sizes."
 (use-package emacs
   :hook
   ((org-jupyter-mode . (lambda () (lc/add-local-electric-pairs '())))
-   (org-mode . (lambda () (lc/add-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
+   (org-mode . (lambda () (lc/add-local-electric-pairs '(;(?= . ?=)
+																												 (?~ . ?~))))))
   :init
   ;; auto-close parentheses
   (electric-pair-mode +1)
@@ -613,7 +617,7 @@ be passed to EVAL-FUNC as its rest arguments"
   (which-key-mode))
 
 (use-package org
-  :straight org-plus-contrib
+  ;; :straight org-plus-contrib
   ;; :straight (:type built-in)
   :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)
@@ -719,11 +723,19 @@ be passed to EVAL-FUNC as its rest arguments"
               (find-file (concat org-directory "/personal/todo.org")))
             :wk "open todos"))
   :init
+  (setq org-agenda-files '())
   ;; if org folder exists, use agenda files
-  (when (file-directory-p "~/org")
-    (setq org-agenda-files '("~/org/personal/birthdays.org"
-                             "~/org/personal/todo.org"))
-		)
+  (when (file-directory-p "~/org/personal")
+    (setq org-agenda-files
+          (append org-agenda-files
+                  '("~/org/personal/birthdays.org"))))   
+  
+  ;; if roam work folder exists, add to agenda files
+  (when (file-directory-p "~/roam/work")
+    (setq org-agenda-files
+          (append org-agenda-files
+                  '("~/roam/work/todo.org"))))   
+  
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
            ((agenda "" ((org-deadline-warning-days 7)))
@@ -926,7 +938,7 @@ asynchronously."
   )
 
 (use-package hl-todo
-	:hook ((prog-mode org-mode) . lc/hl-todo-init)
+	;; :hook ((prog-mode org-mode) . lc/hl-todo-init)
 	:init
 	(defun lc/hl-todo-init ()
 		(setq-local hl-todo-keyword-faces '(("HOLD" . "#cfdf30")
@@ -1390,8 +1402,20 @@ asynchronously."
   :after org
   :demand
   :init
-  (setq org-roam-directory (file-truename (concat org-directory "/roam")))
+  (setq org-roam-directory (file-truename "~/roam"))
   (setq org-roam-v2-ack t)
+  (setq org-roam-capture-templates
+        '(("d" "default" plain "%?" :target
+           ;; (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           (file+head "C:/Users/cambiaghi luca/roam/personal/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           ;; (file+head "C:/Users/cambiaghi luca/iCloudDrive/iCloud~com~appsonthemove~beorg/org/roam/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           ;; (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           :unnarrowed t)
+          ("w" "work" plain "%?" :target
+           (file+head "C:/Users/cambiaghi luca/roam/work/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           ;; (file+head "c:/Users/cambiaghi luca/Egnyte/Private/cambiaghi.luca/worknotes/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+           :unnarrowed t)
+          ))
   :general
   (general-nmap
     "SPC n b" 'org-roam-buffer-toggle
@@ -1416,6 +1440,7 @@ asynchronously."
                   (direction . right)
                   (window-width . 0.33)
                   (window-height . fit-window-to-buffer))))
+  
   )
 
 (use-package all-the-icons
@@ -1703,15 +1728,6 @@ asynchronously."
   (setq-default fill-column  90)
   ;; (setq display-fill-column-indicator-character "|")
 	)
-
-(use-package emacs
-  :hook
-  ((org-jupyter-mode . (lambda () (whitespace-mode -1)))
-   (org-mode . whitespace-mode))
-  :init
-  (setq-default
-   whitespace-line-column 90
-   whitespace-style       '(face lines-tail)))
 
 ;; add a visual intent guide
 (use-package highlight-indent-guides
@@ -2323,7 +2339,19 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :general
   (lc/leader-keys
     "'" (lambda () (interactive) (term "/bin/zsh")))
-)
+  )
+
+(use-package term
+  :if lc/is-windows
+  :straight (:type built-in)
+  :general
+  (lc/leader-keys
+    "'" (lambda () (interactive)
+          (let ((explicit-shell-file-name "C:/Program Files/Git/bin/bash"))
+            (call-interactively 'shell))))
+  ;; (setq explicit-shell-file-name "C:/Program Files/Git/bin/bash")
+  ;; (setq explicit-bash.exe-args '("--login" "-i"))
+  )
 
 (use-package dired
   :straight (:type built-in)
