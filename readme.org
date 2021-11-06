@@ -210,7 +210,7 @@ Taken from DOOM's init
 (let ((file-name-handler-alist nil)
       (gc-cons-threshold 100000000))
   (require 'init-core)
-  (require 'init-extra)
+  ;; (require 'init-extra)
   )
 
 ;;; init.el ends here
@@ -543,12 +543,12 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 (use-package emacs
   :init
 
-  (defcustom lc/default-font-family "fira code" 
+  (defcustom lc/default-font-family "Fira Code" ;; "SF Mono" 
 		"Default font family"
     :type 'string
     :group 'lc)
 
-  (defcustom lc/variable-pitch-font-family  "cantarell"
+    (defcustom lc/variable-pitch-font-family "Sans Serif" ;; "Cantarell" 
 		"Variable pitch font family"
     :type 'string
     :group 'lc)
@@ -646,6 +646,7 @@ size. This function also handles icons and modeline font sizes."
   (global-set-key (kbd "C--") 'text-scale-decrease)
   )
 #+end_src
+
 ** macOS
 :PROPERTIES:
 :CUSTOM_ID: h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B
@@ -1323,7 +1324,7 @@ Interesting bits:
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
-  :straight org-plus-contrib
+  ;; :straight org-plus-contrib
   ;; :straight (:type built-in)
   :hook ((org-mode . prettify-symbols-mode)
          (org-mode . visual-line-mode)

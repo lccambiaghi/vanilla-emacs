@@ -31,7 +31,7 @@
 (let ((file-name-handler-alist nil)
       (gc-cons-threshold 100000000))
   (require 'init-core)
-  (require 'init-extra)
+  ;; (require 'init-extra)
   )
 
 ;;; init.el ends here
