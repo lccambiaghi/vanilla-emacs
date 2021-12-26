@@ -210,6 +210,13 @@ Taken from DOOM's init
 (let ((file-name-handler-alist nil)
       (gc-cons-threshold 100000000))
   (require 'init-core)
+  (require 'init-ui-extra)
+  (require 'init-prog-nix)
+  (require 'init-prog-lsp)
+  (require 'init-prog-python)
+  (require 'init-org-roam)
+  (require 'init-prog-elisp)
+  ;; (require 'init-org-export)
   ;; (require 'init-extra)
   )
 
@@ -552,7 +559,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     :type 'string
     :group 'lc)
 
-  (defcustom lc/variable-pitch-font-family "Sans Serif"  ;;"cantarell"
+  (defcustom lc/variable-pitch-font-family "Sans Serif" ;; "cantarell" ;; 
     "Variable pitch font family"
     :type 'string
     :group 'lc)
@@ -1082,11 +1089,11 @@ For example:
 (use-package evil
   :config
   (defcustom evil-extra-operator-eval-modes-alist
-    '(;; (emacs-lisp eval-region)
+    '((emacs-lisp-mode eros-eval-region)
       ;; (scheme-mode geiser-eval-region)
       (clojure-mode cider-eval-region)
 			(jupyter-python jupyter-eval-region) ;; when executing in src block
-      (python-mode jupyter-eval-region) ;; when executing in org-src-edit mode
+      (python-mode python-shell-send-region) ;; when executing in org-src-edit mode
       )
     "Alist used to determine evil-operator-eval's behaviour.
 Each element of this alist should be of this form:
@@ -1205,28 +1212,37 @@ To select a function in ~python~:
 	)
 #+end_src
 
-*** evil-cleverparens
+*** evil cleverparens: outer form text object
 :PROPERTIES:
 :CUSTOM_ID: h:02F42E4A-7DB4-4150-AA74-22CB3FE7636C
 :END:
-This package provides additional text objects for LISPs. For example:
-- Mark the outer form with =v a d=
-- Mark the current form with =v a f= (similar to the =b= text object)
+NOTE:
+- Mark the outer form with =v a f=
 
 #+begin_src emacs-lisp
 (use-package evil-cleverparens
-  :hook
-  ((emacs-lisp-mode . evil-cleverparens-mode)
-   (clojure-mode . evil-cleverparens-mode))
+	:after evil
+  :hook (emacs-lisp-mode . lc/init-cleverparens)
   :init
-  (setq evil-move-beyond-eol t
-        evil-cleverparens-use-additional-bindings nil
-        evil-cleverparens-use-s-and-S nil
-        ;; evil-cleverparens-swap-move-by-word-and-symbol t
-        ;; evil-cleverparens-use-regular-insert t
-        )
-  ;; :config
-  ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+  (defun lc/init-cleverparens ()
+    (require 'evil-cleverparens-util)
+    (evil-define-text-object evil-cp-a-defun (count &optional beg end type)
+      "An outer text object for a top level sexp (defun)."
+      (if (evil-cp--inside-form-p)
+          (let ((bounds (evil-cp--top-level-bounds)))
+            (evil-range (car bounds) (cdr bounds) 'inclusive :expanded t))
+        (error "Not inside a sexp.")))
+
+    (evil-define-text-object evil-cp-inner-defun (count &optional beg end type)
+      "An inner text object for a top level sexp (defun)."
+      (if (evil-cp--inside-form-p)
+          (let ((bounds (evil-cp--top-level-bounds)))
+            (evil-range (1+ (car bounds)) (1- (cdr bounds)) 'inclusive :expanded t))
+        (error "Not inside a sexp.")))
+    
+    (define-key evil-outer-text-objects-map "f" #'evil-cp-a-defun)
+    (define-key evil-inner-text-objects-map "f" #'evil-cp-inner-defun)
+    )
   )
 #+end_src
 
@@ -1243,6 +1259,7 @@ Keybindings:
   
 #+begin_src emacs-lisp
 (use-package evil-iedit-state
+  :straight (evil-iedit-state :type git :host github :repo "kassick/evil-iedit-state" :branch "master")
   :general
   (lc/leader-keys
 		"s e" '(evil-iedit-state/iedit-mode :wk "iedit")
@@ -1413,7 +1430,8 @@ Interesting bits:
   ;; latex
   ;; (setq org-latex-compiler "xelatex")
   ;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
-  (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
+  ;; (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
+  (setq org-latex-pdf-process '("tectonic %f"))
   (add-to-list 'org-export-backends 'beamer)
   (plist-put org-format-latex-options :scale 1.5)
   )
@@ -1747,7 +1765,7 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
-     (ledger . t)
+     ;; (ledger . t)
      (shell . t)))
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
   )
@@ -2070,6 +2088,7 @@ Taken from DOOM:
 ** exporters                                                     :org_export:
 :PROPERTIES:
 :CUSTOM_ID: h:EB525EBF-91AA-4A9F-8D49-5D1DFFE670FB
+:header-args:    :emacs-lisp :tangle ./lisp/init-org-export.el
 :END:
 *** org-html-themify
 :PROPERTIES:
@@ -2330,9 +2349,10 @@ Adding it as a ~after-save-hook~  automatically adds a ~CUSTOM_ID~ to newly crea
   )
 #+end_src
 
-** org-roam
+** org-roam                                                        :org_roam:
 :PROPERTIES:
 :CUSTOM_ID: h:175B1F5E-17E0-4D19-86CE-9577FBC6609B
+:header-args: :emacs-lisp :tangle ./lisp/init-org-roam.el
 :END:
 To set up roam:
 - =ln -s ~/OneDrive/.../worknotes ~/roam/work=
@@ -2344,22 +2364,14 @@ To set up roam:
 #+begin_src emacs-lisp
 (use-package org-roam
   :after org
-  :demand
   :init
   (setq org-roam-directory (file-truename "~/roam"))
   (setq org-roam-v2-ack t)
   (setq org-roam-capture-templates
         '(("d" "default" plain "%?" :target
-           ;; (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           (file+head "C:/Users/cambiaghi luca/roam/personal/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           ;; (file+head "C:/Users/cambiaghi luca/iCloudDrive/iCloud~com~appsonthemove~beorg/org/roam/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           ;; (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           :unnarrowed t)
+           (file+head "personal/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n") :unnarrowed t)
           ("w" "work" plain "%?" :target
-           (file+head "C:/Users/cambiaghi luca/roam/work/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           ;; (file+head "c:/Users/cambiaghi luca/Egnyte/Private/cambiaghi.luca/worknotes/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           :unnarrowed t)
-          ))
+           (file+head "work/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n") :unnarrowed t)))
   :general
   (general-nmap
     "SPC n b" 'org-roam-buffer-toggle
@@ -2445,6 +2457,7 @@ We use this hook to switch from light to dark theme.
         modus-themes-fringes 'nil ; {nil,'subtle,'intense}
         modus-themes-mode-line '3d ; {nil,'3d,'moody}
         modus-themes-intense-hl-line nil
+        modus-themes-mixed-fonts t
         modus-themes-prompts nil ; {nil,'subtle,'intense}
         modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
         modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
@@ -2489,13 +2502,15 @@ We use this hook to switch from light to dark theme.
     )
   (defun lc/load-dark-theme ()
     (setq lc/theme 'dark)
-    (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "whitesmoke"))
+    ;; (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "whitesmoke"))
+    (with-eval-after-load 'org (plist-put org-format-latex-options :background "Transparent"))
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-vivendi) (dark . modus-vivendi))))
     (modus-themes-load-vivendi))
   (defun lc/load-light-theme ()
     (setq lc/theme 'light)
-    (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "dark"))
+    ;; (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "dark"))
+    (with-eval-after-load 'org (plist-put org-format-latex-options :background  "Transparent"))
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-operandi) (dark . modus-operandi))))
     (setenv "BAT_THEME" "ansi")
@@ -2671,12 +2686,14 @@ We use this hook to switch from light to dark theme.
 :END:
 Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 #+begin_src emacs-lisp
-(setq display-buffer-alist
-      `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
-         (display-buffer-reuse-mode-window display-buffer-below-selected)
-         (window-height . 0.33)
-         (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
-
+(use-package emacs
+  :init
+  (setq display-buffer-alist
+        `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
+           (display-buffer-reuse-mode-window display-buffer-below-selected)
+           (window-height . 0.33)
+           (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+  )
 ;; reuse existing windows
 ;; (setq display-buffer-alist
 ;;       '((".*"
@@ -2689,6 +2706,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 ** centered cursor mode                                            :ui_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:26FC27A5-5E20-4440-BA86-48FAA8707D00
+:header-args:    :emacs-lisp :tangle ./lisp/init-ui-extra.el
 :END:
 #+begin_src emacs-lisp
 (use-package centered-cursor-mode
@@ -2702,6 +2720,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 ** hide mode line                                                  :ui_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:89BB7025-084D-4465-897D-C731EB02161A
+:header-args:    :emacs-lisp :tangle ./lisp/init-ui-extra.el
 :END:
 #+begin_src emacs-lisp
   (use-package hide-mode-line
@@ -2711,6 +2730,7 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 ** winum                                                           :ui_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:991499E8-6FF8-41DB-B533-6D627602DFD4
+:header-args:    :emacs-lisp :tangle ./lisp/init-ui-extra.el
 :END:
 #+begin_src emacs-lisp
 (use-package winum
@@ -2726,13 +2746,14 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 ** transpose frame                                                 :ui_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:9E3C0942-1D8C-403F-9D44-5BEDA2966C58
+:header-args:    :emacs-lisp :tangle ./lisp/init-ui-extra.el
 :END:
 #+begin_src emacs-lisp
-  (use-package transpose-frame
-    :general
-    (lc/leader-keys
-      "w t" '(transpose-frame :wk "transpose")
-      "w f" '(rotate-frame :wk "flip")))
+(use-package transpose-frame
+  :general
+  (lc/leader-keys
+    "w t" '(transpose-frame :wk "transpose")
+    "w f" '(rotate-frame :wk "flip")))
 #+end_src
 
 ** Fill column indicator
@@ -2886,10 +2907,12 @@ The theme defintion gets saved in ~custom-theme-directory~.
 #+end_src
 
 #+begin_src emacs-lisp
-(unless (> (display-color-cells) 8)
-  (setq custom-theme-directory (concat user-emacs-directory "themes"))
-  (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
-	)
+(use-package emacs
+  :init
+  (unless (> (display-color-cells) 8)
+    (setq custom-theme-directory (concat user-emacs-directory "themes"))
+    (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
+    ))
 #+end_src
 
 ** COMMENT Fancy titlebar for macOS
@@ -3004,24 +3027,16 @@ You can use ~insert-char~ to insert the emoji or ~emojify-insert-emoji~
    "C-l" #'embark-act
    )
   (:keymaps 'embark-file-map "o" 'find-file-other-window)	
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
   :config
   ;; For Selectrum users:
-  (defun current-candidate+category ()
-    (when selectrum-active-p
-      (cons (selectrum--get-meta 'category)
-            (selectrum-get-current-candidate))))
-
-  (add-hook 'embark-target-finders #'current-candidate+category)
-
-  (defun current-candidates+category ()
-    (when selectrum-active-p
-      (cons (selectrum--get-meta 'category)
-            (selectrum-get-current-candidates
-             ;; Pass relative file names for dired.
-             minibuffer-completing-file-name))))
-
-  (add-hook 'embark-candidate-collectors #'current-candidates+category)
-
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none))))
   ;; No unnecessary computation delay after injection.
   (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
   )
@@ -3067,7 +3082,8 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
     "b b" 'consult-buffer
     ;; TODO consult mark
     "f r" 'consult-recent-file
-    "s !" '(consult-flymake :wk "flymake"))
+    ;; "s !" '(consult-flymake :wk "flymake")
+		)
   :init
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)	
@@ -3109,11 +3125,10 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
 	)
 #+end_src
 
-** TODO vertico
+** COMMENT vertico
 :PROPERTIES:
 :CUSTOM_ID: h:CAEABB84-0DAE-41CB-B08B-A77B956B991E
 :END:
-This package is somehow needed to do ~consult-ripgrep~, otherwise I get an error.
 #+begin_src emacs-lisp
 (use-package vertico
 	:straight (vertico :type git :host github :repo "minad/vertico")
@@ -3319,7 +3334,7 @@ Taken from DOOM
   )
 #+end_src
 
-** COMMENT corfu
+** corfu
 :PROPERTIES:
 :CUSTOM_ID: h:A2B7EF59-9D10-4C12-98D1-9F569EF9BE38
 :END:
@@ -3327,27 +3342,41 @@ Taken from DOOM
 ;; Configure corfu
 (use-package corfu
   :straight (corfu :type git :host github :repo "minad/corfu")
-  :hook (after-init . corfu-global-mode)
+  ;; :hook (after-init . corfu-global-mode)
+  :hook ((prog-mode . corfu-mode)
+         (org-mode . corfu-mode))
+  :bind
+  (:map corfu-map
+        ("C-j" . corfu-next)
+        ("C-k" . corfu-previous))
   :general
-  (corfu-map
-   :states 'insert
-   "C-g" 'corfu-abort
-   "C-j" 'corfu-next
-   "C-k" 'corfu-previous
-   )
-  ;; :hook ((prog-mode . corfu-mode)
-  ;;        (org-mode . corfu-mode))
-  ;; :config
-  ;; (add-to-list 'corfu--frame-parameters '(tab-bar-lines . 0))
-  ;; (defun lc/disable-tabs (orig-fn &rest args)
-  ;;   (progn (centaur-tabs-local-mode) (apply orig-fn args)))
-  ;; (defun lc/reenable-tabs (orig-fn &rest args)
-  ;;   (progn (centaur-tabs-local-mode -1) (apply orig-fn args)))
-  ;; (advice-add 'corfu--popup-show :around #'lc/disable-tabs)
-  ;; (advice-add 'corfu--popup-hide :around #'lc/reenable-tabs)
-  ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
-  ;; (setq corfu-cycle t)
+  (evil-insert-state-map "C-k" nil)
+  :init
+  (setq corfu-auto t)                 ;; Enable auto completion
+  (setq corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  ;; :custom
+  ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
+  ;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
+  ;; (corfu-quit-no-match t)        ;; Automatically quit if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect-first nil)    ;; Disable candidate preselection
+  ;; (corfu-echo-documentation nil) ;; Disable documentation in the echo area
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
   )
+#+end_src
+
+** kind-icon
+:PROPERTIES:
+:CUSTOM_ID: h:713949BB-4722-41EB-A86A-64A7A8531DE6
+:END:
+#+begin_src emacs-lisp
+(use-package kind-icon
+  :straight (kind-icon :type git :host github :repo "jdtsmith/kind-icon")
+  :after corfu
+  :init
+  (setq kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src
 
 * Programming
@@ -3705,13 +3734,11 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
 ** emacs tree-sitter                                            :tree_sitter:
 :PROPERTIES:
 :CUSTOM_ID: h:1FD9CDF3-4C5D-450E-99DE-034077C3D8BC
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-tree-sitter.el
 :END:
 #+BEGIN_SRC emacs-lisp
-(use-package tsc
-  :straight (tsc :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
-
 (use-package tree-sitter
-  :straight (tree-sitter :host github :repo "ubolonton/emacs-tree-sitter" :depth full)
+  ;; :straight (tree-sitter :host github :repo "ubolonton/emacs-tree-sitter" :depth full)
   :hook (python-mode . (lambda ()
                          (require 'tree-sitter)
                          (require 'tree-sitter-langs)
@@ -3719,8 +3746,7 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
                          (tree-sitter-hl-mode)
                          )))
 
-(use-package tree-sitter-langs
-  :straight (tree-sitter-langs :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
+(use-package tree-sitter-langs)
 #+END_SRC
 
 ** envrc                                                             :direnv:
@@ -4385,6 +4411,7 @@ You can use ~consult-history~ to browse past searches
 ** lsp mode                                                             :lsp:
 :PROPERTIES:
 :CUSTOM_ID: h:28CB5546-FBE4-481D-B620-623006DC0FDA
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-lsp.el
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
@@ -4413,13 +4440,14 @@ You can use ~consult-history~ to browse past searches
   (setq lsp-keep-workspace-alive nil)
   (setq lsp-auto-execute-action nil)
   (setq lsp-before-save-edits nil)
-  (setq lsp-diagnostics-provider :flymake)
+  (setq lsp-diagnostics-provider :none)
   )
 #+END_SRC
 
 ** lsp-ui                                                               :lsp:
 :PROPERTIES:
 :CUSTOM_ID: h:B69B077F-B96E-4A86-859D-A3D29547D39C
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-lsp.el
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-ui
@@ -4450,15 +4478,16 @@ You can use ~consult-history~ to browse past searches
   )
 #+END_SRC
 
-** dap-mode                                                             :dap:
+** dap-mode                                                             :lsp:
 :PROPERTIES:
 :CUSTOM_ID: h:85405E87-7858-4F5C-A229-B72E70F68597
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-lsp.el
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package dap-mode
   :hook
   ((dap-terminated . lc/hide-debug-windows)
-	 (dap-ui-repl-mode . (lambda () (setq-local truncate-lines t))))
+   (dap-ui-repl-mode . (lambda () (setq-local truncate-lines t))))
   :general
   (lc/local-leader-keys
     :keymaps 'python-mode-map
@@ -4470,10 +4499,18 @@ You can use ~consult-history~ to browse past searches
     "d i" '(dap-step-in :wk "step in")
     "d q" '(dap-disconnect :wk "quit")
     "d r" '(dap-ui-repl :wk "repl")
-    "d h" '(dap-hydra :wk "hydra"))
-	(:keymaps 'dap-ui-repl-mode-map
-	 "TAB" 'lc/py-indent-or-complete)
+    "d h" '(dap-hydra :wk "hydra")
+    "d v" '(lc/dap-inspect-df :wk "view df")
+    )
+  (:keymaps 'dap-ui-repl-mode-map
+            "TAB" 'lc/py-indent-or-complete)
   :init
+  (defun lc/dap-inspect-df (dataframe)
+    (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
+    (progn
+      (dap-eval (concat dataframe ".to_csv('~/tmp.csv')"))
+      (find-file-other-window "~/tmp.csv")
+      ))
   ;; (setq dap-auto-configure-features '(locals repl))
   (setq dap-auto-configure-features '(repl))
   (setq dap-python-debugger 'debugpy)
@@ -4544,15 +4581,21 @@ You can use ~consult-history~ to browse past searches
 ** Python                                                            :python:
 :PROPERTIES:
 :CUSTOM_ID: h:541B5295-9C9C-4138-8A42-EA8DC9D4FD87
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-python.el
 :END:
 *** python mode
 :PROPERTIES:
 :CUSTOM_ID: h:95658AC9-ADFE-4134-81C4-DEC01069B716
 :END:
+NOTE:
+- In a python buffer use =run-python= to start an inferior python process
+- Use eval operator so eval lines with =grr=
+
 #+BEGIN_SRC emacs-lisp
 (use-package python-mode
-  :hook ((envrc-mode . (lambda ()
-                         (when (executable-find "ipython")
+  :hook
+	((envrc-mode . (lambda ()
+									 (when (executable-find "ipython")
                            (setq python-shell-interpreter (executable-find "ipython"))))))
   :general
   (python-mode-map
@@ -4561,8 +4604,7 @@ You can use ~consult-history~ to browse past searches
    "C-j" nil)
   (python-mode-map
    :states 'insert
-   "TAB" 'lc/py-indent-or-complete
-   )
+   "TAB" 'lc/py-indent-or-complete)
   :init
   (setq python-indent-offset 0)
   (defun lc/py-indent-or-complete ()
@@ -4581,15 +4623,15 @@ You can use ~consult-history~ to browse past searches
           (t
            (completion-at-point))))
   :config
-  (setq python-shell-interpreter (executable-find "ipython")     ;; FIXME
-        python-shell-interpreter-args "-i --simple-prompt --no-color-info"
+  (setq python-shell-interpreter-args "-i --simple-prompt --no-color-info"
         python-shell-prompt-regexp "In \\[[0-9]+\\]: "
         python-shell-prompt-block-regexp "\\.\\.\\.\\.: "
         python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
         python-shell-completion-setup-code
         "from IPython.core.completerlib import module_completion"
         python-shell-completion-string-code
-        "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"))
+        "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+	)
 #+END_SRC
 
 *** lsp-pyright
@@ -4630,21 +4672,45 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
   )
 #+end_src
 
-*** flymake 
+*** COMMENT flymake 
 :PROPERTIES:
 :CUSTOM_ID: h:F49B684F-1911-45E1-99AB-79EB14913FFC
 :END:
+Disabled ~flymake~ as I can't find a way to make it work with ~flake8~ on a python project. Switched to ~flycheck~ instead.
 #+begin_src emacs-lisp
 (use-package flymake
   :straight (:type built-in)
-  :hook (emacs-lisp-mode . flymake-mode)
+  :hook ((emacs-lisp-mode . flymake-mode)
+				 (python-mode . (lambda () 
+													(when (executable-find "flake8")
+														(require 'python)
+														(setq python-flymake-command (executable-find "flake8"))
+														(setq flymake-diagnostic-functions '(python-flymake t))
+														))))
   :init
-  (setq python-flymake-command (executable-find "flake8"))
+	;; (setq python-flymake-command '("flake8" "--ignore=E402,F401" "-"))
   (setq flymake-fringe-indicator-position 'right-fringe)
   :general
   (general-nmap "] !" 'flymake-goto-next-error)
   (general-nmap "[ !" 'flymake-goto-prev-error)
   )
+#+end_src
+
+*** flycheck
+:PROPERTIES:
+:CUSTOM_ID: h:A98624AB-1B3D-47A2-873F-E961FDE431D9
+:END:
+~flycheck-verify-setup~ is your best friend.
+#+begin_src emacs-lisp
+(use-package flycheck
+	:hook ((lsp-mode . flycheck-mode)
+				 (envrc-mode . (lambda ()
+                        (setq flycheck-python-flake8-executable (executable-find "python"))
+												(setq flycheck-checker 'python-flake8)
+												)))
+	:init
+	(setq flycheck-indication-mode 'right-fringe)
+)
 #+end_src
 
 *** jupyter
@@ -4675,10 +4741,10 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
     "e b" '((lambda () (interactive) (lc/jupyter-eval-buffer)) :wk "buffer")
     "J" '(lc/jupyter-repl :wk "jupyter REPL")
     "k" '(:ignore true :wk "kernel"))
-  (lc/local-leader-keys
-    :keymaps 'python-mode-map
-    :states 'visual
-    "e" '(jupyter-eval-region :wk "eval"))
+  ;; (lc/local-leader-keys
+  ;;   :keymaps 'python-mode-map
+  ;;   :states 'visual
+  ;;   "e" '(jupyter-eval-region :wk "eval"))
 	(lc/local-leader-keys
     :keymaps 'jupyter-org-interaction-mode-map
     :states 'normal
@@ -4823,6 +4889,29 @@ We can avoid evaluation of code with:
 	:mode "\\.toml\\'")
 #+end_src
 
+*** csv mode
+:PROPERTIES:
+:CUSTOM_ID: h:A0F0925F-11FB-43A8-8E26-A068FD70D7D0
+:END:
+#+begin_src emacs-lisp
+(use-package csv-mode
+	:hook (csv-mode . csv-align-visible)
+  :general
+  (lc/local-leader-keys
+    :keymaps 'csv-mode-map
+    :states 'normal
+    "a" '(csv-align-visible :wk "align visible")
+    "s" '(csv-sort-fields :wk "sort fields")
+    )
+  :init
+  (defun csv-align-visible (&optional arg)
+    "Align visible fields"
+    (interactive "P")
+    (csv-align-fields nil (window-start) (window-end))
+    )
+  )
+#+end_src
+
 ** R                                                                      :R:
 :PROPERTIES:
 :CUSTOM_ID: h:74BD1AAB-0C5A-4BF2-927E-D11FEEA4C08A
@@ -4907,10 +4996,26 @@ We can avoid evaluation of code with:
 	)
 #+end_src
 
-** emacs-lisp
+** emacs-lisp                                                    :prog_elisp:
 :PROPERTIES:
 :CUSTOM_ID: h:6956B874-2F21-42A1-8343-C4BF7B1123C9
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-elisp.el
 :END:
+*** emacs-lisp-mode
+:PROPERTIES:
+:CUSTOM_ID: h:96EF892B-7F9F-4F69-B72C-C01F011A054D
+:END:
+#+begin_src emacs-lisp
+(use-package emacs
+  :straight (:type built-in)
+	:general
+	(general-nmap
+		:keymaps 'emacs-lisp-mode-map
+    :states 'normal
+   "gr" nil) ;; interferes with eval-operator
+	)
+#+end_src
+
 *** evil-lisp state
 :PROPERTIES:
 :CUSTOM_ID: h:C59E740E-F00B-4D2F-B5A3-36C3B99BCD5E
@@ -4950,23 +5055,33 @@ We can avoid evaluation of code with:
   (lc/local-leader-keys
     :keymaps '(org-mode-map emacs-lisp-mode-map lisp-interaction-mode-map)
     :states 'visual
-    "e" '((lambda (start end)
-            (interactive (list (region-beginning) (region-end)))
-            (eval-region start end t))
-          :wk "region")
+    ;; "e" '((lambda (start end)
+    ;;         (interactive (list (region-beginning) (region-end)))
+    ;;         (eval-region start end t))
+    ;;       :wk "region")
     ;; "e" '((lambda (start end)
     ;;         (interactive (list (region-beginning) (region-end)))
     ;;         (eros--eval-overlay
-    ;;          (eval-region start end t)
+    ;;          (eval-region start end)
     ;;          end))
     ;;       :wk "region")
+		"e" '(eros-eval-region :wk "region")
     )
+	:init
+  (defun eros-eval-region (start end)
+    (interactive "r")
+    (eros--eval-overlay
+     (string-trim
+      (with-output-to-string
+        (eval-region start end standard-output)))
+     (max (point) (mark))))
   )
 #+end_src
 
-** Nix                                                                  :nix:
+** Nix                                                                  :prog_nix:
 :PROPERTIES:
 :CUSTOM_ID: h:88E57F7B-DA1F-4BC1-BAD3-5BA459D054B7
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-nix.el
 :END:
 *** nix mode
 :PROPERTIES:
@@ -5047,7 +5162,7 @@ We can avoid evaluation of code with:
   )
 #+end_src
 
-*** TODO Eval sexp at point
+*** COMMENT Eval sexp at point
 :PROPERTIES:
 :CUSTOM_ID: h:D23F2C41-0162-4E11-A052-17B37B48AF2D
 :END:
@@ -5241,6 +5356,76 @@ Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
 ;;; init-core.el ends here
 #+end_src
 
+** init-ui-extras
+:PROPERTIES:
+:CUSTOM_ID: h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A
+:header-args:    :emacs-lisp :tangle ./lisp/init-ui-extra.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-ui-extra)
+;;; init-ui-extra.el ends here
+#+end_src
+
+** init-prog-tree-sitter
+:PROPERTIES:
+:CUSTOM_ID: h:A646A19B-12BC-4B95-A592-BCB640E10659
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-tree-sitter.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-tree-sitter)
+;;; init-prog-tree-sitter.el ends here
+#+end_src
+
+** init-prog-nix
+:PROPERTIES:
+:CUSTOM_ID: h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-nix.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-nix)
+;;; init-prog-nix.el ends here
+#+end_src
+
+** init-prog-lsp
+:PROPERTIES:
+:CUSTOM_ID: h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-lsp.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-lsp)
+;;; init-prog-lsp.el ends here
+#+end_src
+
+** init-python
+:PROPERTIES:
+:CUSTOM_ID: h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-python.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-python)
+;;; init-prog-python.el ends here
+#+end_src
+
+** init-org-roam
+:PROPERTIES:
+:CUSTOM_ID: h:8C169B84-C560-42FB-8A12-F052E4685ECB
+:header-args:    :emacs-lisp :tangle ./lisp/init-org-roam.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-org-roam)
+;;; init-org-roam.el ends here
+#+end_src
+
+** init-prog-elisp
+:PROPERTIES:
+:CUSTOM_ID: h:6F1A571B-D934-4CF8-BE66-3363F695B7B5
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-elisp.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-elisp)
+;;; init-org-prog-elisp.el ends here
+#+end_src
+
 ** init-extras
 :PROPERTIES:
 :CUSTOM_ID: h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A
@@ -5309,7 +5494,7 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
 #+begin_src emacs-lisp
 (defun lc/jupyter-df-to-tsv (dataframe)
 	(thread-last
-			(jupyter-eval (concat "df" ".to_csv(sep='\t')"))
+		(jupyter-eval (concat "df" ".to_csv(sep='\t')"))
 		(string-replace "'" "")
 		;; (subst-char-in-string ?\\ ?\\ )
 		;; (string-replace "\\t" "t")
@@ -5318,7 +5503,29 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
 (defun lc/dap-eval (expression)
 	(dap-eval expression)
 	(sleep-for 2)
-	(substring (lc/last-message) 4 -1))
+	)
+
+(defun lc/dap-eval (expression)
+  "Eval and print EXPRESSION."
+  (interactive "sEval: ")
+  (let* ((debug-session (dap--cur-active-session-or-die))
+				 (active-frame-id (-some->> debug-session
+                            dap--debug-session-active-frame
+                            (gethash "id")))
+				 (result (dap--send-message
+									(dap--make-request "evaluate"
+																		 (list :expression expression
+																					 :frameId active-frame-id
+																					 :context "hover"
+																					 ))
+									(lambda (res) (setf result (or res :finished)))
+									debug-session)))
+		(while (not result)
+			(accept-process-output nil 0.001))
+    (thread-first
+      (gethash "result" (gethash "body" result))
+      (substring 4 -1)
+      )))
 
 (defun lc/dap-df-to-tsv (dataframe)
 	(lc/dap-eval (concat dataframe ".to_csv(sep='\t')")))
@@ -5328,7 +5535,7 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
 	;; (interactive "sVariable: ")
 	(let ((buffer (get-buffer-create
 								 (generate-new-buffer-name "*ein:ses pandas*")))
-				(tsv (lc/jupyter-df-to-tsv dataframe)))
+				(tsv (lc/dap-df-to-tsv dataframe)))
 		;; Open `ses-mode' buffer
 		(with-current-buffer buffer
 			(ses-mode)

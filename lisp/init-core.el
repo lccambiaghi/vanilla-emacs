@@ -119,7 +119,7 @@
     :type 'string
     :group 'lc)
 
-  (defcustom lc/variable-pitch-font-family "Sans Serif"  ;;"cantarell"
+  (defcustom lc/variable-pitch-font-family "Sans Serif" ;; "cantarell" ;; 
     "Variable pitch font family"
     :type 'string
     :group 'lc)
@@ -472,11 +472,11 @@ size. This function also handles icons and modeline font sizes."
 (use-package evil
   :config
   (defcustom evil-extra-operator-eval-modes-alist
-    '(;; (emacs-lisp eval-region)
+    '((emacs-lisp-mode eros-eval-region)
       ;; (scheme-mode geiser-eval-region)
       (clojure-mode cider-eval-region)
 			(jupyter-python jupyter-eval-region) ;; when executing in src block
-      (python-mode jupyter-eval-region) ;; when executing in org-src-edit mode
+      (python-mode python-shell-send-region) ;; when executing in org-src-edit mode
       )
     "Alist used to determine evil-operator-eval's behaviour.
 Each element of this alist should be of this form:
@@ -555,21 +555,32 @@ be passed to EVAL-FUNC as its rest arguments"
 	)
 
 (use-package evil-cleverparens
-  :hook
-  ((emacs-lisp-mode . evil-cleverparens-mode)
-   (clojure-mode . evil-cleverparens-mode))
+	:after evil
+  :hook (emacs-lisp-mode . lc/init-cleverparens)
   :init
-  (setq evil-move-beyond-eol t
-        evil-cleverparens-use-additional-bindings nil
-        evil-cleverparens-use-s-and-S nil
-        ;; evil-cleverparens-swap-move-by-word-and-symbol t
-        ;; evil-cleverparens-use-regular-insert t
-        )
-  ;; :config
-  ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+  (defun lc/init-cleverparens ()
+    (require 'evil-cleverparens-util)
+    (evil-define-text-object evil-cp-a-defun (count &optional beg end type)
+      "An outer text object for a top level sexp (defun)."
+      (if (evil-cp--inside-form-p)
+          (let ((bounds (evil-cp--top-level-bounds)))
+            (evil-range (car bounds) (cdr bounds) 'inclusive :expanded t))
+        (error "Not inside a sexp.")))
+
+    (evil-define-text-object evil-cp-inner-defun (count &optional beg end type)
+      "An inner text object for a top level sexp (defun)."
+      (if (evil-cp--inside-form-p)
+          (let ((bounds (evil-cp--top-level-bounds)))
+            (evil-range (1+ (car bounds)) (1- (cdr bounds)) 'inclusive :expanded t))
+        (error "Not inside a sexp.")))
+    
+    (define-key evil-outer-text-objects-map "f" #'evil-cp-a-defun)
+    (define-key evil-inner-text-objects-map "f" #'evil-cp-inner-defun)
+    )
   )
 
 (use-package evil-iedit-state
+  :straight (evil-iedit-state :type git :host github :repo "kassick/evil-iedit-state" :branch "master")
   :general
   (lc/leader-keys
 		"s e" '(evil-iedit-state/iedit-mode :wk "iedit")
@@ -702,7 +713,8 @@ be passed to EVAL-FUNC as its rest arguments"
   ;; latex
   ;; (setq org-latex-compiler "xelatex")
   ;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
-  (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
+  ;; (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
+  (setq org-latex-pdf-process '("tectonic %f"))
   (add-to-list 'org-export-backends 'beamer)
   (plist-put org-format-latex-options :scale 1.5)
   )
@@ -968,7 +980,7 @@ asynchronously."
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
-     (ledger . t)
+     ;; (ledger . t)
      (shell . t)))
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
   )
@@ -1261,49 +1273,6 @@ asynchronously."
             (org-element-property :begin context)
             (org-element-property :end context))))))))
 
-(use-package org-html-themify
-	:after modus-themes
-  :straight
-  (org-html-themify
-   :type git
-   :host github
-   :repo "DogLooksGood/org-html-themify"
-   :files ("*.el" "*.js" "*.css"))
-  :hook (org-mode . org-html-themify-mode)
-  :config
-  ;; otherwise it complains about invalid face
-  (require 'hl-line)
-  )
-
-(use-package ox-gfm
-	:commands (org-gfm-export-as-markdown org-gfm-export-to-markdown)
-	:after org
-	)
-
-(use-package ox-ipynb
-  :straight (ox-ipynb :type git :host github :repo "jkitchin/ox-ipynb")
-	:commands (ox-ipynb-export-org-file-to-ipynb-file))
-
-(use-package org-re-reveal
-  :after org
-  :init
-  ;; (setq org-re-reveal-root (expand-file-name "../../" (locate-library "dist/reveal.js" t))
-  ;;       org-re-reveal-revealjs-version "4")
-  (setq org-re-reveal-root "./reveal.js"
-        org-re-reveal-revealjs-version "3.8"
-        org-re-reveal-external-plugins  '((progress . "{ src: '%s/plugin/toc-progress/toc-progress.js', async: true, callback: function() { toc_progress.initialize(); toc_progress.create();} }"))
-        ))
-
-(use-package weblorg)
-
-(use-package templatel)
-
-(use-package htmlize)
-
-(use-package ox-altacv
-  :straight (ox-altacv :type git :host github :repo "lccambiaghi/org-cv")
-  :config (require 'ox-altacv))
-
 (use-package org-appear
   :straight (org-appear :type git :host github :repo "awth13/org-appear")
 	:hook (org-mode . org-appear-mode)
@@ -1398,51 +1367,6 @@ asynchronously."
     )
   )
 
-(use-package org-roam
-  :after org
-  :demand
-  :init
-  (setq org-roam-directory (file-truename "~/roam"))
-  (setq org-roam-v2-ack t)
-  (setq org-roam-capture-templates
-        '(("d" "default" plain "%?" :target
-           ;; (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           (file+head "C:/Users/cambiaghi luca/roam/personal/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           ;; (file+head "C:/Users/cambiaghi luca/iCloudDrive/iCloud~com~appsonthemove~beorg/org/roam/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           ;; (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           :unnarrowed t)
-          ("w" "work" plain "%?" :target
-           (file+head "C:/Users/cambiaghi luca/roam/work/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           ;; (file+head "c:/Users/cambiaghi luca/Egnyte/Private/cambiaghi.luca/worknotes/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-           :unnarrowed t)
-          ))
-  :general
-  (general-nmap
-    "SPC n b" 'org-roam-buffer-toggle
-    "SPC n f" 'org-roam-node-find
-    "SPC n g" 'org-roam-graph
-    "SPC n i" 'org-roam-node-insert
-    "SPC n c" 'org-roam-capture
-    "SPC n t" 'org-roam-tag-add
-    "SPC n r" 'org-roam-ref-add
-    "SPC n a" 'org-roam-alias-add
-    ;; Dailies
-    "SPC n j" 'org-roam-dailies-capture-today
-    "SPC n J" 'org-roam-dailies-goto-today
-    )
-  :config
-  (org-roam-setup)
-  ;; If using org-roam-protocol
-  ;; (require 'org-roam-protocol)
-  (add-to-list 'display-buffer-alist
-               '(("*org-roam*"
-                  (display-buffer-in-direction)
-                  (direction . right)
-                  (window-width . 0.33)
-                  (window-height . fit-window-to-buffer))))
-  
-  )
-
 (use-package all-the-icons
 	:if (not lc/is-ipad)
 	)
@@ -1474,6 +1398,7 @@ asynchronously."
         modus-themes-fringes 'nil ; {nil,'subtle,'intense}
         modus-themes-mode-line '3d ; {nil,'3d,'moody}
         modus-themes-intense-hl-line nil
+        modus-themes-mixed-fonts t
         modus-themes-prompts nil ; {nil,'subtle,'intense}
         modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
         modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
@@ -1518,13 +1443,15 @@ asynchronously."
     )
   (defun lc/load-dark-theme ()
     (setq lc/theme 'dark)
-    (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "whitesmoke"))
+    ;; (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "whitesmoke"))
+    (with-eval-after-load 'org (plist-put org-format-latex-options :background "Transparent"))
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-vivendi) (dark . modus-vivendi))))
     (modus-themes-load-vivendi))
   (defun lc/load-light-theme ()
     (setq lc/theme 'light)
-    (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "dark"))
+    ;; (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "dark"))
+    (with-eval-after-load 'org (plist-put org-format-latex-options :background  "Transparent"))
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-operandi) (dark . modus-operandi))))
     (setenv "BAT_THEME" "ansi")
@@ -1681,12 +1608,14 @@ asynchronously."
   (centaur-tabs-group-by-projectile-project)
   )
 
-(setq display-buffer-alist
-      `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
-         (display-buffer-reuse-mode-window display-buffer-below-selected)
-         (window-height . 0.33)
-         (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
-
+(use-package emacs
+  :init
+  (setq display-buffer-alist
+        `((,(rx bos (or "*Apropos*" "*Help*" "*helpful" "*info*" "*Summary*") (0+ not-newline))
+           (display-buffer-reuse-mode-window display-buffer-below-selected)
+           (window-height . 0.33)
+           (mode apropos-mode help-mode helpful-mode Info-mode Man-mode))))
+  )
 ;; reuse existing windows
 ;; (setq display-buffer-alist
 ;;       '((".*"
@@ -1694,31 +1623,6 @@ asynchronously."
 ;;          (reusable-frames . t))))
 
 ;; (setq even-window-sizes nil)  ; display-buffer hint: avoid resizing
-
-(use-package centered-cursor-mode
-  :general
-	(lc/leader-keys
-		"t =" '((lambda () (interactive) (centered-cursor-mode 'toggle)) :wk "center cursor")
-		)
-	)
-
-(use-package hide-mode-line
-  :commands (hide-mode-line-mode))
-
-(use-package winum
-:general
-(lc/leader-keys
-"1" '(winum-select-window-1 :wk "win 1")
-"2" '(winum-select-window-2 :wk "win 2")
-"3" '(winum-select-window-3 :wk "win 3"))
-:config
-(winum-mode))
-
-(use-package transpose-frame
-  :general
-  (lc/leader-keys
-    "w t" '(transpose-frame :wk "transpose")
-    "w f" '(rotate-frame :wk "flip")))
 
 (use-package display-fill-column-indicator
   :straight (:type built-in)
@@ -1789,10 +1693,12 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 								 (add-hook 'doom-switch-window-hook #'doom--enlargened-forget-last-wconf-h)))))))))
 	)
 
-(unless (> (display-color-cells) 8)
-  (setq custom-theme-directory (concat user-emacs-directory "themes"))
-  (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
-	)
+(use-package emacs
+  :init
+  (unless (> (display-color-cells) 8)
+    (setq custom-theme-directory (concat user-emacs-directory "themes"))
+    (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
+    ))
 
 (use-package selectrum
   :demand
@@ -1824,24 +1730,16 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
    "C-l" #'embark-act
    )
   (:keymaps 'embark-file-map "o" 'find-file-other-window)	
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
   :config
   ;; For Selectrum users:
-  (defun current-candidate+category ()
-    (when selectrum-active-p
-      (cons (selectrum--get-meta 'category)
-            (selectrum-get-current-candidate))))
-
-  (add-hook 'embark-target-finders #'current-candidate+category)
-
-  (defun current-candidates+category ()
-    (when selectrum-active-p
-      (cons (selectrum--get-meta 'category)
-            (selectrum-get-current-candidates
-             ;; Pass relative file names for dired.
-             minibuffer-completing-file-name))))
-
-  (add-hook 'embark-candidate-collectors #'current-candidates+category)
-
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none))))
   ;; No unnecessary computation delay after injection.
   (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
   )
@@ -1869,7 +1767,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "b b" 'consult-buffer
     ;; TODO consult mark
     "f r" 'consult-recent-file
-    "s !" '(consult-flymake :wk "flymake"))
+    ;; "s !" '(consult-flymake :wk "flymake")
+		)
   :init
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)	
@@ -1898,34 +1797,43 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;; (embark-collect-mode . embark-consult-preview-minor-mode)
 	)
 
-(use-package vertico
-	:straight (vertico :type git :host github :repo "minad/vertico")
-	:demand
-  ;; :bind (:map vertico-map
-  ;;        ("C-j" . vertico-next)
-  ;;        ("C-k" . vertico-previous)
-  ;;        ("<escape>" . vertico-exit))
-  ;; :init
-  ;; (vertico-mode)
-	)
-
-;; TODO: replace prescient with this?
-;; (use-package savehist
-;;   :init
-;;   (savehist-mode))
-
-;; TODO: use this when selectrum has been replaced
-;; (use-package marginalia
-;;   :after vertico
-;;   :custom
-;;   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-;;   :init
-;;   (marginalia-mode))
-
 (use-package dabbrev
   ;; Swap M-/ and C-M-/
   :bind (("M-/" . dabbrev-completion)
          ("C-M-/" . dabbrev-expand)))
+
+;; Configure corfu
+(use-package corfu
+  :straight (corfu :type git :host github :repo "minad/corfu")
+  ;; :hook (after-init . corfu-global-mode)
+  :hook ((prog-mode . corfu-mode)
+         (org-mode . corfu-mode))
+  :bind
+  (:map corfu-map
+        ("C-j" . corfu-next)
+        ("C-k" . corfu-previous))
+  :general
+  (evil-insert-state-map "C-k" nil)
+  :init
+  (setq corfu-auto t)                 ;; Enable auto completion
+  (setq corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  ;; :custom
+  ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
+  ;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
+  ;; (corfu-quit-no-match t)        ;; Automatically quit if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect-first nil)    ;; Disable candidate preselection
+  ;; (corfu-echo-documentation nil) ;; Disable documentation in the echo area
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+  )
+
+(use-package kind-icon
+  :straight (kind-icon :type git :host github :repo "jdtsmith/kind-icon")
+  :after corfu
+  :init
+  (setq kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package projectile
   :demand
@@ -2174,21 +2082,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq persistent-scratch-autosave-interval 60)
   :config
   (persistent-scratch-setup-default))
-
-(use-package tsc
-  :straight (tsc :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
-
-(use-package tree-sitter
-  :straight (tree-sitter :host github :repo "ubolonton/emacs-tree-sitter" :depth full)
-  :hook (python-mode . (lambda ()
-                         (require 'tree-sitter)
-                         (require 'tree-sitter-langs)
-                         (require 'tree-sitter-hl)
-                         (tree-sitter-hl-mode)
-                         )))
-
-(use-package tree-sitter-langs
-  :straight (tree-sitter-langs :host github :repo "ubolonton/emacs-tree-sitter" :depth full))
 
 (use-package inheritenv
   :straight (inheritenv :type git :host github :repo "purcell/inheritenv"))

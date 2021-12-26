@@ -31,6 +31,13 @@
 (let ((file-name-handler-alist nil)
       (gc-cons-threshold 100000000))
   (require 'init-core)
+  (require 'init-ui-extra)
+  (require 'init-prog-nix)
+  (require 'init-prog-lsp)
+  (require 'init-prog-python)
+  (require 'init-org-roam)
+  (require 'init-prog-elisp)
+  ;; (require 'init-org-export)
   ;; (require 'init-extra)
   )
 
