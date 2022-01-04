@@ -154,42 +154,10 @@
 	
   ;; Main typeface
   (set-face-attribute 'default nil :font lc/default-font-family :height (lc/get-font-size))
-  ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font lc/default-font-family :height (lc/get-font-size))
+  ;; Set the fixed pitch face (monospace)
+  (set-face-attribute 'fixed-pitch nil :font lc/default-font-family)
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font lc/variable-pitch-font-family :height (lc/get-font-size) :weight 'regular)
-	)
-
-(use-package emacs
-	:init
-	(defun lc/adjust-font-size (height)
-		"Adjust font size by given height. If height is '0', reset font
-size. This function also handles icons and modeline font sizes."
-		(interactive "nHeight ('0' to reset): ")
-		(let ((new-height (if (zerop height)
-													(lc/get-font-size)
-												(+ height (face-attribute 'default :height)))))
-			(set-face-attribute 'default nil :height new-height)
-			(set-face-attribute 'fixed-pitch nil :height new-height)
-			(set-face-attribute 'variable-pitch nil :height new-height)
-			(set-face-attribute 'mode-line nil :height new-height)
-			(set-face-attribute 'mode-line-inactive nil :height new-height)
-			(message "Font size: %s" new-height)))
-
-	(defun lc/increase-font-size ()
-		"Increase font size by 0.5 (5 in height)."
-		(interactive)
-		(lc/adjust-font-size 5))
-
-	(defun lc/decrease-font-size ()
-		"Decrease font size by 0.5 (5 in height)."
-		(interactive)
-		(lc/adjust-font-size -5))
-
-	(defun lc/reset-font-size ()
-		"Reset font size according to the `lc/default-font-size'."
-		(interactive)
-		(lc/adjust-font-size 0))
+  (set-face-attribute 'variable-pitch nil :font lc/variable-pitch-font-family)
 	)
 
 (use-package emacs
@@ -399,9 +367,9 @@ size. This function also handles icons and modeline font sizes."
     "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
     ;; "t +"	'(lc/increase-font-size :wk "+ font")
     ;; "t -"	'(lc/decrease-font-size :wk "- font")
-    "t +"	'text-scale-increase
-    "t -"	'text-scale-decrease
-    "t 0"	'(lc/reset-font-size :wk "reset font")
+    ;; "t +"	'text-scale-increase
+    ;; "t -"	'text-scale-decrease
+    ;; "t 0"	'(lc/reset-font-size :wk "reset font")
 
     "u" '(universal-argument :wk "universal")
 
@@ -587,15 +555,22 @@ be passed to EVAL-FUNC as its rest arguments"
 		"s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
 
 (use-package evil-mc
-	:general
-	(general-vmap
+	:after evil
+	:demand
+  :general
+  (general-vmap
+    "gm" '(:keymap evil-mc-cursors-map)
     "A" #'evil-mc-make-cursor-in-visual-selection-end
     "I" #'evil-mc-make-cursor-in-visual-selection-beg)
-	(general-nmap
-		"Q" #'evil-mc-undo-all-cursors)
-	:config
-	(global-evil-mc-mode 1)
-	)
+  (general-nmap
+    "gm" '(:keymap evil-mc-cursors-map)
+    "Q" #'evil-mc-undo-all-cursors
+    ;; "M-n" #'evil-mc-make-and-goto-next-cursor
+    ;; "M-p" #'evil-mc-make-and-goto-prev-cursor
+    )
+  :config
+  (global-evil-mc-mode 1)
+  )
 
 (use-package evil
   :init
@@ -722,7 +697,6 @@ be passed to EVAL-FUNC as its rest arguments"
 (use-package org
   :general
   (lc/leader-keys
-    "f t" '(org-babel-tangle :wk "tangle")
     "o a" '(org-agenda-list :wk "agenda")
     "o A" '(org-agenda :wk "agenda")
     "o C" '(org-capture :wk "capture")
@@ -841,28 +815,6 @@ be passed to EVAL-FUNC as its rest arguments"
                     "SCHEDULED: %^t\n"
                     ":PROPERTIES:\n:CAPTURED: %U\n:END:\n\n"
                     "%i%?"))))
-	)
-
-(use-package org
-	:init
-	(defun lc/org-toc ()
-		(interactive)
-		(let ((headings (delq nil (cl-loop for f in (f-entries "." (lambda (f) (f-ext? f "org")) t)
-																			 append
-																			 (with-current-buffer (find-file-noselect f)
-																				 (org-map-entries
-																					(lambda ()                 ;; <
-																						(when (> 2 (car (org-heading-components)))
-																							(cons f (nth 4 (org-heading-components)))))))))))
-			(switch-to-buffer (get-buffer-create "*toc*"))
-			(erase-buffer)
-			(org-mode)
-			(cl-loop for (file . file-headings) in (seq-group-by #'car headings) 
-							 do
-							 (insert (format "* [[%s][%s]] \n" file (file-relative-name file)))
-							 (cl-loop for (file . heading) in file-headings 
-												do
-												(insert (format "** [[%s::*%s][%s]]\n" file heading heading))))))
 	)
 
 (use-package org
@@ -1066,10 +1018,13 @@ asynchronously."
   :bind
   ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>" 
   ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>" 
-  ;; :general
-  ;; (general-nmap
-  ;;   :keymaps 'org-mode-map :states 'normal
-  ;;   "RET"   #'+org/dwim-at-point)
+  :general
+  (general-nmap
+    :keymaps 'org-mode-map
+    :states 'normal
+    "RET"   #'org-open-at-point
+    ;; "RET"   #'+org/dwim-at-point
+		)
   :init
   (defun +org--insert-item (direction)
     (let ((context (org-element-lineage
@@ -1145,133 +1100,7 @@ asynchronously."
     (interactive "p")
     (dotimes (_ count) (+org--insert-item 'above)))
 
-  (defun +org/dwim-at-point (&optional arg)
-    "Do-what-I-mean at point.
-      If on a:
-      - checkbox list item or todo heading: toggle it.
-      - clock: update its time.
-      - headline: cycle ARCHIVE subtrees, toggle latex fragments and inline images in
-        subtree; update statistics cookies/checkboxes and ToCs.
-      - footnote reference: jump to the footnote's definition
-      - footnote definition: jump to the first reference of this footnote
-      - table-row or a TBLFM: recalculate the table's formulas
-      - table-cell: clear it and go into insert mode. If this is a formula cell,
-        recaluclate it instead.
-      - babel-call: execute the source block
-      - statistics-cookie: update it.
-      - latex fragment: toggle it.
-      - link: follow it
-      - otherwise, refresh all inline images in current tree."
-    (interactive "P")
-    (let* ((context (org-element-context))
-           (type (org-element-type context)))
-      ;; skip over unimportant contexts
-      (while (and context (memq type '(verbatim code bold italic underline strike-through subscript superscript)))
-        (setq context (org-element-property :parent context)
-              type (org-element-type context)))
-      (pcase type
-        (`headline
-         (cond ((memq (bound-and-true-p org-goto-map)
-                      (current-active-maps))
-                (org-goto-ret))
-               ((and (fboundp 'toc-org-insert-toc)
-                     (member "TOC" (org-get-tags)))
-                (toc-org-insert-toc)
-                (message "Updating table of contents"))
-               ((string= "ARCHIVE" (car-safe (org-get-tags)))
-                (org-force-cycle-archived))
-               ((or (org-element-property :todo-type context)
-                    (org-element-property :scheduled context))
-                (org-todo
-                 (if (eq (org-element-property :todo-type context) 'done)
-                     (or (car (+org-get-todo-keywords-for (org-element-property :todo-keyword context)))
-                         'todo)
-                   'done))))
-         ;; Update any metadata or inline previews in this subtree
-         (org-update-checkbox-count)
-         (org-update-parent-todo-statistics)
-         (when (and (fboundp 'toc-org-insert-toc)
-                    (member "TOC" (org-get-tags)))
-           (toc-org-insert-toc)
-           (message "Updating table of contents"))
-         (let* ((beg (if (org-before-first-heading-p)
-                         (line-beginning-position)
-                       (save-excursion (org-back-to-heading) (point))))
-                (end (if (org-before-first-heading-p)
-                         (line-end-position)
-                       (save-excursion (org-end-of-subtree) (point))))
-                (overlays (ignore-errors (overlays-in beg end)))
-                (latex-overlays
-                 (cl-find-if (lambda (o) (eq (overlay-get o 'org-overlay-type) 'org-latex-overlay))
-                             overlays))
-                (image-overlays
-                 (cl-find-if (lambda (o) (overlay-get o 'org-image-overlay))
-                             overlays)))
-           ;; (+org--toggle-inline-images-in-subtree beg end)
-           (if (or image-overlays latex-overlays)
-               (org-clear-latex-preview beg end)
-             (org--latex-preview-region beg end))))
-
-        (`clock (org-clock-update-time-maybe))
-
-        (`footnote-reference
-         (org-footnote-goto-definition (org-element-property :label context)))
-
-        (`footnote-definition
-         (org-footnote-goto-previous-reference (org-element-property :label context)))
-
-        ((or `planning `timestamp)
-         (org-follow-timestamp-link))
-
-        ((or `table `table-row)
-         (if (org-at-TBLFM-p)
-             (org-table-calc-current-TBLFM)
-           (ignore-errors
-             (save-excursion
-               (goto-char (org-element-property :contents-begin context))
-               (org-call-with-arg 'org-table-recalculate (or arg t))))))
-
-        (`table-cell
-         (org-table-blank-field)
-         (org-table-recalculate arg)
-         (when (and (string-empty-p (string-trim (org-table-get-field)))
-                    (bound-and-true-p evil-local-mode))
-           (evil-change-state 'insert)))
-
-        (`babel-call
-         (org-babel-lob-execute-maybe))
-
-        (`statistics-cookie
-         (save-excursion (org-update-statistics-cookies arg)))
-
-        ((or `src-block `inline-src-block)
-         (org-babel-execute-src-block arg))
-
-        ((or `latex-fragment `latex-environment)
-         (org-latex-preview arg))
-
-        (`link
-         (let* ((lineage (org-element-lineage context '(link) t))
-                (path (org-element-property :path lineage)))
-           (if (or (equal (org-element-property :type lineage) "img")
-                   (and path (image-type-from-file-name path)))
-               (+org--toggle-inline-images-in-subtree
-                (org-element-property :begin lineage)
-                (org-element-property :end lineage))
-             (org-open-at-point arg))))
-
-        ((guard (org-element-property :checkbox (org-element-lineage context '(item) t)))
-         (let ((match (and (org-at-item-checkbox-p) (match-string 1))))
-           (org-toggle-checkbox (if (equal match "[ ]") '(16)))))
-
-        (_
-         (if (or (org-in-regexp org-ts-regexp-both nil t)
-                 (org-in-regexp org-tsr-regexp-both nil  t)
-                 (org-in-regexp org-link-any-re nil t))
-             (call-interactively #'org-open-at-point)
-           (+org--toggle-inline-images-in-subtree
-            (org-element-property :begin context)
-            (org-element-property :end context))))))))
+  )
 
 (use-package org-appear
   :straight (org-appear :type git :host github :repo "awth13/org-appear")
@@ -1768,7 +1597,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     ;; TODO consult mark
     "f r" 'consult-recent-file
     ;; "s !" '(consult-flymake :wk "flymake")
-		)
+    )
   :init
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)	
@@ -1779,7 +1608,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq consult-project-root-function #'projectile-project-root)
   (with-eval-after-load 'selectrum
     (require 'consult-selectrum))
-
   )
 
 (use-package consult-selectrum
@@ -1815,7 +1643,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :general
   (evil-insert-state-map "C-k" nil)
   :init
-  (setq corfu-auto t)                 ;; Enable auto completion
+  (setq corfu-auto nil)                 ;; Enable auto completion
   (setq corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   ;; :custom
   ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
@@ -1829,7 +1657,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 (use-package kind-icon
   :straight (kind-icon :type git :host github :repo "jdtsmith/kind-icon")
-  :after corfu
+  :after corfu :demand
   :init
   (setq kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   :config
@@ -1839,53 +1667,58 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :demand
   :general
   (lc/leader-keys
-		:states 'normal
+    :states 'normal
     "p" '(:keymap projectile-command-map :which-key "project")
     "p <escape>" 'keyboard-escape-quit
     "p a" '(projectile-add-known-project :wk "add known")
+    "p F" '(lc/projectile-find-file-all :wk "find file (all)")
     "p t" '(projectile-run-vterm :wk "term"))
   :init
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
   (setq projectile-completion-system 'default)
   (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
-	(setq projectile-switch-project-action 'projectile-commander)
-	;; Do not include straight repos (emacs packages) to project list
-	(setq projectile-ignored-project-function
-   (lambda (project-root)
-     (string-prefix-p (expand-file-name "straight/" user-emacs-directory) project-root)))
+  (setq projectile-switch-project-action 'projectile-commander)
+  ;; Do not include straight repos (emacs packages) to project list
+  (setq projectile-ignored-project-function
+        (lambda (project-root)
+          (string-prefix-p (expand-file-name "straight/" user-emacs-directory) project-root)))
+  (defun lc/projectile-find-file-all ()
+    (interactive)
+    (let ((projectile-git-command "git ls-files -zco"))
+      (projectile-find-file)))
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
     (unless (file-remote-p default-directory) ad-do-it))
   (projectile-mode)
-	;; projectile commander methods
-	(setq projectile-commander-methods nil)
-	(def-projectile-commander-method ?? "Commander help buffer."
-		(ignore-errors (kill-buffer projectile-commander-help-buffer))
-		(with-current-buffer (get-buffer-create projectile-commander-help-buffer)
-			(insert "Projectile Commander Methods:\n\n")
-			(dolist (met projectile-commander-methods)
-				(insert (format "%c:\t%s\n" (car met) (cadr met))))
-			(goto-char (point-min))
+  ;; projectile commander methods
+  (setq projectile-commander-methods nil)
+  (def-projectile-commander-method ?? "Commander help buffer."
+    (ignore-errors (kill-buffer projectile-commander-help-buffer))
+    (with-current-buffer (get-buffer-create projectile-commander-help-buffer)
+      (insert "Projectile Commander Methods:\n\n")
+      (dolist (met projectile-commander-methods)
+        (insert (format "%c:\t%s\n" (car met) (cadr met))))
+      (goto-char (point-min))
       (help-mode)
       (display-buffer (current-buffer) t))
     (projectile-commander))
-	(def-projectile-commander-method ?t
+  (def-projectile-commander-method ?t
     "Open a *shell* buffer for the project."
     (projectile-run-vterm))
-	(def-projectile-commander-method ?\C-? ;; backspace
-		"Go back to project selection."
-		(projectile-switch-project))
-	(def-projectile-commander-method ?d
+  (def-projectile-commander-method ?\C-? ;; backspace
+    "Go back to project selection."
+    (projectile-switch-project))
+  (def-projectile-commander-method ?d
     "Open project root in dired."
     (projectile-dired))
-	(def-projectile-commander-method ?f
+  (def-projectile-commander-method ?f
     "Find file in project."
     (projectile-find-file))
-	(def-projectile-commander-method ?s
+  (def-projectile-commander-method ?s
     "Ripgrep in project."
     (consult-ripgrep))
-	(def-projectile-commander-method ?g
+  (def-projectile-commander-method ?g
     "Git status in project."
     (projectile-vc))
   )
@@ -1976,6 +1809,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 	;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
 	;; (when lc/is-ipad (require 'sendmail))
   :config
+	(setq magit-buffer-name-format (concat "*" magit-buffer-name-format "*"))
   (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
   )
@@ -2209,23 +2043,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
            "s-z" 'undo-fu-only-undo
            "\C-r" 'undo-fu-only-redo))
 
-(use-package vterm
-	:if (not lc/is-ipad)
-  :general
-  (general-imap
-    :keymaps 'vterm-mode-map
-    "M-l" 'vterm-send-right
-    "M-h" 'vterm-send-left)
-  :config
-  (setq vterm-shell (executable-find "fish")
-        vterm-max-scrollback 10000))
-
-(use-package vterm-toggle
-  :if (not lc/is-ipad)
-  :general
-  (lc/leader-keys
-    "'" 'vterm-toggle))
-
 (use-package term
   :if lc/is-ipad
   :straight (:type built-in)
@@ -2350,9 +2167,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 (use-package docker-tramp)
 
-(use-package yaml-mode
-  :mode ((rx ".yml" eos) . yaml-mode))
-
 (use-package emacs
   :general
   (lc/leader-keys
@@ -2388,12 +2202,11 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                "&type=code&q=" code))))
   )
 
-(use-package emacs
+(use-package transient
   :general
   (lc/leader-keys
-    "h" 'lc/help-transient)
+    "h h" 'lc/help-transient)
   :config
-  (require 'transient)
   (transient-define-prefix lc/help-transient ()
     ["Help Commands"
      ["Mode & Bindings"
@@ -2451,6 +2264,19 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     )
   )
 
+(use-package transient
+  :general
+  (lc/leader-keys
+    "t f" 'lc/font-size-transient)
+  :config
+  (transient-define-prefix lc/font-size-transient ()
+    "Change font size"
+    ["Font size"
+     ("+" "Increase" (lambda () (interactive) (progn (text-scale-increase) (lc/font-size-transient))))
+     ("-" "Decrease" (lambda () (interactive) (progn (text-scale-decrease) (lc/font-size-transient))))
+     ])
+  )
+
 (use-package isearch-mb
   :straight (isearch-mb :type git :host github :repo "astoff/isearch-mb")
   :demand
@@ -2469,22 +2295,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
   (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
   )
-
-(use-package olivetti
-  :general
-  (lc/leader-keys
-    "t o" '(olivetti-mode :wk "olivetti"))
-  :init
-  (setq olivetti-body-width 100)
-  (setq olivetti-recall-visual-line-mode-entry-state t))
-
-(use-package darkroom
-  :init
-  ;; Don't scale the text, so ugly man!
-  (setq darkroom-text-scale-increase 1)
-  :general
-  (lc/leader-keys
-    "tf" '(darkroom-tentative-mode :wk "focus")))
 
 (provide 'init-core)
 ;;; init-core.el ends here

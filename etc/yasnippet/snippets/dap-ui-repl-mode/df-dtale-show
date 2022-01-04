@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: df-dtale-show
+# key: dfsh
+# --
+import dtale; dtale.show($0, open_browser=True)

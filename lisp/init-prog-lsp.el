@@ -71,18 +71,56 @@
     "d r" '(dap-ui-repl :wk "repl")
     "d h" '(dap-hydra :wk "hydra")
     "d v" '(lc/dap-inspect-df :wk "view df")
+    "d t" '(lc/dap-dtale-df :wk "dtale df")
     )
   (:keymaps 'dap-ui-repl-mode-map
             "TAB" 'lc/py-indent-or-complete)
   :init
+  ;; (defun lc/dap-eval (expression)
+  ;;   "Eval and print EXPRESSION. In this function we
+  ;;   slighlty adapt dap-eval to wait for the result."
+  ;;   (interactive "sEval: ")
+  ;;   (let* ((debug-session (dap--cur-active-session-or-die))
+  ;;          (active-frame-id ( ;; <<
+  ;;                            -some->> debug-session
+  ;;                            dap--debug-session-active-frame
+  ;;                            (gethash "id")))
+  ;;          (result (dap--send-message
+  ;;                   (dap--make-request "evaluate"
+  ;;                                      (list :expression expression
+  ;;                                            :frameId active-frame-id
+  ;;                                            :context "hover"
+  ;;                                            ))
+  ;;                   (lambda (res) (setf result (or res :finished)))
+  ;;                   debug-session)))
+  ;;     (while (not result)
+  ;;       (accept-process-output nil 0.001))))
+  ;; (defun lc/dap-dtale-df (dataframe)
+  ;;   "Show df in tale in default browser"
+  ;;   (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
+  ;;   (dap-eval (concat "import dtale; dtale.show(" dataframe ", open_browser=True)")))
   (defun lc/dap-inspect-df (dataframe)
+    "Save the df to csv and open the file with csv-mode"
     (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
     (progn
-      (dap-eval (concat dataframe ".to_csv('~/tmp.csv')"))
-      (find-file-other-window "~/tmp.csv")
+      (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df.csv')"))
+      (with-current-buffer 
+          (display-buffer
+           (find-file-noselect "~/tmp-inspect-df.csv")
+           '((display-buffer-reuse-window display-buffer-in-side-window)
+             (side . bottom)
+             (window-width . fit-window-to-buffer)
+             (window-height . 0.33))))
       ))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '(("*inspect-df*"
+  ;;                 (display-buffer-reuse-window display-buffer-in-side-window)
+  ;;                 (side . bottom)
+  ;;                 (reusable-frames . visible)
+  ;;                 (window-height . 0.33)
+  ;;                 )))
   ;; (setq dap-auto-configure-features '(locals repl))
-  (setq dap-auto-configure-features '(repl))
+  (setq dap-auto-configure-features '(sessions repl))
   (setq dap-python-debugger 'debugpy)
   ;; show stdout
   (setq dap-auto-show-output t)
@@ -100,10 +138,18 @@
   ;; configure windows
   (require 'dap-ui)
   (setq dap-ui-buffer-configurations
-        `(;; (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.50)))
-          ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
-          ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
-          (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.50)))))
+        '(("*dap-ui-locals*"
+           (side . right)
+           (slot . 1)
+           (window-width . 0.3))
+          ("*dap-ui-sessions*"
+           (side . right)
+           (slot . 3)
+           (window-width . 0.3))
+          ("*dap-ui-repl*"
+           (side . bottom)
+           (slot . 1)
+           (window-height . 0.33))))
   (dap-ui-mode 1)
   ;; python virtualenv
   (require 'dap-python)

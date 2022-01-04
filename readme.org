@@ -211,12 +211,20 @@ Taken from DOOM's init
       (gc-cons-threshold 100000000))
   (require 'init-core)
   (require 'init-ui-extra)
+  (require 'init-org-roam)
+  ;; (require 'init-org-export)
+  (require 'init-prog-vterm)
   (require 'init-prog-nix)
   (require 'init-prog-lsp)
   (require 'init-prog-python)
-  (require 'init-org-roam)
   (require 'init-prog-elisp)
-  ;; (require 'init-org-export)
+  (require 'init-prog-markdown)
+  ;; (require 'init-prog-r)
+  ;; (require 'init-prog-clojure)
+  (require 'init-prog-tree-sitter)
+  ;; (require 'init-extra-focus)
+  (require 'init-extra-web)
+  ;; (require 'init-extra-rss)
   ;; (require 'init-extra)
   )
 
@@ -600,14 +608,14 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 	
   ;; Main typeface
   (set-face-attribute 'default nil :font lc/default-font-family :height (lc/get-font-size))
-  ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font lc/default-font-family :height (lc/get-font-size))
+  ;; Set the fixed pitch face (monospace)
+  (set-face-attribute 'fixed-pitch nil :font lc/default-font-family)
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font lc/variable-pitch-font-family :height (lc/get-font-size) :weight 'regular)
+  (set-face-attribute 'variable-pitch nil :font lc/variable-pitch-font-family)
 	)
 #+end_src
 
-** Adjust font size
+** COMMENT Adjust font size
 :PROPERTIES:
 :CUSTOM_ID: h:D9DB7FA2-18C6-46A9-9567-1FEFADD523AC
 :END:
@@ -636,7 +644,7 @@ size. This function also handles icons and modeline font sizes."
 	(defun lc/decrease-font-size ()
 		"Decrease font size by 0.5 (5 in height)."
 		(interactive)
-		(lc/adjust-font-size -5))
+		(lc/adjust-font-size (- 5)))
 
 	(defun lc/reset-font-size ()
 		"Reset font size according to the `lc/default-font-size'."
@@ -951,9 +959,9 @@ NOTE: We need to load ~general~ before ~evil~, otherwise the ~:general~ keyword 
     "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
     ;; "t +"	'(lc/increase-font-size :wk "+ font")
     ;; "t -"	'(lc/decrease-font-size :wk "- font")
-    "t +"	'text-scale-increase
-    "t -"	'text-scale-decrease
-    "t 0"	'(lc/reset-font-size :wk "reset font")
+    ;; "t +"	'text-scale-increase
+    ;; "t -"	'text-scale-decrease
+    ;; "t 0"	'(lc/reset-font-size :wk "reset font")
 
     "u" '(universal-argument :wk "universal")
 
@@ -1266,21 +1274,28 @@ Keybindings:
 		"s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
 #+end_src
 
-*** evil-mc
+*** evil-mc: multi cursor
 :PROPERTIES:
 :CUSTOM_ID: h:B26642F5-695F-4475-92B5-2EB9B1C1A96A
 :END:
 #+begin_src emacs-lisp
 (use-package evil-mc
-	:general
-	(general-vmap
+	:after evil
+	:demand
+  :general
+  (general-vmap
+    "gm" '(:keymap evil-mc-cursors-map)
     "A" #'evil-mc-make-cursor-in-visual-selection-end
     "I" #'evil-mc-make-cursor-in-visual-selection-beg)
-	(general-nmap
-		"Q" #'evil-mc-undo-all-cursors)
-	:config
-	(global-evil-mc-mode 1)
-	)
+  (general-nmap
+    "gm" '(:keymap evil-mc-cursors-map)
+    "Q" #'evil-mc-undo-all-cursors
+    ;; "M-n" #'evil-mc-make-and-goto-next-cursor
+    ;; "M-p" #'evil-mc-make-and-goto-prev-cursor
+    )
+  :config
+  (global-evil-mc-mode 1)
+  )
 #+end_src
 
 *** Fix scroll error when centaur tabs is active
@@ -1445,7 +1460,6 @@ Interesting bits:
 (use-package org
   :general
   (lc/leader-keys
-    "f t" '(org-babel-tangle :wk "tangle")
     "o a" '(org-agenda-list :wk "agenda")
     "o A" '(org-agenda :wk "agenda")
     "o C" '(org-capture :wk "capture")
@@ -1579,7 +1593,7 @@ Interesting bits:
 	)
 #+end_src
 
-** org-toc
+** COMMENT org-toc
 :PROPERTIES:
 :CUSTOM_ID: h:7715C1A7-7228-4A41-92DB-7F3F1D3A88C4
 :END:
@@ -1857,12 +1871,12 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
 :CUSTOM_ID: h:FB4154EE-27F2-4B52-B0BB-5F95D7920EAD
 :END:
 Taken from DOOM:
-- nice ~+org/insert-item-below~ and ~+org/dwim-at-point~ functions
+- nice ~+org/insert-item-below~ function
 - ~evil~ bindings for ~org-agenda~
 - text objects:
   + use ~vie~ to select everything inside a src block
   + use ~vir~ to select everything inside a heading
-  + use ==ie= to format
+  + use ==ie= to format a code block
 
 #+begin_src emacs-lisp
 (use-package evil-org-mode
@@ -1877,10 +1891,13 @@ Taken from DOOM:
   :bind
   ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>" 
   ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>" 
-  ;; :general
-  ;; (general-nmap
-  ;;   :keymaps 'org-mode-map :states 'normal
-  ;;   "RET"   #'+org/dwim-at-point)
+  :general
+  (general-nmap
+    :keymaps 'org-mode-map
+    :states 'normal
+    "RET"   #'org-open-at-point
+    ;; "RET"   #'+org/dwim-at-point
+		)
   :init
   (defun +org--insert-item (direction)
     (let ((context (org-element-lineage
@@ -1956,133 +1973,7 @@ Taken from DOOM:
     (interactive "p")
     (dotimes (_ count) (+org--insert-item 'above)))
 
-  (defun +org/dwim-at-point (&optional arg)
-    "Do-what-I-mean at point.
-      If on a:
-      - checkbox list item or todo heading: toggle it.
-      - clock: update its time.
-      - headline: cycle ARCHIVE subtrees, toggle latex fragments and inline images in
-        subtree; update statistics cookies/checkboxes and ToCs.
-      - footnote reference: jump to the footnote's definition
-      - footnote definition: jump to the first reference of this footnote
-      - table-row or a TBLFM: recalculate the table's formulas
-      - table-cell: clear it and go into insert mode. If this is a formula cell,
-        recaluclate it instead.
-      - babel-call: execute the source block
-      - statistics-cookie: update it.
-      - latex fragment: toggle it.
-      - link: follow it
-      - otherwise, refresh all inline images in current tree."
-    (interactive "P")
-    (let* ((context (org-element-context))
-           (type (org-element-type context)))
-      ;; skip over unimportant contexts
-      (while (and context (memq type '(verbatim code bold italic underline strike-through subscript superscript)))
-        (setq context (org-element-property :parent context)
-              type (org-element-type context)))
-      (pcase type
-        (`headline
-         (cond ((memq (bound-and-true-p org-goto-map)
-                      (current-active-maps))
-                (org-goto-ret))
-               ((and (fboundp 'toc-org-insert-toc)
-                     (member "TOC" (org-get-tags)))
-                (toc-org-insert-toc)
-                (message "Updating table of contents"))
-               ((string= "ARCHIVE" (car-safe (org-get-tags)))
-                (org-force-cycle-archived))
-               ((or (org-element-property :todo-type context)
-                    (org-element-property :scheduled context))
-                (org-todo
-                 (if (eq (org-element-property :todo-type context) 'done)
-                     (or (car (+org-get-todo-keywords-for (org-element-property :todo-keyword context)))
-                         'todo)
-                   'done))))
-         ;; Update any metadata or inline previews in this subtree
-         (org-update-checkbox-count)
-         (org-update-parent-todo-statistics)
-         (when (and (fboundp 'toc-org-insert-toc)
-                    (member "TOC" (org-get-tags)))
-           (toc-org-insert-toc)
-           (message "Updating table of contents"))
-         (let* ((beg (if (org-before-first-heading-p)
-                         (line-beginning-position)
-                       (save-excursion (org-back-to-heading) (point))))
-                (end (if (org-before-first-heading-p)
-                         (line-end-position)
-                       (save-excursion (org-end-of-subtree) (point))))
-                (overlays (ignore-errors (overlays-in beg end)))
-                (latex-overlays
-                 (cl-find-if (lambda (o) (eq (overlay-get o 'org-overlay-type) 'org-latex-overlay))
-                             overlays))
-                (image-overlays
-                 (cl-find-if (lambda (o) (overlay-get o 'org-image-overlay))
-                             overlays)))
-           ;; (+org--toggle-inline-images-in-subtree beg end)
-           (if (or image-overlays latex-overlays)
-               (org-clear-latex-preview beg end)
-             (org--latex-preview-region beg end))))
-
-        (`clock (org-clock-update-time-maybe))
-
-        (`footnote-reference
-         (org-footnote-goto-definition (org-element-property :label context)))
-
-        (`footnote-definition
-         (org-footnote-goto-previous-reference (org-element-property :label context)))
-
-        ((or `planning `timestamp)
-         (org-follow-timestamp-link))
-
-        ((or `table `table-row)
-         (if (org-at-TBLFM-p)
-             (org-table-calc-current-TBLFM)
-           (ignore-errors
-             (save-excursion
-               (goto-char (org-element-property :contents-begin context))
-               (org-call-with-arg 'org-table-recalculate (or arg t))))))
-
-        (`table-cell
-         (org-table-blank-field)
-         (org-table-recalculate arg)
-         (when (and (string-empty-p (string-trim (org-table-get-field)))
-                    (bound-and-true-p evil-local-mode))
-           (evil-change-state 'insert)))
-
-        (`babel-call
-         (org-babel-lob-execute-maybe))
-
-        (`statistics-cookie
-         (save-excursion (org-update-statistics-cookies arg)))
-
-        ((or `src-block `inline-src-block)
-         (org-babel-execute-src-block arg))
-
-        ((or `latex-fragment `latex-environment)
-         (org-latex-preview arg))
-
-        (`link
-         (let* ((lineage (org-element-lineage context '(link) t))
-                (path (org-element-property :path lineage)))
-           (if (or (equal (org-element-property :type lineage) "img")
-                   (and path (image-type-from-file-name path)))
-               (+org--toggle-inline-images-in-subtree
-                (org-element-property :begin lineage)
-                (org-element-property :end lineage))
-             (org-open-at-point arg))))
-
-        ((guard (org-element-property :checkbox (org-element-lineage context '(item) t)))
-         (let ((match (and (org-at-item-checkbox-p) (match-string 1))))
-           (org-toggle-checkbox (if (equal match "[ ]") '(16)))))
-
-        (_
-         (if (or (org-in-regexp org-ts-regexp-both nil t)
-                 (org-in-regexp org-tsr-regexp-both nil  t)
-                 (org-in-regexp org-link-any-re nil t))
-             (call-interactively #'org-open-at-point)
-           (+org--toggle-inline-images-in-subtree
-            (org-element-property :begin context)
-            (org-element-property :end context))))))))
+  )
 #+end_src
 
 ** exporters                                                     :org_export:
@@ -2738,7 +2629,11 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 (lc/leader-keys
 "1" '(winum-select-window-1 :wk "win 1")
 "2" '(winum-select-window-2 :wk "win 2")
-"3" '(winum-select-window-3 :wk "win 3"))
+"3" '(winum-select-window-3 :wk "win 3")
+"4" '(winum-select-window-4 :wk "win 4")
+"5" '(winum-select-window-5 :wk "win 5")
+"6" '(winum-select-window-6 :wk "win 6")
+)
 :config
 (winum-mode))
 #+end_src
@@ -3063,8 +2958,8 @@ This is extremely powerful for refactorings such as changing the name of a class
 :PROPERTIES:
 :CUSTOM_ID: h:E08EB7E2-CBD9-460C-B77E-9EFF7846C249
 :END:
-To search for multiple words with ~consult-ripgrep~ you should search e.g. for ~#defun#some words~ .
-The first filter is passed to an async ~ripgrep~ process and the second filter to  the completion-style filtering (?).
+NOTE:
+- After =consult-line= you can press =M-n= twice to search for the symbol at point
 
 #+BEGIN_SRC emacs-lisp
 (use-package consult
@@ -3083,7 +2978,7 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
     ;; TODO consult mark
     "f r" 'consult-recent-file
     ;; "s !" '(consult-flymake :wk "flymake")
-		)
+    )
   :init
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)	
@@ -3094,8 +2989,7 @@ The first filter is passed to an async ~ripgrep~ process and the second filter t
   (setq consult-project-root-function #'projectile-project-root)
   (with-eval-after-load 'selectrum
     (require 'consult-selectrum))
-
-  )
+  )	
 #+END_SRC
 
 ** consult-selectrum
@@ -3352,7 +3246,7 @@ Taken from DOOM
   :general
   (evil-insert-state-map "C-k" nil)
   :init
-  (setq corfu-auto t)                 ;; Enable auto completion
+  (setq corfu-auto nil)                 ;; Enable auto completion
   (setq corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   ;; :custom
   ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
@@ -3372,7 +3266,7 @@ Taken from DOOM
 #+begin_src emacs-lisp
 (use-package kind-icon
   :straight (kind-icon :type git :host github :repo "jdtsmith/kind-icon")
-  :after corfu
+  :after corfu :demand
   :init
   (setq kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   :config
@@ -3392,61 +3286,67 @@ Taken from DOOM
 :PROPERTIES:
 :CUSTOM_ID: h:788EC6E4-44DD-4E93-A1FC-517CA9213396
 :END:
-~projectile~ struggles with monorepos where ~.git~ folder is at the root but each subproject has e.g a ~pyproject.toml~.
-In those cases, we need to create a ~.projectile~ file in the root of the subprojects.
+NOTE:
+- ~projectile~ struggles with monorepos where ~.git~ folder is at the root but each subproject has e.g a ~pyproject.toml~. In those cases, we need to create a ~.projectile~ file in the root of the subprojects.
+- ~projectile~ excludes git ignored files from ~projectile-find-file~. Use ~lc/projectile-find-file-all~ when opening data
 
 #+BEGIN_SRC emacs-lisp
 (use-package projectile
   :demand
   :general
   (lc/leader-keys
-		:states 'normal
+    :states 'normal
     "p" '(:keymap projectile-command-map :which-key "project")
     "p <escape>" 'keyboard-escape-quit
     "p a" '(projectile-add-known-project :wk "add known")
+    "p F" '(lc/projectile-find-file-all :wk "find file (all)")
     "p t" '(projectile-run-vterm :wk "term"))
   :init
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
   (setq projectile-completion-system 'default)
   (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
-	(setq projectile-switch-project-action 'projectile-commander)
-	;; Do not include straight repos (emacs packages) to project list
-	(setq projectile-ignored-project-function
-   (lambda (project-root)
-     (string-prefix-p (expand-file-name "straight/" user-emacs-directory) project-root)))
+  (setq projectile-switch-project-action 'projectile-commander)
+  ;; Do not include straight repos (emacs packages) to project list
+  (setq projectile-ignored-project-function
+        (lambda (project-root)
+          (string-prefix-p (expand-file-name "straight/" user-emacs-directory) project-root)))
+  (defun lc/projectile-find-file-all ()
+    (interactive)
+    (let ((projectile-git-command "git ls-files -zco"))
+      (projectile-find-file)))
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
     (unless (file-remote-p default-directory) ad-do-it))
   (projectile-mode)
-	;; projectile commander methods
-	(setq projectile-commander-methods nil)
-	(def-projectile-commander-method ?? "Commander help buffer."
-		(ignore-errors (kill-buffer projectile-commander-help-buffer))
-		(with-current-buffer (get-buffer-create projectile-commander-help-buffer)
-			(insert "Projectile Commander Methods:\n\n")
-			(dolist (met projectile-commander-methods)
-				(insert (format "%c:\t%s\n" (car met) (cadr met))))
-			(goto-char (point-min))
+  ;; projectile commander methods
+  (setq projectile-commander-methods nil)
+  (def-projectile-commander-method ?? "Commander help buffer."
+    (ignore-errors (kill-buffer projectile-commander-help-buffer))
+    (with-current-buffer (get-buffer-create projectile-commander-help-buffer)
+      (insert "Projectile Commander Methods:\n\n")
+      (dolist (met projectile-commander-methods)
+        (insert (format "%c:\t%s\n" (car met) (cadr met))))
+      (goto-char (point-min))
       (help-mode)
       (display-buffer (current-buffer) t))
     (projectile-commander))
-	(def-projectile-commander-method ?t
+  (def-projectile-commander-method ?t
     "Open a *shell* buffer for the project."
     (projectile-run-vterm))
-	(def-projectile-commander-method ?\C-? ;; backspace
-		"Go back to project selection."
-		(projectile-switch-project))
-	(def-projectile-commander-method ?d
+  (def-projectile-commander-method ?\C-? ;; backspace
+    "Go back to project selection."
+    (projectile-switch-project))
+  (def-projectile-commander-method ?d
     "Open project root in dired."
     (projectile-dired))
-	(def-projectile-commander-method ?f
+  (def-projectile-commander-method ?f
     "Find file in project."
     (projectile-find-file))
-	(def-projectile-commander-method ?s
+  (def-projectile-commander-method ?s
     "Ripgrep in project."
     (consult-ripgrep))
-	(def-projectile-commander-method ?g
+  (def-projectile-commander-method ?g
     "Git status in project."
     (projectile-vc))
   )
@@ -3456,9 +3356,9 @@ In those cases, we need to create a ~.projectile~ file in the root of the subpro
 :PROPERTIES:
 :CUSTOM_ID: h:6E4E5BD6-1930-4DCE-8E26-5ADAC2B9A152
 :END:
-TODO:
-- =SPC TAB o= opens the "org" persp
-- same for main (maybe get ride of new tab)
+NOTE:
+- You can use ~persp-state-load~ to restore the perspective when emacs was killed
+
 #+BEGIN_SRC emacs-lisp
 (use-package perspective
   :commands (persp-new persp-switch persp-state-save)
@@ -3500,6 +3400,9 @@ TODO:
 :PROPERTIES:
 :CUSTOM_ID: h:85ED0544-8351-4B05-843D-8BB9F3454041
 :END:
+NOTE:
+- Use =SPC TAB r= to reload a project when something went wrong with =SPC p p=
+
 #+BEGIN_SRC emacs-lisp
 (use-package persp-projectile
   :after projectile
@@ -3568,16 +3471,17 @@ On iPad, we may need to ~(require 'sendmail)~ before calling ~magit-status~
 	;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
 	;; (when lc/is-ipad (require 'sendmail))
   :config
+	(setq magit-buffer-name-format (concat "*" magit-buffer-name-format "*"))
   (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
   )
 #+END_SRC
 
-*** TODO forge
+*** COMMENT forge
 :PROPERTIES:
 :CUSTOM_ID: h:6776E02F-A2E6-4BBA-91A1-81EEE4CFB3AB
 :END:
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 ;; NOTE: Make sure to configure a GitHub token before using this package!
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
 ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
@@ -3604,7 +3508,7 @@ On iPad, we may need to ~(require 'sendmail)~ before calling ~magit-status~
 :PROPERTIES:
 :CUSTOM_ID: h:DA2BAD8C-A37A-4A89-BEE0-A7FB367CD345
 :END:
-When an heading includes a change, the~org-ellipsis~ not shown correctly.
+When an heading includes a change, the ~org-ellipsis~ not shown correctly.
 This is caused by an empty line with ~diff-hl~ fringe that gets appended to the heading.
 To work around this and show the ellipsis, you have to add a whitespace in that empty line.
 
@@ -3731,7 +3635,7 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
   (persistent-scratch-setup-default))
 #+end_src
 
-** emacs tree-sitter                                            :tree_sitter:
+** emacs tree-sitter                                            :prog_tree_sitter:
 :PROPERTIES:
 :CUSTOM_ID: h:1FD9CDF3-4C5D-450E-99DE-034077C3D8BC
 :header-args:    :emacs-lisp :tangle ./lisp/init-prog-tree-sitter.el
@@ -3918,9 +3822,10 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
            "\C-r" 'undo-fu-only-redo))
 #+end_src
 
-** vterm and friends                                                  :vterm:
+** vterm and friends                                                  :prog_vterm:
 :PROPERTIES:
 :CUSTOM_ID: h:55C74553-9DAF-49E6-955A-C772FD7B4402
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-vterm.el
 :END:
 *** vterm
 :PROPERTIES:
@@ -3943,12 +3848,18 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 :PROPERTIES:
 :CUSTOM_ID: h:1162BDDB-9DC6-4750-8EF8-9C5D2AF51892
 :END:
+NOTE:
+- You can use universal argument to create a new vterm buffer (=SPC U SPC '=)
+
 #+begin_src emacs-lisp
 (use-package vterm-toggle
   :if (not lc/is-ipad)
   :general
   (lc/leader-keys
-    "'" 'vterm-toggle))
+    "'" 'vterm-toggle)
+  :init
+  (setq vterm-toggle-scope 'project)
+  )
 #+end_src
 
 ** term
@@ -4142,15 +4053,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 (use-package docker-tramp)
 #+end_src
  
-** yaml mode
-:PROPERTIES:
-:CUSTOM_ID: h:351ADC7D-38F2-47FF-9D9B-1C3F2F7B61D3
-:END:
-#+begin_src emacs-lisp
-(use-package yaml-mode
-  :mode ((rx ".yml" eos) . yaml-mode))
-#+end_src
-
 ** search google                                                 :prog_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:01E26AB9-2829-4076-9665-E218832FB1A3
@@ -4203,12 +4105,11 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 :CUSTOM_ID: h:14F8ECDE-9E15-46F7-B903-ECE383251C48
 :END:
 #+begin_src emacs-lisp
-(use-package emacs
+(use-package transient
   :general
   (lc/leader-keys
-    "h" 'lc/help-transient)
+    "h h" 'lc/help-transient)
   :config
-  (require 'transient)
   (transient-define-prefix lc/help-transient ()
     ["Help Commands"
      ["Mode & Bindings"
@@ -4267,6 +4168,25 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   )
 #+end_src
 
+** transient increase/decrease font size                         :prog_extra:
+:PROPERTIES:
+:CUSTOM_ID: h:884FB8DF-D672-496E-9068-1FD15F0250E5
+:END:
+#+begin_src emacs-lisp
+(use-package transient
+  :general
+  (lc/leader-keys
+    "t f" 'lc/font-size-transient)
+  :config
+  (transient-define-prefix lc/font-size-transient ()
+    "Change font size"
+    ["Font size"
+     ("+" "Increase" (lambda () (interactive) (progn (text-scale-increase) (lc/font-size-transient))))
+     ("-" "Decrease" (lambda () (interactive) (progn (text-scale-decrease) (lc/font-size-transient))))
+     ])
+  )
+#+end_src
+
 ** isearch-mb                                                    :prog_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:58E5AE2F-4E1C-4B72-9B63-B96AEF55F4DA
@@ -4294,9 +4214,10 @@ You can use ~consult-history~ to browse past searches
   )
 #+end_src
 
-** olivetti mode                                                      :focus:
+** olivetti mode                                                      :extra_focus:
 :PROPERTIES:
 :CUSTOM_ID: h:78EE4DFB-9A75-4BB0-BD4D-CFF94ACE3CF6
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra-focus.el
 :END:
 #+begin_src emacs-lisp
   (use-package olivetti
@@ -4308,9 +4229,10 @@ You can use ~consult-history~ to browse past searches
     (setq olivetti-recall-visual-line-mode-entry-state t))
 #+end_src
 
-** darkroom                                                           :focus:
+** darkroom                                                           :extra_focus:
 :PROPERTIES:
 :CUSTOM_ID: h:EC24FC48-E3A5-4C16-9F52-3A6E14DBA564
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra-focus.el
 :END:
 #+begin_src emacs-lisp
 (use-package darkroom
@@ -4408,10 +4330,14 @@ You can use ~consult-history~ to browse past searches
 :CUSTOM_ID: h:844F8FAD-8F11-4727-BAC4-25B449C56B51
 :header-args:    :emacs-lisp :tangle ./lisp/init-extra.el
 :END:
-** lsp mode                                                             :lsp:
+** lsp mode and friends                                            :prog_lsp:
+:PROPERTIES:
+:CUSTOM_ID: h:6BC08822-D2B3-4BE9-9EBE-C42F89F0E688
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-lsp.el
+:END:
+*** lsp-mode                                                            
 :PROPERTIES:
 :CUSTOM_ID: h:28CB5546-FBE4-481D-B620-623006DC0FDA
-:header-args:    :emacs-lisp :tangle ./lisp/init-prog-lsp.el
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
@@ -4444,10 +4370,9 @@ You can use ~consult-history~ to browse past searches
   )
 #+END_SRC
 
-** lsp-ui                                                               :lsp:
+*** lsp-ui                                                               
 :PROPERTIES:
 :CUSTOM_ID: h:B69B077F-B96E-4A86-859D-A3D29547D39C
-:header-args:    :emacs-lisp :tangle ./lisp/init-prog-lsp.el
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-ui
@@ -4478,10 +4403,9 @@ You can use ~consult-history~ to browse past searches
   )
 #+END_SRC
 
-** dap-mode                                                             :lsp:
+*** dap-mode                                                             
 :PROPERTIES:
 :CUSTOM_ID: h:85405E87-7858-4F5C-A229-B72E70F68597
-:header-args:    :emacs-lisp :tangle ./lisp/init-prog-lsp.el
 :END:
 #+BEGIN_SRC emacs-lisp
 (use-package dap-mode
@@ -4501,18 +4425,56 @@ You can use ~consult-history~ to browse past searches
     "d r" '(dap-ui-repl :wk "repl")
     "d h" '(dap-hydra :wk "hydra")
     "d v" '(lc/dap-inspect-df :wk "view df")
+    "d t" '(lc/dap-dtale-df :wk "dtale df")
     )
   (:keymaps 'dap-ui-repl-mode-map
             "TAB" 'lc/py-indent-or-complete)
   :init
+  ;; (defun lc/dap-eval (expression)
+  ;;   "Eval and print EXPRESSION. In this function we
+  ;;   slighlty adapt dap-eval to wait for the result."
+  ;;   (interactive "sEval: ")
+  ;;   (let* ((debug-session (dap--cur-active-session-or-die))
+  ;;          (active-frame-id ( ;; <<
+  ;;                            -some->> debug-session
+  ;;                            dap--debug-session-active-frame
+  ;;                            (gethash "id")))
+  ;;          (result (dap--send-message
+  ;;                   (dap--make-request "evaluate"
+  ;;                                      (list :expression expression
+  ;;                                            :frameId active-frame-id
+  ;;                                            :context "hover"
+  ;;                                            ))
+  ;;                   (lambda (res) (setf result (or res :finished)))
+  ;;                   debug-session)))
+  ;;     (while (not result)
+  ;;       (accept-process-output nil 0.001))))
+  ;; (defun lc/dap-dtale-df (dataframe)
+  ;;   "Show df in tale in default browser"
+  ;;   (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
+  ;;   (dap-eval (concat "import dtale; dtale.show(" dataframe ", open_browser=True)")))
   (defun lc/dap-inspect-df (dataframe)
+    "Save the df to csv and open the file with csv-mode"
     (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
     (progn
-      (dap-eval (concat dataframe ".to_csv('~/tmp.csv')"))
-      (find-file-other-window "~/tmp.csv")
+      (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df.csv')"))
+      (with-current-buffer 
+          (display-buffer
+           (find-file-noselect "~/tmp-inspect-df.csv")
+           '((display-buffer-reuse-window display-buffer-in-side-window)
+             (side . bottom)
+             (window-width . fit-window-to-buffer)
+             (window-height . 0.33))))
       ))
+  ;; (add-to-list 'display-buffer-alist
+  ;;              '(("*inspect-df*"
+  ;;                 (display-buffer-reuse-window display-buffer-in-side-window)
+  ;;                 (side . bottom)
+  ;;                 (reusable-frames . visible)
+  ;;                 (window-height . 0.33)
+  ;;                 )))
   ;; (setq dap-auto-configure-features '(locals repl))
-  (setq dap-auto-configure-features '(repl))
+  (setq dap-auto-configure-features '(sessions repl))
   (setq dap-python-debugger 'debugpy)
   ;; show stdout
   (setq dap-auto-show-output t)
@@ -4530,10 +4492,18 @@ You can use ~consult-history~ to browse past searches
   ;; configure windows
   (require 'dap-ui)
   (setq dap-ui-buffer-configurations
-        `(;; (,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.50)))
-          ;; (,dap-ui--breakpoints-buffer . ((side . left) (slot . 1) (window-width . ,treemacs-width)))
-          ;; (,dap-ui--sessions-buffer . ((side . left) (slot . 2) (window-width . ,treemacs-width)))
-          (,dap-ui--repl-buffer . ((side . right) (slot . 2) (window-width . 0.50)))))
+        '(("*dap-ui-locals*"
+           (side . right)
+           (slot . 1)
+           (window-width . 0.3))
+          ("*dap-ui-sessions*"
+           (side . right)
+           (slot . 3)
+           (window-width . 0.3))
+          ("*dap-ui-repl*"
+           (side . bottom)
+           (slot . 1)
+           (window-height . 0.33))))
   (dap-ui-mode 1)
   ;; python virtualenv
   (require 'dap-python)
@@ -4578,7 +4548,7 @@ You can use ~consult-history~ to browse past searches
   )
 #+END_SRC
 
-** Python                                                            :python:
+** Python                                                            :prog_python:
 :PROPERTIES:
 :CUSTOM_ID: h:541B5295-9C9C-4138-8A42-EA8DC9D4FD87
 :header-args:    :emacs-lisp :tangle ./lisp/init-prog-python.el
@@ -4588,16 +4558,19 @@ You can use ~consult-history~ to browse past searches
 :CUSTOM_ID: h:95658AC9-ADFE-4134-81C4-DEC01069B716
 :END:
 NOTE:
-- In a python buffer use =run-python= to start an inferior python process
+- In a python buffer use =run-python= to start an inferior python process or =,'= 
 - Use eval operator so eval lines with =grr=
 
 #+BEGIN_SRC emacs-lisp
 (use-package python-mode
   :hook
-	((envrc-mode . (lambda ()
-									 (when (executable-find "ipython")
-                           (setq python-shell-interpreter (executable-find "ipython"))))))
+  ((envrc-mode . (lambda ()
+                   (when (executable-find "ipython")
+                     (setq python-shell-interpreter (executable-find "ipython"))))))
   :general
+  (lc/local-leader-keys
+    :keymaps 'python-mode-map
+    "'" 'run-python)
   (python-mode-map
    :states 'normal
    "gz" nil
@@ -4614,9 +4587,9 @@ NOTE:
            (py-indent-region (region-beginning) (region-end)))
           ((or (bolp)   
                (member (char-before) (list 9 10 12 13 32 ?:  ;; ([{
-																					 ?\) ?\] ?\}))
+                                           ?\) ?\] ?\}))
                ;; (not (looking-at "[ \t]*$"))
-							 )
+               )
            (py-indent-line))
           ((comint-check-proc (current-buffer))
            (ignore-errors (completion-at-point)))
@@ -4631,7 +4604,7 @@ NOTE:
         "from IPython.core.completerlib import module_completion"
         python-shell-completion-string-code
         "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-	)
+  )
 #+END_SRC
 
 *** lsp-pyright
@@ -4701,15 +4674,19 @@ Disabled ~flymake~ as I can't find a way to make it work with ~flake8~ on a pyth
 :CUSTOM_ID: h:A98624AB-1B3D-47A2-873F-E961FDE431D9
 :END:
 ~flycheck-verify-setup~ is your best friend.
+
 #+begin_src emacs-lisp
 (use-package flycheck
 	:hook ((lsp-mode . flycheck-mode)
 				 (envrc-mode . (lambda ()
                         (setq flycheck-python-flake8-executable (executable-find "python"))
-												(setq flycheck-checker 'python-flake8)
+                        (setq flycheck-checker 'python-flake8)
+                        (setq flycheck-flake8rc ".flake8")
 												)))
 	:init
 	(setq flycheck-indication-mode 'right-fringe)
+	;; only check on save
+	(setq flycheck-check-syntax-automatically '(mode-enabled save))
 )
 #+end_src
 
@@ -4880,41 +4857,68 @@ We can avoid evaluation of code with:
 	)
 #+end_src
 
-*** toml mode
-:PROPERTIES:
-:CUSTOM_ID: h:4474E2AE-F934-48CD-ACB8-5729B7C26F0A
-:END:
-#+begin_src emacs-lisp
-(use-package toml-mode
-	:mode "\\.toml\\'")
-#+end_src
-
 *** csv mode
 :PROPERTIES:
 :CUSTOM_ID: h:A0F0925F-11FB-43A8-8E26-A068FD70D7D0
 :END:
 #+begin_src emacs-lisp
 (use-package csv-mode
-	:hook (csv-mode . csv-align-visible)
+  :hook (csv-mode . lc/init-csv-mode)
   :general
   (lc/local-leader-keys
     :keymaps 'csv-mode-map
     :states 'normal
-    "a" '(csv-align-visible :wk "align visible")
+    "a" '(lc/csv-align-visible :wk "align visible")
+    "A" '(csv-align-fields :wk "align buffer")
     "s" '(csv-sort-fields :wk "sort fields")
-    )
+    ";" '(lc/set-csv-semicolon-separator :wk "set semicolon sep")
+    "," '(lc/reset-csv-separators :wk "set comma sep"))
   :init
-  (defun csv-align-visible (&optional arg)
+  (defun lc/csv-align-visible (&optional arg)
     "Align visible fields"
     (interactive "P")
-    (csv-align-fields nil (window-start) (window-end))
-    )
+    (csv-align-fields nil (window-start) (window-end)))
+  (defun lc/set-csv-semicolon-separator ()
+    (interactive)
+    (customize-set-variable 'csv-separators '(";")))
+  (defun lc/reset-csv-separators ()
+    (interactive)
+    (customize-set-variable 'csv-separators lc/default-csv-separators))
+  (defun lc/init-csv-mode ()
+    (lc/set-csv-separators)
+    (lc/csv-highlight)
+    (lc/csv-align-visible))
+  :config
+  (require 'cl)
+  (require 'color)
+  (setq lc/default-csv-separators csv-separators)
+  (defun lc/set-csv-separators ()
+    (interactive)
+    (let* ((n-commas (count-matches "," (point-at-bol) (point-at-eol)))
+           (n-semicolons (count-matches ";" (point-at-bol) (point-at-eol))))
+      (if ( ; <
+           > n-commas n-semicolons)
+          (customize-set-variable 'csv-separators '("," "	"))		
+        (customize-set-variable 'csv-separators '(";" "	")))))
+  (defun lc/csv-highlight ()
+    (interactive)
+    (font-lock-mode 1)
+    (let* ((separator (string-to-char (car csv-separators)))
+           (n (count-matches (string separator) (point-at-bol) (point-at-eol)))
+           (colors (loop for i from 0 to 1.0 by (/ 2.0 n)
+                         collect (apply #'color-rgb-to-hex 
+                                        (color-hsl-to-rgb i 0.3 0.5)))))
+      (loop for i from 2 to n by 2 
+            for c in colors
+            for r = (format "^\\([^%c\n]+%c\\)\\{%d\\}" separator separator i)
+            do (font-lock-add-keywords nil `((,r (1 '(face (:foreground ,c)))))))))
   )
 #+end_src
 
-** R                                                                      :R:
+** R                                                                      :prog_R:
 :PROPERTIES:
 :CUSTOM_ID: h:74BD1AAB-0C5A-4BF2-927E-D11FEEA4C08A
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-r.el
 :END:
 *** ess
 :PROPERTIES:
@@ -5020,6 +5024,9 @@ We can avoid evaluation of code with:
 :PROPERTIES:
 :CUSTOM_ID: h:C59E740E-F00B-4D2F-B5A3-36C3B99BCD5E
 :END:
+NOTE:
++ Wrap with =SPC l w=
++ Raise with =SPC l r=
 + Enter ~lisp-state~ with =SPC l .=
 + Navigate symbols with =j= and =k=
 + Navigate forms with =h= and =l=
@@ -5092,9 +5099,10 @@ We can avoid evaluation of code with:
 :mode "\\.nix\\'")
 #+end_src
 
-** Clojure                                                          :clojure:
+** Clojure                                                          :prog_clojure:
 :PROPERTIES:
 :CUSTOM_ID: h:2A226DAE-B566-464B-AF20-4BE86E554DC6
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-clojure.el
 :END:
 *** Clojure mode
 :PROPERTIES:
@@ -5202,13 +5210,10 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
            (emacs-lisp-mode . aggressive-indent-mode)))
 #+end_src
 
-** markdown
+** markdown                                                   :prog_markdown:
 :PROPERTIES:
 :CUSTOM_ID: h:C643DC36-8F5E-40E4-B8BB-126F341491FD
-:END:
-*** markdown-mode
-:PROPERTIES:
-:CUSTOM_ID: h:78EA0AF3-721E-4005-A742-287C4DAED7CD
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-markdown.el
 :END:
 #+begin_src emacs-lisp
 (use-package markdown-mode
@@ -5219,19 +5224,38 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
   :init (setq markdown-command "multimarkdown"))
 #+end_src
 
-* Gimmicks                                                         :gimmicks:
+** yaml mode                                                  :prog_markdown:
+:PROPERTIES:
+:CUSTOM_ID: h:351ADC7D-38F2-47FF-9D9B-1C3F2F7B61D3
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-markdown.el
+:END:
+#+begin_src emacs-lisp
+(use-package yaml-mode
+  :mode ((rx ".yml" eos) . yaml-mode))
+#+end_src
+
+** toml mode                                                  :prog_markdown:
+:PROPERTIES:
+:CUSTOM_ID: h:4474E2AE-F934-48CD-ACB8-5729B7C26F0A
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-markdown.el
+:END:
+#+begin_src emacs-lisp
+(use-package toml-mode
+	:mode "\\.toml\\'")
+#+end_src
+
+* Gimmicks
 :PROPERTIES:
 :CUSTOM_ID: h:7D94EA42-5F85-4E18-9029-19BAD69FBF85
-:header-args:    :emacs-lisp :tangle ./lisp/init-extra.el
 :END:
-In this section packages I use seldom, which one day may be promoted to the cooler section of the config.
-** web browser
+** web browser                                                    :extra_web:
 :PROPERTIES:
 :CUSTOM_ID: h:6B214C3A-22E3-47D0-9DD7-F379E07CF960
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra-web.el
 :END:
-Use =SPC s w= to search the web! You can also visit a URL in the buffer.
+Use =SPC x x= to search the web! You can also visit a URL in the buffer.
 With the web browser open, scroll with =j= / =k= .
-To visit a link, =SPC s l= 
+To visit a link, =SPC x l= 
 #+begin_src emacs-lisp
 (use-package xwwp
   :straight (xwwp :type git :host github :repo "canatella/xwwp")
@@ -5244,7 +5268,6 @@ To visit a link, =SPC s l=
             :wk "search or visit")
     "x l" '(xwwp-follow-link :wk "link")
     "x b" '(xwidget-webkit-back :wk "back"))
-  :init
   ;; :custom
   ;; (setq xwwp-follow-link-completion-system 'ivy)
   ;; :bind (:map xwidget-webkit-mode-map
@@ -5252,10 +5275,12 @@ To visit a link, =SPC s l=
   )
 #+end_src
 
-** elfeed
+** elfeed                                                         :extra_rss:
 :PROPERTIES:
 :CUSTOM_ID: h:B0653EBC-9E48-4E3D-86A3-34E7450B4F03
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra-rss.el
 :END:
+NOTE:
 - Search with =s=
 - Open in browser with =S-RET=
 - Open in ~xwwp~ with =x=
@@ -5327,19 +5352,6 @@ To visit a link, =SPC s l=
   (lc/leader-keys
     "s d" '(dash-at-point :which-key "search dash"))
 	)
-#+end_src
-
-** COMMENT nano-emacs / sanity.el
-:PROPERTIES:
-:CUSTOM_ID: h:878D29DE-5721-42BD-850E-81D0A47580D3
-:END:
-Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
-
-#+begin_src emacs-lisp :tangle no
-(use-package nano-emacs
-  :straight (nano-theme :type git :host github :repo "rougier/nano-theme")
-  :hook (emacs-startup . (lambda () (if (eq lc/theme 'light) (nano-light) (nano-dark))))
-  )
 #+end_src
 
 * Provide modules
@@ -5426,6 +5438,76 @@ Look at https://github.com/skyler544/doom-nano-testing/blob/main/load-nano.el
 ;;; init-org-prog-elisp.el ends here
 #+end_src
 
+** init-prog-r
+:PROPERTIES:
+:CUSTOM_ID: h:A480FCCD-E2E4-4BBA-ACA1-DEF5EFDC1D03
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-r.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-r)
+;;; init-org-prog-r.el ends here
+#+end_src
+
+** init-prog-clojure
+:PROPERTIES:
+:CUSTOM_ID: h:39D468C7-8D6B-4F16-A3FE-8675917B3DBD
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-clojure.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-clojure)
+;;; init-org-prog-clojure.el ends here
+#+end_src
+
+** init-prog-vterm
+:PROPERTIES:
+:CUSTOM_ID: h:EE92BA80-1F88-4D69-A45C-69268595FA71
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-vterm.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-vterm)
+;;; init-prog-vterm.el ends here
+#+end_src
+
+** init-prog-markdown
+:PROPERTIES:
+:CUSTOM_ID: h:B315364E-ECF0-4ABC-9ACB-7546F6BB734C
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-markdown.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-markdown)
+;;; init-prog-markdown.el ends here
+#+end_src
+
+** init-extra-focus
+:PROPERTIES:
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra-focus.el
+:CUSTOM_ID: h:E8D67694-4B23-47E2-800B-10136B4D8F2A
+:END:
+#+begin_src emacs-lisp
+(provide 'init-extra-focus)
+;;; init-org-extra-focus.el ends here
+#+end_src
+
+** init-extra-web
+:PROPERTIES:
+:CUSTOM_ID: h:11871421-6FA2-4450-AA35-B779A525FE69
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra-web.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-extra-web)
+;;; init-org-extra-web.el ends here
+#+end_src
+
+** init-extra-rss
+:PROPERTIES:
+:CUSTOM_ID: h:A8F1EDE6-D506-49E6-A459-3AF50486BC89
+:header-args:    :emacs-lisp :tangle ./lisp/init-extra-rss.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-extra-rss)
+;;; init-org-extra-rss.el ends here
+#+end_src
+
 ** init-extras
 :PROPERTIES:
 :CUSTOM_ID: h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A
@@ -5493,59 +5575,60 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
 :END:
 #+begin_src emacs-lisp
 (defun lc/jupyter-df-to-tsv (dataframe)
-	(thread-last
-		(jupyter-eval (concat "df" ".to_csv(sep='\t')"))
-		(string-replace "'" "")
-		;; (subst-char-in-string ?\\ ?\\ )
-		;; (string-replace "\\t" "t")
-		))
+  (thread-last
+    (jupyter-eval (concat "df" ".to_csv(sep='\t')"))
+    (string-replace "'" "")
+    ;; (subst-char-in-string ?\\ ?\\ )
+    ;; (string-replace "\\t" "t")
+    ))
 
-(defun lc/dap-eval (expression)
-	(dap-eval expression)
-	(sleep-for 2)
-	)
+;; (defun lc/dap-eval (expression)
+;;   (dap-eval expression)
+;;   (sleep-for 2)
+;;   )
 
 (defun lc/dap-eval (expression)
   "Eval and print EXPRESSION."
   (interactive "sEval: ")
   (let* ((debug-session (dap--cur-active-session-or-die))
-				 (active-frame-id (-some->> debug-session
+         (active-frame-id (-some->> debug-session
                             dap--debug-session-active-frame
                             (gethash "id")))
-				 (result (dap--send-message
-									(dap--make-request "evaluate"
-																		 (list :expression expression
-																					 :frameId active-frame-id
-																					 :context "hover"
-																					 ))
-									(lambda (res) (setf result (or res :finished)))
-									debug-session)))
-		(while (not result)
-			(accept-process-output nil 0.001))
-    (thread-first
-      (gethash "result" (gethash "body" result))
-      (substring 4 -1)
-      )))
+         (result (dap--send-message
+                  (dap--make-request "evaluate"
+                                     (list :expression expression
+                                           :frameId active-frame-id
+                                           :context "hover"
+                                           ))
+                  (lambda (res) (setf result (or res :finished)))
+                  debug-session)))
+    (while (not result)
+      (accept-process-output nil 0.001))
+    ;; (thread-first
+    ;;   (gethash "result" (gethash "body" result))
+    ;;   (substring 4 -1)
+    ;;   )
+    ))
 
 (defun lc/dap-df-to-tsv (dataframe)
-	(lc/dap-eval (concat dataframe ".to_csv(sep='\t')")))
+  (lc/dap-eval (concat dataframe ".to_csv(sep='\t')")))
 
 (defun lc/pd-to-ses (dataframe)
-	(interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
-	;; (interactive "sVariable: ")
-	(let ((buffer (get-buffer-create
-								 (generate-new-buffer-name "*ein:ses pandas*")))
-				(tsv (lc/dap-df-to-tsv dataframe)))
-		;; Open `ses-mode' buffer
-		(with-current-buffer buffer
-			(ses-mode)
-			(ses-yank-tsf tsv nil)
-			(ses-command-hook)
-			;; (cl-flet ((y-or-n-p
-			;;            (prompt)
-			;;            (if (string-prefix-p "Yank will insert " prompt) t (error "Unexpected prompt: %s" prompt)))))
-			)
-		(pop-to-buffer buffer)))
+  (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
+  ;; (interactive "sVariable: ")
+  (let ((buffer (get-buffer-create
+                 (generate-new-buffer-name "*ein:ses pandas*")))
+        (tsv (lc/dap-df-to-tsv dataframe)))
+    ;; Open `ses-mode' buffer
+    (with-current-buffer buffer
+      (ses-mode)
+      (ses-yank-tsf tsv nil)
+      (ses-command-hook)
+      ;; (cl-flet ((y-or-n-p
+      ;;            (prompt)
+      ;;            (if (string-prefix-p "Yank will insert " prompt) t (error "Unexpected prompt: %s" prompt)))))
+      )
+    (pop-to-buffer buffer)))
 
 #+end_src
 
@@ -5556,24 +5639,6 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
 - https://github.com/howardabrams/demo-it
 - https://github.com/howardabrams/literate-devops-demo/blob/master/literate-devops-demo.el
 - https://github.com/howardabrams/magit-demo/blob/master/magit-demo.el
-*** eval sexp at point
-:PROPERTIES:
-:CUSTOM_ID: h:85DABA97-A084-4675-98AD-9B8388FE3C7F
-:END:
-#+begin_src emacs-lisp
-(defun eval-next-sexp ()
-  (interactive)
-  (save-excursion
-    (forward-sexp)
-    (eval-last-sexp nil)))
-
-(defun eval-surrounding-sexp (levels)
-  (interactive "p")
-  (save-excursion
-    (up-list (abs levels))
-    (eval-last-sexp nil)))
-#+end_src
-
 *** More transient commands!
 :PROPERTIES:
 :CUSTOM_ID: h:CFC79023-39C4-46DE-8B94-49920C2E9444
@@ -5650,5 +5715,4 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
 :END:
 # Local Variables:
 # eval: (add-hook 'after-save-hook (lambda ()(progn (lc/org-add-ids-to-headlines-in-file) (lc/tangle-config))) nil t)
-# company-backends: (company-dabbrev-code company-files company-keywords)
 # End:
