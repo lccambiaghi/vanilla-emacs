@@ -200,8 +200,9 @@
   (lc/local-leader-keys
     :keymaps 'csv-mode-map
     :states 'normal
-    "a" '(lc/csv-align-visible :wk "align visible")
-    "A" '(csv-align-fields :wk "align buffer")
+    "a" '(csv-align-fields :wk "align fields")
+    "A" '(lc/csv-align-visible :wk "align fields, visible")
+    "u" '(csv-unalign-fields :wk "unalign fields")
     "s" '(csv-sort-fields :wk "sort fields")
     ";" '(lc/set-csv-semicolon-separator :wk "set semicolon sep")
     "," '(lc/reset-csv-separators :wk "set comma sep"))
@@ -219,11 +220,11 @@
   (defun lc/init-csv-mode ()
     (lc/set-csv-separators)
     (lc/csv-highlight)
-    (lc/csv-align-visible))
+    (call-interactively 'csv-align-fields)
+		)
   :config
   (require 'cl)
   (require 'color)
-  (setq lc/default-csv-separators csv-separators)
   (defun lc/set-csv-separators ()
     (interactive)
     (let* ((n-commas (count-matches "," (point-at-bol) (point-at-eol)))

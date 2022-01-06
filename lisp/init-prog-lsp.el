@@ -104,13 +104,15 @@
     (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
     (progn
       (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df.csv')"))
+			(sleep-for 1)
       (with-current-buffer 
           (display-buffer
            (find-file-noselect "~/tmp-inspect-df.csv")
-           '((display-buffer-reuse-window display-buffer-in-side-window)
-             (side . bottom)
-             (window-width . fit-window-to-buffer)
-             (window-height . 0.33))))
+           '((;display-buffer-in-side-window
+							display-buffer-reuse-window)
+             (side . right)
+             (window-width . 0.5)
+						 )))
       ))
   ;; (add-to-list 'display-buffer-alist
   ;;              '(("*inspect-df*"
@@ -124,8 +126,8 @@
   (setq dap-python-debugger 'debugpy)
   ;; show stdout
   (setq dap-auto-show-output t)
-  (setq dap-output-window-max-height 20)
-  (setq dap-output-window-min-height 10)
+  (setq dap-output-window-min-height 200)
+  (setq dap-output-window-max-height 200)
   (setq dap-overlays-use-overlays nil)
   ;; hide stdout window  when done
   (defun lc/hide-debug-windows (session)
@@ -138,18 +140,18 @@
   ;; configure windows
   (require 'dap-ui)
   (setq dap-ui-buffer-configurations
-        '(("*dap-ui-locals*"
-           (side . right)
-           (slot . 1)
-           (window-width . 0.3))
-          ("*dap-ui-sessions*"
-           (side . right)
-           (slot . 3)
-           (window-width . 0.3))
-          ("*dap-ui-repl*"
+        '(("*dap-ui-sessions*"
            (side . bottom)
            (slot . 1)
-           (window-height . 0.33))))
+           (window-height . 0.4))
+					("*debug-window*"
+           (side . bottom)
+           (slot . 2)
+           (window-height . 0.4))
+          ("*dap-ui-repl*"
+           (side . bottom)
+           (slot . 3)
+           (window-height . 0.4))))
   (dap-ui-mode 1)
   ;; python virtualenv
   (require 'dap-python)

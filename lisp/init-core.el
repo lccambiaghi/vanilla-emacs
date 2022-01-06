@@ -902,7 +902,7 @@ asynchronously."
   )
 
 (use-package hl-todo
-	;; :hook ((prog-mode org-mode) . lc/hl-todo-init)
+	:hook ((prog-mode org-mode) . lc/hl-todo-init)
 	:init
 	(defun lc/hl-todo-init ()
 		(setq-local hl-todo-keyword-faces '(("HOLD" . "#cfdf30")
@@ -1626,9 +1626,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 	)
 
 (use-package dabbrev
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand)))
+  :after corfu :demand
+  :bind
+  (:map corfu-map
+        ("S-TAB" . dabbrev-completion)
+        ;; ("C-M-/" . dabbrev-expand)
+        )
+  )
 
 ;; Configure corfu
 (use-package corfu
