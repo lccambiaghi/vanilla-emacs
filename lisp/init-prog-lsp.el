@@ -11,6 +11,7 @@
     "i" '(:ignore t :which-key "import")
     "i o" '(lsp-organize-imports :wk "optimize")
     "l" '(:keymap lsp-command-map :wk "lsp")
+    "a" '(lsp-execute-code-action :wk "code action")	
     "r" '(lsp-rename :wk "rename"))
   ;; (lsp-mode-map
   ;;  :states 'normal
@@ -24,6 +25,7 @@
   (setq lsp-keep-workspace-alive nil)
   (setq lsp-auto-execute-action nil)
   (setq lsp-before-save-edits nil)
+	(setq lsp-headerline-breadcrumb-enable nil)
   (setq lsp-diagnostics-provider :none)
   )
 
@@ -70,31 +72,13 @@
     "d q" '(dap-disconnect :wk "quit")
     "d r" '(dap-ui-repl :wk "repl")
     "d h" '(dap-hydra :wk "hydra")
-    "d v" '(lc/dap-inspect-df :wk "view df")
+    "d i" '(lc/dap-inspect-df :wk "view df")
+    "d I" '(lc/dap-inspect-df2 :wk "view df2")
     "d t" '(lc/dap-dtale-df :wk "dtale df")
     )
   (:keymaps 'dap-ui-repl-mode-map
             "TAB" 'lc/py-indent-or-complete)
   :init
-  ;; (defun lc/dap-eval (expression)
-  ;;   "Eval and print EXPRESSION. In this function we
-  ;;   slighlty adapt dap-eval to wait for the result."
-  ;;   (interactive "sEval: ")
-  ;;   (let* ((debug-session (dap--cur-active-session-or-die))
-  ;;          (active-frame-id ( ;; <<
-  ;;                            -some->> debug-session
-  ;;                            dap--debug-session-active-frame
-  ;;                            (gethash "id")))
-  ;;          (result (dap--send-message
-  ;;                   (dap--make-request "evaluate"
-  ;;                                      (list :expression expression
-  ;;                                            :frameId active-frame-id
-  ;;                                            :context "hover"
-  ;;                                            ))
-  ;;                   (lambda (res) (setf result (or res :finished)))
-  ;;                   debug-session)))
-  ;;     (while (not result)
-  ;;       (accept-process-output nil 0.001))))
   ;; (defun lc/dap-dtale-df (dataframe)
   ;;   "Show df in tale in default browser"
   ;;   (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
@@ -102,18 +86,33 @@
   (defun lc/dap-inspect-df (dataframe)
     "Save the df to csv and open the file with csv-mode"
     (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
-    (progn
-      (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df.csv')"))
-			(sleep-for 1)
-      (with-current-buffer 
-          (display-buffer
-           (find-file-noselect "~/tmp-inspect-df.csv")
-           '((;display-buffer-in-side-window
-							display-buffer-reuse-window)
-             (side . right)
-             (window-width . 0.5)
-						 )))
-      ))
+    (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df.csv', index=False)"))
+    (sleep-for 1)
+    (with-current-buffer 
+        (display-buffer
+         (with-current-buffer (find-file-noselect "~/tmp-inspect-df.csv")
+           (rename-buffer "*inspect-df*"))
+         '((;display-buffer-in-side-window
+            display-buffer-reuse-window)
+           (side . right)
+           (window-width . 0.5)
+           )))
+    )
+	(defun lc/dap-inspect-df2 (dataframe)
+    "Save the df to csv and open the file with csv-mode"
+    (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
+    (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df2.csv', index=False)"))
+    (sleep-for 1)
+    (with-current-buffer 
+        (display-buffer
+         (with-current-buffer (find-file-noselect "~/tmp-inspect-df2.csv")
+           (rename-buffer "*inspect-df2*"))
+         '((;display-buffer-in-side-window
+            display-buffer-reuse-window)
+           (side . right)
+           (window-width . 0.5)
+           )))
+    )
   ;; (add-to-list 'display-buffer-alist
   ;;              '(("*inspect-df*"
   ;;                 (display-buffer-reuse-window display-buffer-in-side-window)
@@ -126,14 +125,17 @@
   (setq dap-python-debugger 'debugpy)
   ;; show stdout
   (setq dap-auto-show-output t)
-  (setq dap-output-window-min-height 200)
+  (setq dap-output-window-min-height 10)
   (setq dap-output-window-max-height 200)
   (setq dap-overlays-use-overlays nil)
   ;; hide stdout window  when done
   (defun lc/hide-debug-windows (session)
     "Hide debug windows when all debug sessions are dead."
+		;; (when (get-buffer "*inspect-df*")
+		;; 	(delete-window (get-buffer-window  "*inspect-df*")))
     (unless (-filter 'dap--session-running (dap--get-sessions))
-      (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))))
+      (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die))))
+    )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
   :config
@@ -143,15 +145,15 @@
         '(("*dap-ui-sessions*"
            (side . bottom)
            (slot . 1)
-           (window-height . 0.4))
-					("*debug-window*"
+           (window-height . 0.33))
+          ("*debug-window*"
            (side . bottom)
            (slot . 2)
-           (window-height . 0.4))
+           (window-height . 0.33))
           ("*dap-ui-repl*"
            (side . bottom)
            (slot . 3)
-           (window-height . 0.4))))
+           (window-height . 0.33))))
   (dap-ui-mode 1)
   ;; python virtualenv
   (require 'dap-python)

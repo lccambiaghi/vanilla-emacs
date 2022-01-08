@@ -558,14 +558,16 @@ be passed to EVAL-FUNC as its rest arguments"
 	:after evil
 	:demand
   :general
+	(general-nmap
+    "M-n" #'evil-mc-make-and-goto-next-match
+		)
   (general-vmap
-    "gm" '(:keymap evil-mc-cursors-map)
+    ;; "gm" '(:keymap evil-mc-cursors-map)
     "A" #'evil-mc-make-cursor-in-visual-selection-end
     "I" #'evil-mc-make-cursor-in-visual-selection-beg)
   (general-nmap
     "gm" '(:keymap evil-mc-cursors-map)
     "Q" #'evil-mc-undo-all-cursors
-    ;; "M-n" #'evil-mc-make-and-goto-next-cursor
     ;; "M-p" #'evil-mc-make-and-goto-prev-cursor
     )
   :config
@@ -1171,31 +1173,6 @@ asynchronously."
   (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
   )
 
-(use-package emacs
-  :hook
-  ((org-jupyter-mode . (lambda () (visual-line-mode -1)
-												 (advice-add 'org-cycle :around #'lc/org-cycle-or-py-complete)))
-   (org-mode . (lambda () (when (lc/is-jupyter-org-buffer?) (org-jupyter-mode)))))
-  :init
-  (defun lc/is-jupyter-org-buffer? ()
-    (with-current-buffer (buffer-name)
-      (goto-char (point-min))
-      (re-search-forward "begin_src jupyter-" 10000 t)))
-  (defun lc/org-cycle-or-py-complete (orig-fun &rest args)
-    "If in a jupyter-python code block, call py-indent-or-complete, otherwise use org-cycle"
-    (if (and (org-in-src-block-p)
-             (eq (intern (org-element-property :language (org-element-at-point))) 'jupyter-python))
-        (lc/py-indent-or-complete)
-      (apply orig-fun args)))
-  (define-minor-mode org-jupyter-mode
-    "Minor mode which is active when an org file has the string begin_src jupyter-python
-    in the first few hundred rows"
-    ;; :keymap (let ((map (make-sparse-keymap)))
-    ;;             (define-key map (kbd "C-c f") 'insert-foo)
-    ;;             map)
-    )
-  )
-
 (use-package all-the-icons
 	:if (not lc/is-ipad)
 	)
@@ -1276,7 +1253,8 @@ asynchronously."
     (with-eval-after-load 'org (plist-put org-format-latex-options :background "Transparent"))
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-vivendi) (dark . modus-vivendi))))
-    (modus-themes-load-vivendi))
+    (modus-themes-load-vivendi)
+    (lc/update-centaur-tabs))
   (defun lc/load-light-theme ()
     (setq lc/theme 'light)
     ;; (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "dark"))
@@ -1284,35 +1262,40 @@ asynchronously."
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-operandi) (dark . modus-operandi))))
     (setenv "BAT_THEME" "ansi")
-    (modus-themes-load-operandi))
-  (defun lc/change-theme-with-mac-system ()
-    (let ((appearance (plist-get (mac-application-state) :appearance)))
-      (cond ((equal appearance "NSAppearanceNameAqua")
-             (lc/load-light-theme))
-            ((equal appearance "NSAppearanceNameDarkAqua")
-             (lc/load-dark-theme)))))
-  (defun lc/change-theme-with-timers ()
-    (run-at-time "00:00" (* 60 60 24) 'lc/load-dark-theme)
-    (run-at-time "08:00" (* 60 60 24) 'lc/load-light-theme)
-    (run-at-time "18:00" (* 60 60 24) 'lc/load-dark-theme))
-  (defun lc/fix-fill-column-indicator ()
+    (modus-themes-load-operandi)
+    (lc/update-centaur-tabs))
+  (defun lc/update-centaur-tabs ()
+    (centaur-tabs-display-update)
+    (centaur-tabs-headline-match)
+    (set-face-attribute 'centaur-tabs-selected nil :overline (face-background 'centaur-tabs-active-bar-face)))
+    (defun lc/change-theme-with-mac-system ()
+      (let ((appearance (plist-get (mac-application-state) :appearance)))
+        (cond ((equal appearance "NSAppearanceNameAqua")
+               (lc/load-light-theme))
+              ((equal appearance "NSAppearanceNameDarkAqua")
+               (lc/load-dark-theme)))))
+    (defun lc/change-theme-with-timers ()
+      (run-at-time "00:00" (* 60 60 24) 'lc/load-dark-theme)
+      (run-at-time "08:00" (* 60 60 24) 'lc/load-light-theme)
+      (run-at-time "18:00" (* 60 60 24) 'lc/load-dark-theme))
+    (defun lc/fix-fill-column-indicator ()
+      (when (display-graphic-p)
+        (modus-themes-with-colors
+          (custom-set-faces
+           `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive)))))))
+    :config
     (when (display-graphic-p)
-      (modus-themes-with-colors
-        (custom-set-faces
-         `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive)))))))
-  :config
-  (when (display-graphic-p)
-    (lc/override-colors))
-  (if (and (boundp 'mac-effective-appearance-change-hook)
-           (plist-get (mac-application-state) :appearance))
-      (progn
-        (add-hook 'after-init-hook 'lc/change-theme-with-mac-system)
-        (add-hook 'mac-effective-appearance-change-hook 'lc/change-theme-with-mac-system))
-    ;; (add-hook 'after-init-hook 'lc/change-theme-with-timers)
-    ;; (add-hook 'emacs-startup-hook 'lc/load-light-theme)
-    (add-hook 'emacs-startup-hook 'lc/change-theme-with-timers)
+      (lc/override-colors))
+    (if (and (boundp 'mac-effective-appearance-change-hook)
+             (plist-get (mac-application-state) :appearance))
+        (progn
+          (add-hook 'after-init-hook 'lc/change-theme-with-mac-system)
+          (add-hook 'mac-effective-appearance-change-hook 'lc/change-theme-with-mac-system))
+      ;; (add-hook 'after-init-hook 'lc/change-theme-with-timers)
+      ;; (add-hook 'emacs-startup-hook 'lc/load-light-theme)
+      (add-hook 'emacs-startup-hook 'lc/change-theme-with-timers)
+      )
     )
-  )
 
 (use-package dashboard
   :demand
@@ -1529,25 +1512,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
     ))
 
-(use-package selectrum
-  :demand
-  :general
-  (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
-                            "C-k" 'selectrum-previous-candidate)
-  :config
-  (selectrum-mode t)
-  )
-
-(use-package selectrum-prescient
-  :after selectrum
-  :demand
-  :config
-  (prescient-persist-mode t)
-  (selectrum-prescient-mode t)
-  )
-
 (use-package marginalia
-  :after selectrum
+  :after vertico
   :init
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   (marginalia-mode))
@@ -1582,7 +1548,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   )
 
 (use-package consult
-  :straight (consult :host github :repo "minad/consult" :branch "main")
   :commands (consult-ripgrep)
   :general
   (general-nmap
@@ -1610,13 +1575,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     (require 'consult-selectrum))
   )
 
-(use-package consult-selectrum
-  :straight (consult-selectrum :host github :repo "minad/consult" :branch "main")
-  :after consult
-  :demand)
-
 (use-package embark-consult
-  :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
   :after (embark consult)
   ;; :demand t ; only necessary if you have the hook below
   ;; if you want to have consult previews as you move around an
@@ -1625,13 +1584,59 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;; (embark-collect-mode . embark-consult-preview-minor-mode)
 	)
 
+(use-package vertico
+	;; :straight (vertico :type git :host github :repo "minad/vertico")
+	:demand
+  :bind (:map vertico-map
+         ("C-j" . vertico-next)
+         ("C-k" . vertico-previous)
+         ("<escape>" . vertico-exit))
+  :init
+  (vertico-mode)
+	)
+
+(use-package orderless
+  :init
+  ;; Configure a custom style dispatcher (see the Consult wiki)
+  ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  (setq completion-styles '(orderless)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion)))))
+
+(use-package savehist
+  :init
+  (savehist-mode))
+
+;; A few more useful configurations...
+(use-package emacs
+  :init
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; Alternatively try `consult-completing-read-multiple'.
+  (defun crm-indicator (args)
+    (cons (concat "[CRM] " (car args)) (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+  ;; Vertico commands are hidden in normal buffers.
+  ;; (setq read-extended-command-predicate
+  ;;       #'command-completion-default-include-p)
+
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers t))
+
 (use-package dabbrev
-  :after corfu :demand
-  :bind
-  (:map corfu-map
-        ("S-TAB" . dabbrev-completion)
-        ;; ("C-M-/" . dabbrev-expand)
-        )
+	:general
+	(python-mode-map
+   :states 'insert
+   "<backtab>" 'dabbrev-completion
+   ;; ("C-M-/" . dabbrev-expand)
+   )
   )
 
 ;; Configure corfu
@@ -1791,6 +1796,163 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     )
   )
 
+(use-package dired
+  :straight (:type built-in)
+  :hook
+  (dired-mode . dired-hide-details-mode)
+  :general
+  (lc/leader-keys
+    "f d" 'dired
+    "f j" 'dired-jump)
+  (general-nmap
+    :keymaps 'dired-mode-map
+    :states 'normal
+    "F" '((lambda () (interactive)
+            (let ((fn (dired-get-file-for-visit)))
+              (start-process "open-directory" nil "open" "-R" fn)))
+          :wk "open finder")
+    "X" '((lambda () (interactive)
+            (let ((fn (dired-get-file-for-visit)))
+              (start-process "open-external" nil "open" fn)))
+          :wk "open external"))
+  :init
+  (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
+  (setq dired-listing-switches "-lah")
+	(setq ls-lisp-dirs-first t)
+	(setq ls-lisp-use-insert-directory-program nil)
+  (setq dired-dwim-target t)
+  (defun my/dired-open-externally ()
+    "Open marked dired file/folder(s) (or file/folder(s) at point if no marks)
+  with external application"
+    (interactive)
+    (let ((files (dired-get-marked-files)))
+      (dired-run-shell-command
+       (dired-shell-stuff-it "xdg-open" files t))))
+  )
+
+(use-package dired-single
+  :after dired
+  :general
+  (dired-mode-map
+   :states 'normal
+   "h" 'dired-single-up-directory
+   "l" 'dired-single-buffer
+   "q" 'kill-current-buffer))
+
+(use-package all-the-icons-dired
+  :if (display-graphic-p)
+  :hook (dired-mode . (lambda () (interactive)
+                        (unless (file-remote-p default-directory)
+                          (all-the-icons-dired-mode)))))
+
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "H" 'dired-hide-dotfiles-mode))
+
+(use-package dired-subtree
+  :general
+  (dired-mode-map
+   :states 'normal
+   "i" 'dired-subtree-toggle)
+  :config
+  (advice-add 'dired-subtree-toggle
+              :after (lambda () (interactive)
+                       (when all-the-icons-dired-mode
+                         (revert-buffer)))))
+
+(use-package persistent-scratch
+  :hook
+  (org-mode . (lambda ()
+                "only set initial-major-mode after loading org"
+                (setq initial-major-mode 'org-mode)))
+  :general
+  (lc/leader-keys
+    "bs" '((lambda ()
+             "Load persistent-scratch if not already loaded"
+             (interactive)
+             (progn 
+               (unless (boundp 'persistent-scratch-mode)
+                 (require 'persistent-scratch))
+               (pop-to-buffer "*scratch*")))
+           :wk "scratch"))
+  :init
+  (setq persistent-scratch-autosave-interval 60)
+  :config
+  (persistent-scratch-setup-default))
+
+(use-package rainbow-delimiters
+  :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+         (clojure-mode . rainbow-delimiters-mode))
+	      )
+
+(use-package restart-emacs
+  :general
+  (lc/leader-keys
+    "R" '(restart-emacs :wk "restart"))
+  )
+
+(use-package term
+  :if lc/is-ipad
+  :straight (:type built-in)
+  :general
+  (lc/leader-keys
+    "'" (lambda () (interactive) (term "/bin/zsh")))
+  )
+
+(use-package term
+  :if lc/is-windows
+  :straight (:type built-in)
+  :general
+  (lc/leader-keys
+    "'" (lambda () (interactive)
+          (let ((explicit-shell-file-name "C:/Program Files/Git/bin/bash"))
+            (call-interactively 'shell))))
+  ;; (setq explicit-shell-file-name "C:/Program Files/Git/bin/bash")
+  ;; (setq explicit-bash.exe-args '("--login" "-i"))
+  )
+
+(use-package tramp
+  :straight (:type built-in)
+  :init
+  ;; Disable version control on tramp buffers to avoid freezes.
+  (setq vc-ignore-dir-regexp
+        (format "\\(%s\\)\\|\\(%s\\)"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+  (setq tramp-default-method "ssh")
+  (setq tramp-auto-save-directory
+        (expand-file-name "tramp-auto-save" user-emacs-directory))
+  (setq tramp-persistency-file-name
+        (expand-file-name "tramp-connection-history" user-emacs-directory))
+  (setq password-cache-expiry nil)
+  (setq tramp-use-ssh-controlmaster-options nil)
+  (setq remote-file-name-inhibit-cache nil)
+  :config
+  (customize-set-variable 'tramp-ssh-controlmaster-options
+                          (concat
+                           "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
+                           "-o ControlMaster=auto -o ControlPersist=yes"))
+  (with-eval-after-load 'lsp-mode
+    (lsp-register-client
+     (make-lsp-client :new-connection (lsp-tramp-connection "pyright")
+                      :major-modes '(python-mode)
+                      :remote? t
+                      :server-id 'pyright-remote))
+    )
+  )
+
+(use-package docker-tramp)
+
+(use-package undo-fu
+  :demand
+  :general
+  (:states 'normal
+           "u" 'undo-fu-only-undo
+           "s-z" 'undo-fu-only-undo
+           "\C-r" 'undo-fu-only-redo))
+
 (use-package magit
   :general
   (lc/leader-keys
@@ -1895,31 +2057,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     ("r" smerge-resolve)
     ("R" smerge-kill-current)
     ("q" nil :color blue)))
-
-(use-package rainbow-delimiters
-  :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
-         (clojure-mode . rainbow-delimiters-mode))
-	      )
-
-(use-package persistent-scratch
-  :hook
-  (org-mode . (lambda ()
-                "only set initial-major-mode after loading org"
-                (setq initial-major-mode 'org-mode)))
-  :general
-  (lc/leader-keys
-    "bs" '((lambda ()
-             "Load persistent-scratch if not already loaded"
-             (interactive)
-             (progn 
-               (unless (boundp 'persistent-scratch-mode)
-                 (require 'persistent-scratch))
-               (pop-to-buffer "*scratch*")))
-           :wk "scratch"))
-  :init
-  (setq persistent-scratch-autosave-interval 60)
-  :config
-  (persistent-scratch-setup-default))
 
 (use-package inheritenv
   :straight (inheritenv :type git :host github :repo "purcell/inheritenv"))
@@ -2038,138 +2175,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
         (list (concat lc/latex-math-prefix key) value (concat "Math symbol " value))))
     lc/latex-math-symbols))
   )
-
-(use-package undo-fu
-  :demand
-  :general
-  (:states 'normal
-           "u" 'undo-fu-only-undo
-           "s-z" 'undo-fu-only-undo
-           "\C-r" 'undo-fu-only-redo))
-
-(use-package term
-  :if lc/is-ipad
-  :straight (:type built-in)
-  :general
-  (lc/leader-keys
-    "'" (lambda () (interactive) (term "/bin/zsh")))
-  )
-
-(use-package term
-  :if lc/is-windows
-  :straight (:type built-in)
-  :general
-  (lc/leader-keys
-    "'" (lambda () (interactive)
-          (let ((explicit-shell-file-name "C:/Program Files/Git/bin/bash"))
-            (call-interactively 'shell))))
-  ;; (setq explicit-shell-file-name "C:/Program Files/Git/bin/bash")
-  ;; (setq explicit-bash.exe-args '("--login" "-i"))
-  )
-
-(use-package dired
-  :straight (:type built-in)
-  :hook
-  (dired-mode . dired-hide-details-mode)
-  :general
-  (lc/leader-keys
-    "f d" 'dired
-    "f j" 'dired-jump)
-  (general-nmap
-    :keymaps 'dired-mode-map
-    :states 'normal
-    "F" '((lambda () (interactive)
-            (let ((fn (dired-get-file-for-visit)))
-              (start-process "open-directory" nil "open" "-R" fn)))
-          :wk "open finder")
-    "X" '((lambda () (interactive)
-            (let ((fn (dired-get-file-for-visit)))
-              (start-process "open-external" nil "open" fn)))
-          :wk "open external"))
-  :init
-  (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
-  (setq dired-listing-switches "-lah")
-	(setq ls-lisp-dirs-first t)
-	(setq ls-lisp-use-insert-directory-program nil)
-  (setq dired-dwim-target t)
-  (defun my/dired-open-externally ()
-    "Open marked dired file/folder(s) (or file/folder(s) at point if no marks)
-  with external application"
-    (interactive)
-    (let ((files (dired-get-marked-files)))
-      (dired-run-shell-command
-       (dired-shell-stuff-it "xdg-open" files t))))
-  )
-
-(use-package dired-single
-  :after dired
-  :general
-  (dired-mode-map
-   :states 'normal
-   "h" 'dired-single-up-directory
-   "l" 'dired-single-buffer
-   "q" 'kill-current-buffer))
-
-(use-package all-the-icons-dired
-  :if (display-graphic-p)
-  :hook (dired-mode . (lambda () (interactive)
-                        (unless (file-remote-p default-directory)
-                          (all-the-icons-dired-mode)))))
-
-(use-package dired-hide-dotfiles
-  :hook (dired-mode . dired-hide-dotfiles-mode)
-  :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "H" 'dired-hide-dotfiles-mode))
-
-(use-package dired-subtree
-  :general
-  (dired-mode-map
-   :states 'normal
-   "i" 'dired-subtree-toggle)
-  :config
-  (advice-add 'dired-subtree-toggle
-              :after (lambda () (interactive)
-                       (when all-the-icons-dired-mode
-                         (revert-buffer)))))
-
-(use-package restart-emacs
-  :general
-  (lc/leader-keys
-    "R" '(restart-emacs :wk "restart"))
-  )
-
-(use-package tramp
-  :straight (:type built-in)
-  :init
-  ;; Disable version control on tramp buffers to avoid freezes.
-  (setq vc-ignore-dir-regexp
-        (format "\\(%s\\)\\|\\(%s\\)"
-                vc-ignore-dir-regexp
-                tramp-file-name-regexp))
-  (setq tramp-default-method "ssh")
-  (setq tramp-auto-save-directory
-        (expand-file-name "tramp-auto-save" user-emacs-directory))
-  (setq tramp-persistency-file-name
-        (expand-file-name "tramp-connection-history" user-emacs-directory))
-  (setq password-cache-expiry nil)
-  (setq tramp-use-ssh-controlmaster-options nil)
-  (setq remote-file-name-inhibit-cache nil)
-  :config
-  (customize-set-variable 'tramp-ssh-controlmaster-options
-                          (concat
-                           "-o ControlPath=/tmp/ssh-tramp-%%r@%%h:%%p "
-                           "-o ControlMaster=auto -o ControlPersist=yes"))
-  (with-eval-after-load 'lsp-mode
-    (lsp-register-client
-     (make-lsp-client :new-connection (lsp-tramp-connection "pyright")
-                      :major-modes '(python-mode)
-                      :remote? t
-                      :server-id 'pyright-remote))
-    )
-  )
-
-(use-package docker-tramp)
 
 (use-package emacs
   :general
