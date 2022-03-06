@@ -1199,9 +1199,15 @@ asynchronously."
   )
 
 (use-package all-the-icons
-	:if (not lc/is-ipad)
-:demand
-	)
+  :if (not lc/is-ipad)
+  :demand
+  )
+
+(use-package all-the-icons-completion
+  :after (marginalia all-the-icons)
+  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+  :init
+  (all-the-icons-completion-mode))
 
 (use-package doom-modeline
     :demand
@@ -1280,7 +1286,8 @@ asynchronously."
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-vivendi) (dark . modus-vivendi))))
     (modus-themes-load-vivendi)
-    (lc/update-centaur-tabs))
+    (lc/update-centaur-tabs)
+		)
   (defun lc/load-light-theme ()
     (setq lc/theme 'light)
     ;; (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "dark"))
@@ -1615,16 +1622,108 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 	)
 
 (use-package vertico
-	;; :straight (vertico :type git :host github :repo "minad/vertico")
-	:demand
-  :bind (:map vertico-map
-         ("C-j" . vertico-next)
-         ("C-k" . vertico-previous)
-         ;; ("<escape>" . vertico-exit)
-				 )
+  ;; :straight (vertico :type git :host github :repo "minad/vertico")
+  :straight (vertico :files (:defaults "extensions/*")
+                     :includes (vertico-indexed
+                                vertico-flat
+                                vertico-grid
+                                vertico-mouse
+                                ;; vertico-quick
+                                vertico-buffer
+                                vertico-repeat
+                                vertico-reverse
+                                vertico-directory
+                                vertico-multiform
+                                vertico-unobtrusive
+                                ))
+  :demand
+  :hook
+  ((minibuffer-setup . vertico-repeat-save) ; Make sure vertico state is saved for `vertico-repeat'
+   (rfn-eshadow-update-overlay . vertico-directory-tidy) ; Clean up file path when typing
+   ) 
+  :general
+  (:keymaps 'vertico-map
+            "C-j" #'vertico-next
+            "C-k" #'vertico-previous
+            "<escape>" #'minibuffer-keyboard-quit ; Close minibuffer
+            ;; "C-;" #'kb/vertico-multiform-flat-toggle
+            "M-<backspace>" #'vertico-directory-delete-word
+            )
+  (:keymaps '(normal insert visual motion)
+            "M-." #'vertico-repeat) ; Perfectly return to the state of the last Vertico minibuffer usage
+  ;; :bind (:map vertico-map
+  ;;             ("C-j" . vertico-next)
+  ;;             ("C-k" . vertico-previous)
+  ;;             ("<escape>" . minibuffer-keyboard-quit)
+  ;;             )
   :init
+  (setq vertico-resize t)
+  
+  ;; multiform extension
+  (setq vertico-grid-separator "       ")
+  (setq vertico-grid-lookahead 50)
+  (setq vertico-buffer-display-action '(display-buffer-reuse-window))
+  (setq vertico-multiform-categories
+        '((file indexed)
+          (consult-grep buffer)
+          (consult-location)
+          (imenu buffer)
+          (library reverse indexed)
+          (org-roam-node reverse indexed)
+          (t reverse)
+          ))
+  (setq vertico-multiform-commands
+        '(("flyspell-correct-*" grid reverse)
+          (org-refile grid reverse indexed)
+          (consult-yank-pop indexed)
+          (consult-flycheck)
+          (consult-lsp-diagnostics)
+          ))
+  (defun kb/vertico-multiform-flat-toggle ()
+    "Toggle between flat and reverse."
+    (interactive)
+    (vertico-multiform--display-toggle 'vertico-flat-mode)
+    (if vertico-flat-mode
+        (vertico-multiform--temporary-mode 'vertico-reverse-mode -1)
+      (vertico-multiform--temporary-mode 'vertico-reverse-mode 1)))
+
+  ;; Workaround for problem with `tramp' hostname completions. This overrides
+  ;; the completion style specifically for remote files! See
+  ;; https://github.com/minad/vertico#tramp-hostname-completion
+  (defun lc/basic-remote-try-completion (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-try-completion string table pred point)))
+  (defun lc/basic-remote-all-completions (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-all-completions string table pred point)))
+  (add-to-list 'completion-styles-alist
+               '(basic-remote           ; Name of `completion-style'
+                 lc/basic-remote-try-completion lc/basic-remote-all-completions nil))
+
+  (setq completion-in-region-function
+        (lambda (&rest args)
+          (apply (if vertico-mode
+                     #'consult-completion-in-region
+                   #'completion--in-region)
+                 args)))
+
+  :config
+  ;; (vertico-multiform-mode)	
   (vertico-mode)
-	)
+
+  ;; Prefix the current candidate with “» ”. From
+  ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
+  (advice-add #'vertico--format-candidate :around
+              (lambda (orig cand prefix suffix index _start)
+                (setq cand (funcall orig cand prefix suffix index _start))
+                (concat
+                 (if (= vertico--index index)
+                     (propertize "» " 'face 'vertico-current)
+                   "  ")
+                 cand)))
+
+  
+  )
 
 (use-package orderless
   :init
@@ -1685,6 +1784,17 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :init
   (setq corfu-auto nil)                 ;; Enable auto completion
   (setq corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  (setq corfu-min-width 80)
+  (setq corfu-max-width corfu-min-width)       ; Always have the same width
+	 (setq corfu-preselect-first t)   
+	 
+	 (defun corfu-enable-always-in-minibuffer ()
+  "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+  (unless (or (bound-and-true-p mct--active) ; Useful if I ever use MCT
+              (bound-and-true-p vertico--input))
+    (setq-local corfu-auto nil)       ; Ensure auto completion is disabled
+    (corfu-mode 1)))
+   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
   ;; :custom
   ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
   ;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
@@ -1700,8 +1810,15 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :after corfu :demand
   :init
   (setq kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  (setq kind-icon-blend-background nil)  ; Use midpoint color between foreground and background colors ("blended")?
+  (setq kind-icon-blend-frac 0.08)
   :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
+  ;; refresh kind icon cache to match theme	
+  (with-eval-after-load 'modus-themes
+    (add-hook 'modus-themes-after-load-theme-hook #'(lambda () (interactive) (kind-icon-reset-cache))))
+
+)
 
 (use-package projectile
   :demand
