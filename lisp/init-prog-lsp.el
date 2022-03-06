@@ -58,25 +58,31 @@
 
 (use-package dap-mode
   :hook
-  ((dap-terminated . lc/hide-debug-windows)
+  ((dap-mode . corfu-mode)
+	 (dap-terminated . lc/hide-debug-windows)
+   (dap-session-created . (lambda (_arg) (projectile-save-project-buffers)))
    (dap-ui-repl-mode . (lambda () (setq-local truncate-lines t))))
   :general
   (lc/local-leader-keys
-    :keymaps 'python-mode-map
+    :states '(normal)
+    :keymaps '(python-mode-map dap-ui-repl-mode-map)
     "d d" '(dap-debug :wk "debug")
-    "d b" '(dap-breakpoint-toggle :wk "breakpoint")
+    "d b" '(dap-breakpoint-toggle :wk "breakpoint toggle")
+    "d B" '(dap-ui-breakpoints-list :wk "breakpoint list")
     "d c" '(dap-continue :wk "continue")
     "d n" '(dap-next :wk "next")
     "d e" '(dap-eval-thing-at-point :wk "eval")
     "d i" '(dap-step-in :wk "step in")
+    "d l" '(dap-debug-last :wk "step in")
     "d q" '(dap-disconnect :wk "quit")
     "d r" '(dap-ui-repl :wk "repl")
     "d h" '(dap-hydra :wk "hydra")
     "d i" '(lc/dap-inspect-df :wk "view df")
     "d I" '(lc/dap-inspect-df2 :wk "view df2")
-    "d t" '(lc/dap-dtale-df :wk "dtale df")
+    ;; "d t" '(lc/dap-dtale-df :wk "dtale df")
     )
   (:keymaps 'dap-ui-repl-mode-map
+            "<backtab>" 'dabbrev-completion
             "TAB" 'lc/py-indent-or-complete)
   :init
   ;; (defun lc/dap-dtale-df (dataframe)
@@ -98,7 +104,7 @@
            (window-width . 0.5)
            )))
     )
-	(defun lc/dap-inspect-df2 (dataframe)
+  (defun lc/dap-inspect-df2 (dataframe)
     "Save the df to csv and open the file with csv-mode"
     (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
     (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df2.csv', index=False)"))
@@ -131,10 +137,13 @@
   ;; hide stdout window  when done
   (defun lc/hide-debug-windows (session)
     "Hide debug windows when all debug sessions are dead."
-		;; (when (get-buffer "*inspect-df*")
-		;; 	(delete-window (get-buffer-window  "*inspect-df*")))
+    ;; (when (get-buffer "*inspect-df*")
+    ;; 	(delete-window (get-buffer-window  "*inspect-df*")))
     (unless (-filter 'dap--session-running (dap--get-sessions))
-      (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die))))
+      (when-let (window (get-buffer-window (dap--debug-session-output-buffer (dap--cur-session-or-die))))
+        (delete-window window))
+      ;; (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))
+      )
     )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
@@ -145,15 +154,15 @@
         '(("*dap-ui-sessions*"
            (side . bottom)
            (slot . 1)
-           (window-height . 0.33))
+           (window-height . 0.4))
           ("*debug-window*"
            (side . bottom)
            (slot . 2)
-           (window-height . 0.33))
+           (window-height . 0.4))
           ("*dap-ui-repl*"
            (side . bottom)
            (slot . 3)
-           (window-height . 0.33))))
+           (window-height . 0.4))))
   (dap-ui-mode 1)
   ;; python virtualenv
   (require 'dap-python)
@@ -174,21 +183,40 @@
                               :module "pytest"
                               :debugger 'debugpy
                               :name "dap-debug-test-at-point"))
-  (defvar empties-forecast (list
-                            :name "empties forecast"
+  (defvar flight-tower-mill (list
+                             :name "mill"
+                             :type "python"
+                             :request "launch"
+                             :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
+                             ;; :env '(("NO_JSON_LOG" . "true"))
+                             :args ["-m" "mill" "--config" "user_luca"]))
+  (defvar flight-tower-calibration (list
+                                    :name "mill"
+                                    :type "python"
+                                    :request "launch"
+                                    :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
+                                    ;; :env '(("NO_JSON_LOG" . "true"))
+                                    :args ["-m" "mill"
+                                           ;; "--config" "user_luca"
+                                           ;; "--config" "calibration_g292imp_41x185"
+                                           ;; "--config" "calibration_41x185_38x89"
+                                           "--config" "calibration_jan22"
+                                           ]
+                                    ))
+  (defvar flight-tower-e2e (list
+                            :name "mill"
                             :type "python"
                             :request "launch"
-                            :program "./src/empties/forecasting/predict.py"
-                            :env '(("NO_JSON_LOG" . "true"))
-                            :args ["--source01" "./data/empties-history-sample.parquet"
-                                   "--source02" "./data/model_selection.files"
-                                   "--source03" "./data/booking-feature-sample.parquet"
-                                   "--source04" "./data/holiday-2019-05-24-1558683595"
-                                   "--output-data" "./data/predictions.parquet"
-                                   "--output-metrics" "./data/metrics.json"]
+                            :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
+                            ;; :env '(("NO_JSON_LOG" . "true"))
+                            :args ["-m" "wood_processing_e2e"
+                                   "--config" "user_luca"]
                             ))
   (dap-register-debug-template "dap-debug-script" dap-script-args)
   (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
+  (dap-register-debug-template "flight-tower-mill" flight-tower-mill)
+  (dap-register-debug-template "flight-tower-e2e" flight-tower-e2e)
+  (dap-register-debug-template "flight-tower-calibration" flight-tower-calibration)
   ;; bind the templates
   (lc/local-leader-keys
     :keymaps 'python-mode-map

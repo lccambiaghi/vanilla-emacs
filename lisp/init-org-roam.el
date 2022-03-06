@@ -9,18 +9,28 @@
           ("w" "work" plain "%?" :target
            (file+head "work/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n") :unnarrowed t)))
   :general
-  (general-nmap
-    "SPC n b" 'org-roam-buffer-toggle
-    "SPC n f" 'org-roam-node-find
-    "SPC n g" 'org-roam-graph
-    "SPC n i" 'org-roam-node-insert
-    "SPC n c" 'org-roam-capture
-    "SPC n t" 'org-roam-tag-add
-    "SPC n r" 'org-roam-ref-add
-    "SPC n a" 'org-roam-alias-add
+  (lc/leader-keys
+    "TAB n" '((lambda () (interactive) (persp-switch "notes")) :wk "notes")
+    "n b" 'org-roam-buffer-toggle
+    "n f" 'org-roam-node-find
+    "n g" 'org-roam-graph
+    "n i" 'org-roam-node-insert
+    "n c" 'org-roam-capture
+    "n t" 'org-roam-tag-add
+    "n r" 'org-roam-ref-add
+    "n a" 'org-roam-alias-add
     ;; Dailies
-    "SPC n j" 'org-roam-dailies-capture-today
-    "SPC n J" 'org-roam-dailies-goto-today
+    "n j" 'org-roam-dailies-capture-today
+    "n J" 'org-roam-dailies-goto-today
+    ;; todos
+    "o t" '((lambda () (interactive)
+              (persp-switch "notes")
+              (find-file (concat org-roam-directory "/work/todo.org")))
+            :wk "work todos")
+    "o n" '((lambda () (interactive)
+              (persp-switch "notes")
+              (org-roam-node-find))
+            :wk "notes")
     )
   :config
   (org-roam-setup)

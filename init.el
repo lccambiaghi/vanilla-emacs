@@ -44,7 +44,7 @@
   ;; (require 'init-prog-r)
   ;; (require 'init-prog-clojure)
   (require 'init-prog-tree-sitter)
-  ;; (require 'init-extra-focus)
+  (require 'init-extra-focus)
   (require 'init-extra-web)
   ;; (require 'init-extra-rss)
   ;; (require 'init-extra)

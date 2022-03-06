@@ -276,8 +276,10 @@
 (use-package xref
   :straight (:type built-in)
   :init
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-  (setq xref-show-xrefs-function #'xref-show-definitions-buffer) ; for grep and the like
+  (setq xref-prompt-for-identifier nil) ;; always find references of symbol at point
+  ;; configured in consult
+  ;; (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+  ;; (setq xref-show-xrefs-function #'xref-show-definitions-buffer) ; for grep and the like
   ;; (setq xref-file-name-display 'project-relative)
   ;; (setq xref-search-program 'grep)
   )
@@ -619,10 +621,7 @@ be passed to EVAL-FUNC as its rest arguments"
               (persp-switch "main")
               (find-file (concat user-emacs-directory "readme.org")))
             :wk "open config")
-    "o t" '((lambda () (interactive)
-              (persp-switch "main")
-              (find-file (concat org-directory "/personal/todo.org")))
-            :wk "open todos"))
+    )
   (lc/local-leader-keys
     :keymaps 'org-mode-map
     "a" '(org-archive-subtree :wk "archive subtree")
@@ -641,7 +640,9 @@ be passed to EVAL-FUNC as its rest arguments"
     "t" '(:ignore true :wk "todo")
     "t t" '(org-todo :wk "heading todo")
     "t s" '(org-schedule :wk "schedule")
-    "t d" '(org-deadline :wk "deadline"))
+    "t d" '(org-deadline :wk "deadline")
+    "x" '(org-toggle-checkbox :wk "toggle checkbox")
+    )
   (org-mode-map
    :states 'normal
    "z i" '(org-toggle-inline-images :wk "inline images"))
@@ -693,8 +694,31 @@ be passed to EVAL-FUNC as its rest arguments"
   ;; (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
   (setq org-latex-pdf-process '("tectonic %f"))
   (add-to-list 'org-export-backends 'beamer)
-  (plist-put org-format-latex-options :scale 1.5)
+  (plist-put org-format-latex-options :scale 1.2)
   )
+
+(use-package org
+:config
+(defun my-adjoin-to-list-or-symbol (element list-or-symbol)
+  (let ((list (if (not (listp list-or-symbol))
+                  (list list-or-symbol)
+                list-or-symbol)))
+    (require 'cl-lib)
+    (cl-adjoin element list)))
+
+(eval-after-load "org"
+  '(mapc
+    (lambda (face)
+      (set-face-attribute
+       face nil
+       :inherit
+       (my-adjoin-to-list-or-symbol
+        'fixed-pitch
+        (face-attribute face :inherit))))
+    (list 'org-code 'org-block
+					;; 'org-table 'org-block-background
+					)))
+	)
 
 (use-package org
   :general
@@ -851,6 +875,7 @@ All my (performant) foldings needs are met between this and `org-show-subtree'
 
 (use-package org
 	:config
+	(require 's)
 	(defun lc/async-process (command &optional name filter)
   "Start an async process by running the COMMAND string with bash. Return the
 process object for it.
@@ -1175,6 +1200,7 @@ asynchronously."
 
 (use-package all-the-icons
 	:if (not lc/is-ipad)
+:demand
 	)
 
 (use-package doom-modeline
@@ -1297,6 +1323,26 @@ asynchronously."
       )
     )
 
+(use-package centaur-tabs
+  :hook (emacs-startup . centaur-tabs-mode)
+  :general
+  (general-nmap "gt" 'centaur-tabs-forward
+    "gT" 'centaur-tabs-backward)
+  (lc/leader-keys
+    "b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
+  :init
+  (setq centaur-tabs-set-icons t)
+  (setq centaur-tabs-set-modified-marker t
+        centaur-tabs-modified-marker "M"
+        centaur-tabs-cycle-scope 'tabs)
+  (setq centaur-tabs-set-close-button nil)
+  (setq centaur-tabs-enable-ido-completion nil)
+  :config
+  (centaur-tabs-mode t)
+  ;; (centaur-tabs-headline-match)
+  (centaur-tabs-group-by-projectile-project)
+  )
+
 (use-package dashboard
   :demand
   :init
@@ -1306,8 +1352,8 @@ asynchronously."
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
   (defun lc/is-after-17-or-weekends? ()
-    (or (thread-first (nth 4 (split-string (current-time-string) " ")) ;; time of the day e.g. 18
-            (substring 0 2)
+    (or (thread-first (nth 3 (split-string (current-time-string) " ")) ;; time of the day e.g. 18
+            ;; (substring 0 2)
             (string-to-number)   ;;<
             (> 16))
         (thread-first (substring (current-time-string) 0 3) ;; day of the week e.g. Fri
@@ -1400,26 +1446,6 @@ asynchronously."
                           (projects . 5)))
   )
 
-(use-package centaur-tabs
-  :hook (emacs-startup . centaur-tabs-mode)
-  :general
-  (general-nmap "gt" 'centaur-tabs-forward
-    "gT" 'centaur-tabs-backward)
-  (lc/leader-keys
-    "b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
-  :init
-  (setq centaur-tabs-set-icons t)
-  (setq centaur-tabs-set-modified-marker t
-        centaur-tabs-modified-marker "M"
-        centaur-tabs-cycle-scope 'tabs)
-  (setq centaur-tabs-set-close-button nil)
-  (setq centaur-tabs-enable-ido-completion nil)
-  :config
-  (centaur-tabs-mode t)
-  ;; (centaur-tabs-headline-match)
-  (centaur-tabs-group-by-projectile-project)
-  )
-
 (use-package emacs
   :init
   (setq display-buffer-alist
@@ -1439,7 +1465,7 @@ asynchronously."
 (use-package display-fill-column-indicator
   :straight (:type built-in)
   :hook
-  (prog-mode . display-fill-column-indicator-mode)
+  (python-mode . display-fill-column-indicator-mode)
   :init
   (setq-default fill-column  90)
   ;; (setq display-fill-column-indicator-character "|")
@@ -1450,12 +1476,11 @@ asynchronously."
   :hook (prog-mode . highlight-indent-guides-mode)
   :init
   ;; (setq highlight-indent-guides-method 'column)
+  ;; (setq highlight-indent-guides-method 'bitmap)
   (setq highlight-indent-guides-method 'character)
-  ;; (setq highlight-indent-guides-character ?|)
-  ;; (setq highlight-indent-guides-character ?❚)
   (setq highlight-indent-guides-character ?‖)
-  ;; (setq highlight-indent-guides-responsive 'stack)
   (setq highlight-indent-guides-responsive 'top)
+  ;; (setq highlight-indent-guides-responsive 'stack)
 	;; (setq highlight-indent-guides-auto-enabled nil)
 	;; (set-face-background 'highlight-indent-guides-odd-face "darkgray")
   ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
@@ -1516,27 +1541,32 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :after vertico
   :init
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  (marginalia-mode))
+  (marginalia-mode)
+  (with-eval-after-load 'projectile
+    (add-to-list 'marginalia-command-categories '(projectile-find-file . file)))
+  )
 
 (use-package embark
+  :after vertico
   :general
   (general-nmap "C-l" 'embark-act)
-  (selectrum-minibuffer-map
+  (vertico-map
    "C-l" #'embark-act
    )
-  (:keymaps 'embark-file-map "o" 'find-file-other-window)	
+  (:keymaps 'embark-file-map
+            ;; "o" 'find-file-other-window
+            "x" 'lc/dired-open-externally
+						)	
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
   :config
-  ;; For Selectrum users:
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none))))
-  ;; No unnecessary computation delay after injection.
-  (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
+  ;; (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
   )
 
 (use-package wgrep
@@ -1590,7 +1620,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :bind (:map vertico-map
          ("C-j" . vertico-next)
          ("C-k" . vertico-previous)
-         ("<escape>" . vertico-exit))
+         ;; ("<escape>" . vertico-exit)
+				 )
   :init
   (vertico-mode)
 	)
@@ -1811,23 +1842,19 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
             (let ((fn (dired-get-file-for-visit)))
               (start-process "open-directory" nil "open" "-R" fn)))
           :wk "open finder")
-    "X" '((lambda () (interactive)
-            (let ((fn (dired-get-file-for-visit)))
-              (start-process "open-external" nil "open" fn)))
-          :wk "open external"))
+    "X" '(lc/dired-open-externally :wk "open external"))
   :init
   (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
   (setq dired-listing-switches "-lah")
 	(setq ls-lisp-dirs-first t)
 	(setq ls-lisp-use-insert-directory-program nil)
   (setq dired-dwim-target t)
-  (defun my/dired-open-externally ()
+  (defun lc/dired-open-externally ()
     "Open marked dired file/folder(s) (or file/folder(s) at point if no marks)
   with external application"
     (interactive)
-    (let ((files (dired-get-marked-files)))
-      (dired-run-shell-command
-       (dired-shell-stuff-it "xdg-open" files t))))
+    (let ((fn (dired-get-file-for-visit)))
+              (start-process "open-external" nil "open" fn)))
   )
 
 (use-package dired-single
@@ -1885,7 +1912,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 (use-package rainbow-delimiters
   :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
          (clojure-mode . rainbow-delimiters-mode))
-	      )
+  )
 
 (use-package restart-emacs
   :general
@@ -2009,7 +2036,26 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   )
 
 (use-package hydra
-  :demand)
+	:after evil
+  :demand
+  :general
+  (lc/leader-keys "w w" 'evil-windows-hydra/body)
+  :init
+  (defhydra evil-windows-hydra (:hint nil
+                                      ;; :pre (smerge-mode 1)
+                                      ;; :post (smerge-auto-leave)
+                                      )
+    "
+ [_h_] ⇢⇠ decrease width [_l_] ⇠⇢ increase width
+ [_j_] decrease height [_k_] increase height
+│ [_q_] quit"
+    ("h" evil-window-decrease-width)
+    ("l" evil-window-increase-width)
+    ("j" evil-window-decrease-height)
+    ("k" evil-window-increase-height)
+    ("q" nil :color blue)
+    )
+  )
 
 (use-package smerge-mode
   :straight (:type built-in)

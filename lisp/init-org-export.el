@@ -40,3 +40,6 @@
 (use-package ox-altacv
   :straight (ox-altacv :type git :host github :repo "lccambiaghi/org-cv")
   :config (require 'ox-altacv))
+
+(provide 'init-org-export)
+;;; init-org-export.el ends here

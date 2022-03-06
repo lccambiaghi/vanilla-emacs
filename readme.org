@@ -223,7 +223,7 @@ Taken from DOOM's init
   ;; (require 'init-prog-r)
   ;; (require 'init-prog-clojure)
   (require 'init-prog-tree-sitter)
-  ;; (require 'init-extra-focus)
+  (require 'init-extra-focus)
   (require 'init-extra-web)
   ;; (require 'init-extra-rss)
   ;; (require 'init-extra)
@@ -289,152 +289,128 @@ The code block can then be tangle again to ~straight/versions/default.el~.
 We can then restore package versions using ~M-x straight-thaw-versions~.
 
 #+begin_src emacs-lisp :tangle no
-(("ESS" . "a9e9367976658391126c907b6a5dfc8ad3033ebd")
- ("Emacs-wgrep" . "f9687c28bbc2e84f87a479b6ce04407bb97cfb23")
- ("a.el" . "3d341eb7813ee02b00ab28e11c915295bfd4b5a7")
- ("ace-window" . "c7cb315c14e36fded5ac4096e158497ae974bec9")
- ("aggressive-indent-mode" . "b0ec0047aaae071ad1647159613166a253410a63")
- ("alert" . "7046393272686c7a1a9b3e7f7b1d825d2e5250a6")
- ("all-the-icons-dired" . "fc2dfa1e9eb8bf1c402a675e7089638d702a27a5")
- ("all-the-icons.el" . "6917b08f64dd8487e23769433d6cb9ba11f4152f")
+(("Emacs-wgrep" . "f9687c28bbc2e84f87a479b6ce04407bb97cfb23")
+ ("ace-window" . "0577c426a9833ab107bab46c60d1885c611b2fb9")
+ ("all-the-icons-dired" . "5e9b097f9950cc9f86de922b07903a4e5fefc733")
+ ("all-the-icons.el" . "6d48bc9e970ab559bc35a125c55fd83732595706")
  ("annalist.el" . "134fa3f0fb91a636a1c005c483516d4b64905a6d")
- ("avy" . "e92cb37457b43336b765630dbfbea8ba4be601fa")
- ("blacken" . "784da60033fe3743336d1da0f33239f1bf514266")
+ ("avy" . "ba5f035be33693d1a136a5cbeedb24327f551a92")
+ ("blacken" . "880cf502198753643a3e2ccd4131ee6973be2e8a")
  ("bui.el" . "f3a137628e112a91910fd33c0cff0948fa58d470")
- ("centaur-tabs" . "9c7c936e4e1de6f4f4095d70e43c9ae738d05086")
+ ("centaur-tabs" . "5860a5c40c2318797f1274ea4c6907ae77ea1ec9")
  ("centered-cursor-mode.el" . "4093821cc9759ca5a3c6e527d4cc915fc3a5ad74")
- ("cfrs" . "7c42f2c82c7ae689f3ef291b066688c58ab96298")
- ("cider" . "9c137c52cf5b769fcc52b4e8108acda10638f766")
- ("clojure-mode" . "53ef8ac076ae7811627fbdd408e519ab7fca9a0b")
- ("consult" . "9dcecad2d448e2da0ae9fa17222358176ef58dd3")
- ("csv-mode" . "8da54e8b4ef9e5fe8a0afa147c625ced603dc0aa")
- ("dap-mode" . "88eda699e77e86410cdf3eb6afb790303dd27728")
+ ("cfrs" . "c1f639d7bfd3e728cf85dbe224b06a4be76158f4")
+ ("consult" . "0940ca016531f3412003c231b476e5023a510ff9")
+ ("corfu" . "2f5e15add5e1fdd20ff83d647e460cd8f85327a5")
+ ("csv-mode" . "a4ad2e59d4039bf3b1bdbebdfab21c122ad5b487")
+ ("dap-mode" . "76cad34de8984f57c2b1e374e9c985cc7ec8dad0")
  ("darkroom" . "27b928a6e91c3207742180f7e209bae754c9c1fe")
- ("dash.el" . "0e975782086020aa12863fdb658d6a3cc748a10c")
- ("diff-hl" . "89aeb2fc8b24b6c4de4394f85041c5dd5fa60dad")
+ ("dash.el" . "da167c51e9fd167a48d06c7c0ee8e3ac7abd9718")
+ ("diff-hl" . "6fa3af0843093f44e028584a93eef091ec7e79d2")
  ("dired-hacks" . "7c0ef09d57a80068a11edc74c3568e5ead5cc15a")
- ("dired-hide-dotfiles" . "964b860a40ac0d585c71760ed2ecdfa6ce7c4184")
- ("dired-single" . "98c2102429fcac6fbfdba9198c126eb1b3dcc4e5")
- ("docker-tramp.el" . "8e2b671eff7a81af43b76d9dfcf94ddaa8333a23")
- ("doom-modeline" . "49816da1a6c05e6215ec3c8aac6c5eabeb47e74c")
- ("el-get" . "d76ac84ae9670de7bf7725b362cafe86688771f9")
- ("eldoc" . "b906386cf04029e01228fde239c3a2e3e5b53603")
- ("elfeed" . "e29c8b91450bd42d90041231f769c4e5fe5070da")
- ("elisp-refs" . "b3634a4567c655a1cda51b217629849cba0ac6a7")
- ("emacs-async" . "14f48de586b0977e3470f053b810d77b07ea427a")
+ ("dired-hide-dotfiles" . "6a379f23f64045f5950d229254ce6f32dbbf5364")
+ ("dired-single" . "b254f9b7bfc96a5eab5760a56811f2872d2c590a")
+ ("docker-tramp.el" . "7bfbb55417e7d2aac53adf92cb0e3fd329c495c1")
+ ("doom-modeline" . "5f30d231176186cbe5206aa133f91cea967717d9")
+ ("el-get" . "9353309744e4f8a7c9b1adf22ec99536fb2146b0")
+ ("eldoc" . "37e51a5810c496356cdb7107d14c2b7eb2dbdf0b")
+ ("elisp-refs" . "c06aec4486c034d0d4efae98cb7054749f9cc0ec")
+ ("elisp-tree-sitter" . "48b06796a3b2e76ce004972d929de38146eafaa0")
+ ("emacs-async" . "0d52411d3accc3e11a2c64838703a8ce9755c77c")
  ("emacs-bind-map" . "bf4181e3a41463684adfffc6c5c305b30480e30f")
- ("emacs-dashboard" . "2b1ef13392be2f07d2a52636edf578b89512d501")
- ("emacs-hide-mode-line" . "88888825b5b27b300683e662fa3be88d954b1cea")
- ("emacs-htmlize" . "49205105898ba8993b5253beec55d8bddd820a70")
- ("emacs-jupyter" . "1f0612eb936d36abab0f27b09cca691e81fc6e74")
- ("emacs-libvterm" . "6f95a1b2949f60539fd92e3a63011801a7e765fd")
- ("emacs-memoize" . "51b075935ca7070f62fae1d69fe0ff7d8fa56fdd")
- ("emacs-python-pytest" . "4a1c4c8915c12e540d41aae1d4e326a2362da541")
- ("emacs-tree-sitter" . "7f5d0938002092ec08830a73f64961021303e1e9")
- ("emacs-undo-fu" . "c0806c1903c5a0e4c69b6615cdc3366470a9b8ca")
- ("emacs-web-server" . "22ce66ea43e0eadb9ec1d691a35d9695fc29cee6")
- ("emacs-websocket" . "34e11124fdd9d73e431499ba8a6b6a8023519664")
- ("emacs-which-key" . "428aedfce0157920814fbb2ae5d00b4aea89df88")
+ ("emacs-dashboard" . "1bb5c43b6be65f72c2ff3ab948697c902458a32f")
+ ("emacs-hide-mode-line" . "bc5d293576c5e08c29e694078b96a5ed85631942")
+ ("emacs-libvterm" . "a940dd2ee8a82684860e320c0f6d5e15d31d916f")
+ ("emacs-python-pytest" . "b603c5c7f21d351364deeb78e503d3a54d08a152")
+ ("emacs-undo-fu" . "ab8bc10e424bccc847800c31ab41888db789d55d")
+ ("emacs-which-key" . "9f64733e4ac563c0cda3685acf4e1c2cf600319b")
  ("emacs-winum" . "c5455e866e8a5f7eab6a7263e2057aff5f1118b9")
- ("emacs-zmq" . "790033363cf0e78c616cfe117a2f681381e96f29")
- ("emacsmirror-mirror" . "71c9ae8e353f18f5ff6039b2e78f7ffad24fd4e1")
- ("embark" . "c1450983ba272993094e3048eb8b134c162bcb7d")
- ("envrc" . "a7c6ca84a2b0617c94594a23a0c05246f14fa4ee")
+ ("emacsmirror-mirror" . "a122c213c5b3ff1bb7fd7995f07b7a18334a19e7")
+ ("emacsql" . "c82a0e6b4d256a3743b718cfb640fa9efc045f6e")
+ ("embark" . "c9b26c2e18f01ae401df6a69b7a0c1a6bc44b90c")
+ ("envrc" . "456c4100de41d2cb50813058a9e727b6e83c5d1e")
  ("epl" . "78ab7a85c08222cd15582a298a364774e3282ce6")
  ("eros" . "dd8910279226259e100dab798b073a52f9b4233a")
- ("ess-view-data" . "283251e8ac19ac0c0f89a4b0f0eb38482167e52b")
- ("evil" . "6316dae58e95fe019fcb41d2d1ca5847227a16e6")
+ ("evil" . "b5c6950f65e2cde92bd978ec2bc98e67820d91a0")
  ("evil-cleverparens" . "8c45879d49bfa6d4e414b6c1df700a4a51cbb869")
- ("evil-collection" . "f53ef08224f709c732740d45b373ef3617f6d759")
+ ("evil-collection" . "e6be41bed7b4399db116038c7f0bf2f484065b48")
  ("evil-goggles" . "08a22058fd6a167f9f1b684c649008caef571459")
- ("evil-iedit-state" . "30fcfa96ceebed0191337c493f5c2efc8ae090ad")
+ ("evil-iedit-state" . "93e4cbfcee802adbb9dd0ebd5836fea4fa932849")
  ("evil-indent-plus" . "0c7501e6efed661242c3a20e0a6c79a6455c2c40")
  ("evil-lisp-state" . "3c65fecd9917a41eaf6460f22187e2323821f3ce")
- ("evil-mc" . "7dfb2ca5ac00c249cb2f55cd6fa91fb2bfb1117e")
- ("evil-nerd-commenter" . "563cdc154b1f29d181b883563dd37be7eafafdee")
+ ("evil-mc" . "246aecc17481dd23c172a9b845f02a9d9e322c7f")
+ ("evil-nerd-commenter" . "63baf2d1c796edd11bbec5fe1dee711173d4155d")
  ("evil-org-mode" . "a9706da260c45b98601bcd72b1d2c0a24a017700")
- ("evil-snipe" . "6dcac7f2516c6137a2de532fc2c052f242559ee3")
- ("evil-surround" . "346d4d85fcf1f9517e9c4991c1efe68b4130f93a")
- ("exec-path-from-shell" . "d14d6d2966efe5a1409f84a6b9d998268f74761d")
- ("f.el" . "c4dbf8c8e83df834f5d6f72cd5649b9d8a8812ec")
+ ("evil-snipe" . "a79177df406a79b4ffa25743c752f21363bba1cc")
+ ("evil-surround" . "282a975bda83310d20a2c536ac3cf95d2bf188a5")
+ ("exec-path-from-shell" . "3a8d97c096c2c5714b667130fd8a80d5622ee067")
+ ("f.el" . "50af874cd19042f17c8686813d52569b1025c76a")
+ ("flycheck" . "784f184cdd9f9cb4e3dbb997c09d93e954142842")
  ("gcmh" . "0089f9c3a6d4e9a310d0791cf6fa8f35642ecfd9")
- ("general.el" . "a0b17d207badf462311b2eef7c065b884462cb7c")
- ("git-timemachine" . "8d675750e921a047707fcdc36d84f8439b19a907")
- ("git.el" . "a3396a7027a7d986598c6a2d6d5599bac918f3da")
- ("gntp.el" . "767571135e2c0985944017dc59b0be79af222ef5")
- ("gnu-elpa-mirror" . "3f69bd0d6dcc9060acfb4b9bd2456b360eb2fe51")
- ("goto-chg" . "2af612153bc9f5bed135d25abe62f46ddaa9027f")
- ("helpful" . "584ecc887bb92133119f93a6716cdf7af0b51dca")
- ("hexrgb" . "90e5f07f14bdb9966648977965094c75072691d4")
+ ("general.el" . "9651024e7f40a8ac5c3f31f8675d3ebe2b667344")
+ ("git-timemachine" . "3381797bcbf906b18dff654a2361032d2d01b4a3")
+ ("gnu-elpa-mirror" . "ebddf266c5234580c9458a139b419c5db1374793")
+ ("goto-chg" . "a7c69fa6a33774ee8ca759a064845a88483a4995")
+ ("helpful" . "f865f17ad04cd270685187b0a5331ec8eb06e541")
  ("highlight-indent-guides" . "cf352c85cd15dd18aa096ba9d9ab9b7ab493e8f6")
- ("hl-todo" . "9661a462d86b22293caaa4c3d94f971a15dbf1d5")
+ ("hl-todo" . "42f744ffb513cf2b95517144c64dbf3fc69f711a")
  ("ht.el" . "c4c1be487d6ecb353d07881526db05d7fc90ea87")
- ("hydra" . "2d553787aca1aceb3e6927e426200e9bb9f056f1")
- ("iedit" . "5c792f5fd44797ece83169b7ef6ac6f4b259255d")
- ("inheritenv" . "13c0135ddd96519ddeb993ee21163d6e11b4f464")
- ("isearch-mb" . "781b5373c06131ca6ab45136cdca3cab022a67af")
- ("log4e" . "7df0c1ff4656f8f993b87064b1567618eadb5546")
- ("lsp-mode" . "8166a1fe04891efcb7f1262609e77fc48500537b")
- ("lsp-pyright" . "71ff088ac4c93b0edd012f305a3dfd1602c5d21e")
- ("lsp-treemacs" . "3bae4a91e05d55d5ca92da272ffcd497f370e9df")
- ("lsp-ui" . "62568188b7cbc0758a0c4bfb57647708406ddf51")
- ("magit" . "25f432551347468ce97b8b03987e59092e91f8f0")
- ("marginalia" . "d38a27867bcec0bafa43e8d1bd3fd96a32b15d31")
- ("markdown-mode" . "377ce39ffe69f058994ac4e98bde8cfb58661406")
- ("melpa" . "7e9db27ec78a96e067b87bb49bbe8e37fc43a3b5")
- ("modus-themes" . "1903cf653055482714c0f4cfa79e53c82fba047c")
- ("nix-mode" . "0023fc5b100ec0c939ffe699d1a7d1afcf1f417a")
- ("no-littering" . "6e8950ad296c0f57d80d034eb0b7adf538c02906")
- ("ob-async" . "de1cd6c93242a4cb8773bbe115b7be3d4dd6b97e")
- ("olivetti" . "b76a020aedb57a6a7d0ae61cde13434f5c802a44")
- ("org-appear" . "19ea96e6e2ce01b8583b25a6e5579f1be207a119")
- ("org-cv" . "2f86bab21d35f76c641b6175d33039422b6ed0db")
- ("org-fragtog" . "0151cabc7aa9f244f82e682b87713b344d780c23")
- ("org-html-themify" . "db0bdeedecb3f311ca39f165abdac809404c6e32")
- ("org-re-reveal" . "d404eb13d9e34354c081870ebdd69711937682b3")
- ("org-reverse-datetree" . "be24274dd62cd3c586cbea99c8f73db251bf319d")
- ("org-superstar-mode" . "7f83636db215bf5a10edbfdf11d12a132864a914")
- ("org-tree-slide" . "d6e8e91433dfe4968f1343b483f2680f45a77d52")
- ("ox-gfm" . "99f93011b069e02b37c9660b8fcb45dab086a07f")
- ("ox-ipynb" . "919b694763035c0ea04a3a368418355185f896b8")
- ("page-break-lines" . "69caea070379f3324c530e96e06625c3cd097cb9")
+ ("hydra" . "9e9e00cb240ea1903ffd36a54956b3902c379d29")
+ ("iedit" . "3c7159a107b01b8f740ced72f10351b10bb69784")
+ ("inheritenv" . "7e4c8b0d0a43b6f1c6c4d6dbd2f3bf5ce7f20067")
+ ("isearch-mb" . "27c19935dd7f067c9feb9a5fda17844c39749346")
+ ("kind-icon" . "6e0e0c5c2f846685861ef6c157044b1a55572359")
+ ("let-alist" . "592553db5929b54db40af0df90c5add0aaca045b")
+ ("lsp-mode" . "a82a4fa3467ec918273ab65d48c5c7d2dbfaec74")
+ ("lsp-pyright" . "d428dbcf1802fbe147271c8dc74b073bd9cd7403")
+ ("lsp-treemacs" . "72d367757a89453a712f6ba1df9b6e789ece2bbd")
+ ("lsp-ui" . "21ce926eedd41ef305c2d89412506ce59b1a7eac")
+ ("magit" . "2e73b66c2980abb9211d9881a8710c8ac5a33184")
+ ("marginalia" . "9229d88ae4757f3439e81f51799758c009838cb4")
+ ("markdown-mode" . "4469553a7395359e96b8796e1fac4de73cb6ccc4")
+ ("melpa" . "4e3d46311b4d15314b6d1a0d5ff95c5f7e366223")
+ ("modus-themes" . "fe5e1f7a16bae0df0cc305dcb3e5be32cf10f0b5")
+ ("nix-mode" . "3d04d92d9c3896d07bc9fed7e4f40032025fbe7b")
+ ("no-littering" . "665e324abb690fb50e9d255bc656eb12bb83b0c6")
+ ("ob-async" . "9aac486073f5c356ada20e716571be33a350a982")
+ ("olivetti" . "a31ac05a161a91fe5c157930b62a6c07037982ee")
+ ("orderless" . "1ccf74ffdbb0dd34caa63022e92f947c09c49c86")
+ ("org" . "b8656a2cef3d5da7270e391222d8139fc042edd5")
+ ("org-appear" . "a4d10fc346ba14f487eb7aa95761b9295089ba55")
+ ("org-fragtog" . "15861261a437aca2ec858317de71603d2957b423")
+ ("org-reverse-datetree" . "e7a7109e4c34811d471bf685b710234564a556f6")
+ ("org-roam" . "679ef6ef001fd1a69b691108178721aa913e7f0f")
+ ("org-superstar-mode" . "03be6c0a3081c46a59b108deb8479ee24a6d86c0")
+ ("org-tree-slide" . "917612a0d1593de533b7bf0a2792d7e37bb2ca3d")
  ("paredit" . "8330a41e8188fe18d3fa805bb9aa529f015318e8")
- ("parseclj" . "eff941126859bc9e949eae5cd6c2592e731629f2")
- ("parseedn" . "90cfe3df51b96f85e346f336c0a0ee6bf7fee508")
  ("persistent-scratch" . "57221e5fdff22985c0ea2f3e7c282ce823ea5932")
- ("persp-projectile" . "533808b3e4f8f95a1e3ed9c55d9aa720277ebd5f")
- ("perspective-el" . "2f2b59e693f08b8d9c81062fca25e6076b6e7f8d")
- ("pfuture" . "d7926de3ba0105a36cfd00811fd6278aea903eef")
+ ("persp-projectile" . "4e374d7650c7e041df5af5ac280a44d4a4ec705a")
+ ("perspective-el" . "d8211a80fbc2cc0d9e163ef6a3e1d0a693b4e00e")
+ ("pfuture" . "bde5b06795e3e35bfb2bba4c34b538d506a0856e")
  ("pkg-info" . "76ba7415480687d05a4353b27fea2ae02b8d9d61")
- ("posframe" . "3454a4cb9d218c38f9c5b88798dfb2f7f85ad936")
- ("powerline" . "346de84be53cae3663b4e2512222c279933846d4")
- ("prescient.el" . "42adc802d3ba6c747bed7ea1f6e3ffbbdfc7192d")
- ("projectile" . "c31bd41c0b9d6fba8837ebfd3a31dec0b3cd73c6")
- ("pyimport" . "a6f63cf7ed93f0c0f7c207e6595813966f8852b9")
- ("python-mode" . "41b123b4d4906cce7591900a952bb75a38c5296c")
- ("queue" . "52206c0f78afc0dfb9a287cb928c1e725103336d")
- ("rainbow-delimiters" . "f43d48a24602be3ec899345a3326ed0247b960c6")
+ ("posframe" . "80cb98aff695a102772cc414d96611bdaf96f00e")
+ ("powerline" . "390a95fe5b71cfc20e18d034b4b35b5c159a83fc")
+ ("projectile" . "24de2940a8a1f46a7715175a66be67733f1c8fa8")
+ ("python-mode" . "dcb376044d020dfe30f8e4273e61863b7d9615ce")
+ ("rainbow-delimiters" . "a32b39bdfe6c61c322c37226d66e1b6d4f107ed0")
  ("restart-emacs" . "1607da2bc657fe05ae01f7fdf26f716eafead02c")
- ("s.el" . "43ba8b563bee3426cead0e6d4ddc09398e1a349d")
- ("selectrum" . "015798542b441d993d53b967d49df3dc0162ca37")
- ("sesman" . "edee869c209c016e5f0c5cbb8abb9f3ccd2d1e05")
+ ("s.el" . "08661efb075d1c6b4fa812184c1e5e90c08795a9")
  ("shrink-path.el" . "c14882c8599aec79a6e8ef2d06454254bb3e1e41")
- ("shut-up" . "081d6b01e3ba0e60326558e545c4019219e046ce")
- ("smartparens" . "63695c64233d215a92bf08e762f643cdb595bdd9")
- ("spinner" . "61f59fab44d22cd5add61a1baf3f0b88a5d829d7")
- ("straight.el" . "2d407bccd9378f1d5218f8ba2ae85c6be73fbaf1")
- ("templatel" . "a3458234b8e0e83c46c6aca11a757c1134752c09")
+ ("smartparens" . "f59a40d54f35299007c396bd667ce3e9ec4714e3")
+ ("spinner" . "34905eae12a236753fa88abc831eff1e41e8576e")
+ ("straight.el" . "af5437f2afd00936c883124d6d3098721c2d306c")
+ ("svg-lib" . "d736ea09d6aa7064ff974f5bee0f3aadc0d157d4")
  ("toml-mode.el" . "f6c61817b00f9c4a3cab1bae9c309e0fc45cdd06")
- ("transient" . "90e640fe8fa3f309c7cf347501e86ca5cd0bd85e")
+ ("transient" . "45241225cf6bec864964191c0b3dc8bfad989723")
  ("transpose-frame" . "12e523d70ff78cc8868097b56120848befab5dbc")
- ("treemacs" . "332d4e0f1f606c472dd083c9cdd4f143ee23020a")
- ("use-package" . "caa92f1d64fc25480551757d854b4b49981dfa6b")
- ("vertico" . "cc23578c9143d2e320c9ed0283ad2e82c37ab65d")
- ("vterm-toggle" . "61cb072af997aa961e2aebe0125b883ff3bd6f43")
- ("weblorg" . "ca7136629fc3f3f1646fa9bd5ad51766062edb39")
- ("with-editor" . "6735180e73e787b79535c245b162249b70dbf841")
+ ("tree-sitter-langs" . "3c0c82f9fb0a796f5ebd7e1e4c89f13d5ab6ef58")
+ ("treemacs" . "deb7f2cd9eb06960798edd7393df2602902ed071")
+ ("use-package" . "a7422fb8ab1baee19adb2717b5b47b9c3812a84c")
+ ("vertico" . "9a3cdb754b018bd43a34fec464d4a88eae167c0e")
+ ("vterm-toggle" . "ea0bfeaa200d9ed02b51bbbd83222657b02637e7")
+ ("with-editor" . "36d36957628621e8340f755b22082e1f4ed8e2d7")
  ("xwwp" . "f67e070a6e1b233e60274deb717274b000923231")
- ("yaml-mode" . "fc5e1c58f94472944c4aa838f00f6adcac6fa992")
+ ("yaml-mode" . "a79d2a7b9281f8c56f461d717b1ba40fc58e22fd")
  ("yasnippet" . "5cbdbf0d2015540c59ed8ee0fcf4788effdf75b6"))
 :beta
 #+end_src
@@ -842,8 +818,10 @@ You can use below block to print the value of ~electric-pair-pairs~
 (use-package xref
   :straight (:type built-in)
   :init
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-  (setq xref-show-xrefs-function #'xref-show-definitions-buffer) ; for grep and the like
+  (setq xref-prompt-for-identifier nil) ;; always find references of symbol at point
+  ;; configured in consult
+  ;; (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+  ;; (setq xref-show-xrefs-function #'xref-show-definitions-buffer) ; for grep and the like
   ;; (setq xref-file-name-display 'project-relative)
   ;; (setq xref-search-program 'grep)
   )
@@ -1377,10 +1355,7 @@ Interesting bits:
               (persp-switch "main")
               (find-file (concat user-emacs-directory "readme.org")))
             :wk "open config")
-    "o t" '((lambda () (interactive)
-              (persp-switch "main")
-              (find-file (concat org-directory "/personal/todo.org")))
-            :wk "open todos"))
+    )
   (lc/local-leader-keys
     :keymaps 'org-mode-map
     "a" '(org-archive-subtree :wk "archive subtree")
@@ -1399,7 +1374,9 @@ Interesting bits:
     "t" '(:ignore true :wk "todo")
     "t t" '(org-todo :wk "heading todo")
     "t s" '(org-schedule :wk "schedule")
-    "t d" '(org-deadline :wk "deadline"))
+    "t d" '(org-deadline :wk "deadline")
+    "x" '(org-toggle-checkbox :wk "toggle checkbox")
+    )
   (org-mode-map
    :states 'normal
    "z i" '(org-toggle-inline-images :wk "inline images"))
@@ -1451,10 +1428,39 @@ Interesting bits:
   ;; (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
   (setq org-latex-pdf-process '("tectonic %f"))
   (add-to-list 'org-export-backends 'beamer)
-  (plist-put org-format-latex-options :scale 1.5)
+  (plist-put org-format-latex-options :scale 1.2)
   )
 #+END_SRC
+** org code blocks in monospace font
+:PROPERTIES:
+:CUSTOM_ID: h:57AD5032-5D49-436D-883D-BA44315D7B65
+:END:
+#+begin_src emacs-lisp
+(use-package org
+:config
+(defun my-adjoin-to-list-or-symbol (element list-or-symbol)
+  (let ((list (if (not (listp list-or-symbol))
+                  (list list-or-symbol)
+                list-or-symbol)))
+    (require 'cl-lib)
+    (cl-adjoin element list)))
 
+(eval-after-load "org"
+  '(mapc
+    (lambda (face)
+      (set-face-attribute
+       face nil
+       :inherit
+       (my-adjoin-to-list-or-symbol
+        'fixed-pitch
+        (face-attribute face :inherit))))
+    (list 'org-code 'org-block
+					;; 'org-table 'org-block-background
+					)))
+	)
+
+
+#+end_src
 ** org agenda
 :PROPERTIES:
 :CUSTOM_ID: h:345DD7DC-12A2-444B-923E-A61B11AB2D26
@@ -1674,6 +1680,7 @@ Taken from https://github.com/KaratasFurkan/.emacs.d
 #+begin_src emacs-lisp
 (use-package org
 	:config
+	(require 's)
 	(defun lc/async-process (command &optional name filter)
   "Start an async process by running the COMMAND string with bash. Return the
 process object for it.
@@ -1738,7 +1745,33 @@ asynchronously."
         org-ellipsis " ↴ ")
   )
 #+END_SRC
+** COMMENT bigger org headings
+:PROPERTIES:
+:CUSTOM_ID: h:199FAA28-4FB5-40EA-80F9-6D69F759221E
+:END:
+#+begin_src emacs-lisp
+(use-package org
+	:config
+  (let* ((variable-tuple
+          (cond ((x-list-fonts "Fira Code")         '(:font "Fira Code"))
+                (nil (warn "Cannot find a Fira Code Font.  Install it."))))
+         (base-font-color     (face-foreground 'default nil 'default))
+         (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
 
+    (custom-theme-set-faces
+     'user
+     `(org-level-8 ((t (,@headline ,@variable-tuple))))
+     `(org-level-7 ((t (,@headline ,@variable-tuple))))
+     `(org-level-6 ((t (,@headline ,@variable-tuple))))
+     `(org-level-5 ((t (,@headline ,@variable-tuple))))
+     `(org-level-4 ((t (,@headline ,@variable-tuple :height 1.1))))
+     `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.2))))
+     `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.3))))
+     `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.4))))
+     `(org-document-title ((t (,@headline ,@variable-tuple :height 1.5 :underline nil))))))
+
+  )
+#+end_src
 ** highlight todo
 :PROPERTIES:
 :CUSTOM_ID: h:6944ED2A-A880-48CC-A6F6-86847D15BF65
@@ -2268,18 +2301,28 @@ To set up roam:
           ("w" "work" plain "%?" :target
            (file+head "work/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n") :unnarrowed t)))
   :general
-  (general-nmap
-    "SPC n b" 'org-roam-buffer-toggle
-    "SPC n f" 'org-roam-node-find
-    "SPC n g" 'org-roam-graph
-    "SPC n i" 'org-roam-node-insert
-    "SPC n c" 'org-roam-capture
-    "SPC n t" 'org-roam-tag-add
-    "SPC n r" 'org-roam-ref-add
-    "SPC n a" 'org-roam-alias-add
+  (lc/leader-keys
+    "TAB n" '((lambda () (interactive) (persp-switch "notes")) :wk "notes")
+    "n b" 'org-roam-buffer-toggle
+    "n f" 'org-roam-node-find
+    "n g" 'org-roam-graph
+    "n i" 'org-roam-node-insert
+    "n c" 'org-roam-capture
+    "n t" 'org-roam-tag-add
+    "n r" 'org-roam-ref-add
+    "n a" 'org-roam-alias-add
     ;; Dailies
-    "SPC n j" 'org-roam-dailies-capture-today
-    "SPC n J" 'org-roam-dailies-goto-today
+    "n j" 'org-roam-dailies-capture-today
+    "n J" 'org-roam-dailies-goto-today
+    ;; todos
+    "o t" '((lambda () (interactive)
+              (persp-switch "notes")
+              (find-file (concat org-roam-directory "/work/todo.org")))
+            :wk "work todos")
+    "o n" '((lambda () (interactive)
+              (persp-switch "notes")
+              (org-roam-node-find))
+            :wk "notes")
     )
   :config
   (org-roam-setup)
@@ -2307,6 +2350,7 @@ To set up roam:
 #+BEGIN_SRC emacs-lisp
 (use-package all-the-icons
 	:if (not lc/is-ipad)
+:demand
 	)
 #+END_SRC
 
@@ -2446,6 +2490,136 @@ We use this hook to switch from light to dark theme.
     )
 #+END_SRC
 
+** centaur tabs
+:PROPERTIES:
+:CUSTOM_ID: h:44BB321D-0EB1-4E28-AD98-55621DC07597
+:END:
+#+begin_src emacs-lisp
+(use-package centaur-tabs
+  :hook (emacs-startup . centaur-tabs-mode)
+  :general
+  (general-nmap "gt" 'centaur-tabs-forward
+    "gT" 'centaur-tabs-backward)
+  (lc/leader-keys
+    "b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
+  :init
+  (setq centaur-tabs-set-icons t)
+  (setq centaur-tabs-set-modified-marker t
+        centaur-tabs-modified-marker "M"
+        centaur-tabs-cycle-scope 'tabs)
+  (setq centaur-tabs-set-close-button nil)
+  (setq centaur-tabs-enable-ido-completion nil)
+  :config
+  (centaur-tabs-mode t)
+  ;; (centaur-tabs-headline-match)
+  (centaur-tabs-group-by-projectile-project)
+  )
+#+end_src
+
+** COMMENT bespoke modeline
+:PROPERTIES:
+:CUSTOM_ID: h:4857520F-F4E7-4959-9162-505E93C94F21
+:END:
+#+begin_src emacs-lisp
+(use-package bespoke-modeline
+  :straight (:type git :host github :repo "mclear-tools/bespoke-modeline") 
+  :demand
+  :init
+  ;; Set header line
+  (setq bespoke-modeline-position 'top)
+  ;; Set mode-line height
+  (setq bespoke-modeline-size 3)
+  ;; Show diff lines in mode-line
+  (setq bespoke-modeline-git-diff-mode-line nil)
+  ;; Set mode-line cleaner
+  (setq bespoke-modeline-cleaner t)
+  ;; Use mode-line visual bell
+  (setq bespoke-modeline-visual-bell t)
+  ;; Set vc symbol
+  ;; (setq  bespoke-modeline-vc-symbol "G:")
+  :config
+  (bespoke-modeline-mode)
+  ;; (set-face-attribute 'bespoke-modeline-inactive-status-RO nil :box        'unspecified)
+  ;; (set-face-attribute 'bespoke-modeline-inactive-status-** nil :box        'unspecified)
+  ;; (set-face-attribute 'bespoke-modeline-inactive-status-RW nil :box        'unspecified)
+  ;; (set-face-attribute 'bespoke-modeline-inactive-secondary nil :bacground        '#3c4353)
+  ;; (set-face-attribute 'bespoke-modeline-inactive-secondary nil :bacground        '#3c4353)
+  )
+
+#+end_src
+** COMMENT bespoke theme
+:PROPERTIES:
+:CUSTOM_ID: h:EAC1CA44-DBF8-4BC9-A3FF-C55F06B60C07
+:END:
+NOTE:
+- requires Symbola font: https://fontlibrary.org/en/font/symbola
+#+begin_src emacs-lisp
+(use-package bespoke-themes
+  :demand
+  :straight (:host github :repo "mclear-tools/bespoke-themes" :branch "main")
+	:init
+	(defun what-face (pos)
+  (interactive "d")
+  (let ((face (or (get-char-property (point) 'read-face-name)
+                  (get-char-property (point) 'face))))
+    (if face (message "Face: %s" face) (message "No face at %d" pos))))
+  :config
+  ;; Set evil cursor colors
+  (setq bespoke-set-evil-cursors t)
+  ;; Set use of italics
+  (setq bespoke-set-italic-comments t
+        bespoke-set-italic-keywords t)
+  ;; Set variable pitch
+  (setq bespoke-set-variable-pitch t)
+  ;; Set initial theme variant
+  (setq bespoke-set-theme 'dark)
+  ;; Load theme
+  (load-theme 'bespoke t)
+	)
+
+;; Vertical window divider
+(use-package frame
+  :straight (:type built-in)
+  ;; Make sure new frames use window-divider
+  :hook (before-make-frame . window-divider-mode)
+  :custom
+  (window-divider-default-right-width 12)
+  (window-divider-default-bottom-width 1)
+  (window-divider-default-places 'right-only)
+  (window-divider-mode t)
+  :config
+  (setq-default default-frame-alist
+                (append (list
+                         ;; '(font . "SF Mono:style=medium:size=15") ;; NOTE: substitute whatever font you prefer here
+                         '(internal-border-width . 20)
+                         ;; '(left-fringe    . 0)
+                         '(right-fringe   . 0)
+                         '(tool-bar-lines . 0)
+                         '(menu-bar-lines . 0)
+                         '(vertical-scroll-bars . nil))))
+  (setq-default window-resize-pixelwise t)
+  (setq-default frame-resize-pixelwise t)
+  )
+
+(use-package fontset
+  :straight (:type built-in) ;; only include this if you use straight
+  :config
+  ;; Use symbola for proper unicode
+  (when (member "Symbola" (font-family-list))
+    (set-fontset-font
+     t 'symbol "Symbola" nil 'prepend)))
+#+end_src
+
+** COMMENT rainbow-mode
+:PROPERTIES:
+:CUSTOM_ID: h:CBF37512-DDB2-4FC5-88C7-F997A67064D5
+:END:
+#+begin_src emacs-lisp
+(use-package rainbow-mode
+:config
+(rainbow-mode)
+	)
+#+end_src
 ** dashboard                                                      :dashboard:
 :PROPERTIES:
 :CUSTOM_ID: h:2F4C0A6C-96BE-4818-B794-D1593C23FB00
@@ -2460,8 +2634,8 @@ We use this hook to switch from light to dark theme.
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
   (defun lc/is-after-17-or-weekends? ()
-    (or (thread-first (nth 4 (split-string (current-time-string) " ")) ;; time of the day e.g. 18
-            (substring 0 2)
+    (or (thread-first (nth 3 (split-string (current-time-string) " ")) ;; time of the day e.g. 18
+            ;; (substring 0 2)
             (string-to-number)   ;;<
             (> 16))
         (thread-first (substring (current-time-string) 0 3) ;; day of the week e.g. Fri
@@ -2554,32 +2728,6 @@ We use this hook to switch from light to dark theme.
                           (projects . 5)))
   )
 #+END_SRC
-
-** centaur tabs
-:PROPERTIES:
-:CUSTOM_ID: h:44BB321D-0EB1-4E28-AD98-55621DC07597
-:END:
-#+begin_src emacs-lisp
-(use-package centaur-tabs
-  :hook (emacs-startup . centaur-tabs-mode)
-  :general
-  (general-nmap "gt" 'centaur-tabs-forward
-    "gT" 'centaur-tabs-backward)
-  (lc/leader-keys
-    "b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
-  :init
-  (setq centaur-tabs-set-icons t)
-  (setq centaur-tabs-set-modified-marker t
-        centaur-tabs-modified-marker "M"
-        centaur-tabs-cycle-scope 'tabs)
-  (setq centaur-tabs-set-close-button nil)
-  (setq centaur-tabs-enable-ido-completion nil)
-  :config
-  (centaur-tabs-mode t)
-  ;; (centaur-tabs-headline-match)
-  (centaur-tabs-group-by-projectile-project)
-  )
-#+end_src
 
 ** popup management
 :PROPERTIES:
@@ -2674,7 +2822,7 @@ With ~evil~ you can:
 (use-package display-fill-column-indicator
   :straight (:type built-in)
   :hook
-  (prog-mode . display-fill-column-indicator-mode)
+  (python-mode . display-fill-column-indicator-mode)
   :init
   (setq-default fill-column  90)
   ;; (setq display-fill-column-indicator-character "|")
@@ -2706,12 +2854,11 @@ With ~evil~ you can:
   :hook (prog-mode . highlight-indent-guides-mode)
   :init
   ;; (setq highlight-indent-guides-method 'column)
+  ;; (setq highlight-indent-guides-method 'bitmap)
   (setq highlight-indent-guides-method 'character)
-  ;; (setq highlight-indent-guides-character ?|)
-  ;; (setq highlight-indent-guides-character ?❚)
   (setq highlight-indent-guides-character ?‖)
-  ;; (setq highlight-indent-guides-responsive 'stack)
   (setq highlight-indent-guides-responsive 'top)
+  ;; (setq highlight-indent-guides-responsive 'stack)
 	;; (setq highlight-indent-guides-auto-enabled nil)
 	;; (set-face-background 'highlight-indent-guides-odd-face "darkgray")
   ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
@@ -2884,7 +3031,10 @@ You can use ~insert-char~ to insert the emoji or ~emojify-insert-emoji~
   :after vertico
   :init
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  (marginalia-mode))
+  (marginalia-mode)
+  (with-eval-after-load 'projectile
+    (add-to-list 'marginalia-command-categories '(projectile-find-file . file)))
+  )
 #+END_SRC
 
 ** embark
@@ -2898,24 +3048,26 @@ NOTE:
 
 #+BEGIN_SRC emacs-lisp
 (use-package embark
+  :after vertico
   :general
   (general-nmap "C-l" 'embark-act)
-  (selectrum-minibuffer-map
+  (vertico-map
    "C-l" #'embark-act
    )
-  (:keymaps 'embark-file-map "o" 'find-file-other-window)	
+  (:keymaps 'embark-file-map
+            ;; "o" 'find-file-other-window
+            "x" 'lc/dired-open-externally
+						)	
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
   :config
-  ;; For Selectrum users:
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none))))
-  ;; No unnecessary computation delay after injection.
-  (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
+  ;; (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
   )
 #+END_SRC
 
@@ -2999,7 +3151,8 @@ NOTE:
   :bind (:map vertico-map
          ("C-j" . vertico-next)
          ("C-k" . vertico-previous)
-         ("<escape>" . vertico-exit))
+         ;; ("<escape>" . vertico-exit)
+				 )
   :init
   (vertico-mode)
 	)
@@ -3512,23 +3665,19 @@ NOTE:
             (let ((fn (dired-get-file-for-visit)))
               (start-process "open-directory" nil "open" "-R" fn)))
           :wk "open finder")
-    "X" '((lambda () (interactive)
-            (let ((fn (dired-get-file-for-visit)))
-              (start-process "open-external" nil "open" fn)))
-          :wk "open external"))
+    "X" '(lc/dired-open-externally :wk "open external"))
   :init
   (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
   (setq dired-listing-switches "-lah")
 	(setq ls-lisp-dirs-first t)
 	(setq ls-lisp-use-insert-directory-program nil)
   (setq dired-dwim-target t)
-  (defun my/dired-open-externally ()
+  (defun lc/dired-open-externally ()
     "Open marked dired file/folder(s) (or file/folder(s) at point if no marks)
   with external application"
     (interactive)
-    (let ((files (dired-get-marked-files)))
-      (dired-run-shell-command
-       (dired-shell-stuff-it "xdg-open" files t))))
+    (let ((fn (dired-get-file-for-visit)))
+              (start-process "open-external" nil "open" fn)))
   )
 
 (use-package dired-single
@@ -3614,10 +3763,10 @@ NOTE:
 :CUSTOM_ID: h:D5084868-D46D-4AC7-ACE4-A7EDB10703EE
 :END:
 #+BEGIN_SRC emacs-lisp
-  (use-package rainbow-delimiters
-    :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
-           (clojure-mode . rainbow-delimiters-mode))
-		)
+(use-package rainbow-delimiters
+  :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
+         (clojure-mode . rainbow-delimiters-mode))
+  )
 #+END_SRC
 
 ** restart-emacs
@@ -3821,7 +3970,26 @@ To work around this and show the ellipsis, you have to add a whitespace in that 
 :END:
 #+begin_src emacs-lisp
 (use-package hydra
-  :demand)
+	:after evil
+  :demand
+  :general
+  (lc/leader-keys "w w" 'evil-windows-hydra/body)
+  :init
+  (defhydra evil-windows-hydra (:hint nil
+                                      ;; :pre (smerge-mode 1)
+                                      ;; :post (smerge-auto-leave)
+                                      )
+    "
+ [_h_] ⇢⇠ decrease width [_l_] ⇠⇢ increase width
+ [_j_] decrease height [_k_] increase height
+│ [_q_] quit"
+    ("h" evil-window-decrease-width)
+    ("l" evil-window-increase-width)
+    ("j" evil-window-decrease-height)
+    ("k" evil-window-increase-height)
+    ("q" nil :color blue)
+    )
+  )
 
 (use-package smerge-mode
   :straight (:type built-in)
@@ -4269,10 +4437,10 @@ You can use ~consult-history~ to browse past searches
 (use-package darkroom
   :init
   ;; Don't scale the text, so ugly man!
-  (setq darkroom-text-scale-increase 1)
+  (setq darkroom-text-scale-increase 3)
   :general
   (lc/leader-keys
-    "tf" '(darkroom-tentative-mode :wk "focus")))
+    "t F" '(darkroom-tentative-mode :wk "focus")))
 #+end_src
 
 ** COMMENT kubernetes
@@ -4443,25 +4611,31 @@ You can use ~consult-history~ to browse past searches
 #+BEGIN_SRC emacs-lisp
 (use-package dap-mode
   :hook
-  ((dap-terminated . lc/hide-debug-windows)
+  ((dap-mode . corfu-mode)
+	 (dap-terminated . lc/hide-debug-windows)
+   (dap-session-created . (lambda (_arg) (projectile-save-project-buffers)))
    (dap-ui-repl-mode . (lambda () (setq-local truncate-lines t))))
   :general
   (lc/local-leader-keys
-    :keymaps 'python-mode-map
+    :states '(normal)
+    :keymaps '(python-mode-map dap-ui-repl-mode-map)
     "d d" '(dap-debug :wk "debug")
-    "d b" '(dap-breakpoint-toggle :wk "breakpoint")
+    "d b" '(dap-breakpoint-toggle :wk "breakpoint toggle")
+    "d B" '(dap-ui-breakpoints-list :wk "breakpoint list")
     "d c" '(dap-continue :wk "continue")
     "d n" '(dap-next :wk "next")
     "d e" '(dap-eval-thing-at-point :wk "eval")
     "d i" '(dap-step-in :wk "step in")
+    "d l" '(dap-debug-last :wk "step in")
     "d q" '(dap-disconnect :wk "quit")
     "d r" '(dap-ui-repl :wk "repl")
     "d h" '(dap-hydra :wk "hydra")
     "d i" '(lc/dap-inspect-df :wk "view df")
     "d I" '(lc/dap-inspect-df2 :wk "view df2")
-    "d t" '(lc/dap-dtale-df :wk "dtale df")
+    ;; "d t" '(lc/dap-dtale-df :wk "dtale df")
     )
   (:keymaps 'dap-ui-repl-mode-map
+            "<backtab>" 'dabbrev-completion
             "TAB" 'lc/py-indent-or-complete)
   :init
   ;; (defun lc/dap-dtale-df (dataframe)
@@ -4483,7 +4657,7 @@ You can use ~consult-history~ to browse past searches
            (window-width . 0.5)
            )))
     )
-	(defun lc/dap-inspect-df2 (dataframe)
+  (defun lc/dap-inspect-df2 (dataframe)
     "Save the df to csv and open the file with csv-mode"
     (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
     (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df2.csv', index=False)"))
@@ -4516,10 +4690,13 @@ You can use ~consult-history~ to browse past searches
   ;; hide stdout window  when done
   (defun lc/hide-debug-windows (session)
     "Hide debug windows when all debug sessions are dead."
-		;; (when (get-buffer "*inspect-df*")
-		;; 	(delete-window (get-buffer-window  "*inspect-df*")))
+    ;; (when (get-buffer "*inspect-df*")
+    ;; 	(delete-window (get-buffer-window  "*inspect-df*")))
     (unless (-filter 'dap--session-running (dap--get-sessions))
-      (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die))))
+      (when-let (window (get-buffer-window (dap--debug-session-output-buffer (dap--cur-session-or-die))))
+        (delete-window window))
+      ;; (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))
+      )
     )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
@@ -4530,15 +4707,15 @@ You can use ~consult-history~ to browse past searches
         '(("*dap-ui-sessions*"
            (side . bottom)
            (slot . 1)
-           (window-height . 0.33))
+           (window-height . 0.4))
           ("*debug-window*"
            (side . bottom)
            (slot . 2)
-           (window-height . 0.33))
+           (window-height . 0.4))
           ("*dap-ui-repl*"
            (side . bottom)
            (slot . 3)
-           (window-height . 0.33))))
+           (window-height . 0.4))))
   (dap-ui-mode 1)
   ;; python virtualenv
   (require 'dap-python)
@@ -4559,21 +4736,40 @@ You can use ~consult-history~ to browse past searches
                               :module "pytest"
                               :debugger 'debugpy
                               :name "dap-debug-test-at-point"))
-  (defvar empties-forecast (list
-                            :name "empties forecast"
+  (defvar flight-tower-mill (list
+                             :name "mill"
+                             :type "python"
+                             :request "launch"
+                             :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
+                             ;; :env '(("NO_JSON_LOG" . "true"))
+                             :args ["-m" "mill" "--config" "user_luca"]))
+  (defvar flight-tower-calibration (list
+                                    :name "mill"
+                                    :type "python"
+                                    :request "launch"
+                                    :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
+                                    ;; :env '(("NO_JSON_LOG" . "true"))
+                                    :args ["-m" "mill"
+                                           ;; "--config" "user_luca"
+                                           ;; "--config" "calibration_g292imp_41x185"
+                                           ;; "--config" "calibration_41x185_38x89"
+                                           "--config" "calibration_jan22"
+                                           ]
+                                    ))
+  (defvar flight-tower-e2e (list
+                            :name "mill"
                             :type "python"
                             :request "launch"
-                            :program "./src/empties/forecasting/predict.py"
-                            :env '(("NO_JSON_LOG" . "true"))
-                            :args ["--source01" "./data/empties-history-sample.parquet"
-                                   "--source02" "./data/model_selection.files"
-                                   "--source03" "./data/booking-feature-sample.parquet"
-                                   "--source04" "./data/holiday-2019-05-24-1558683595"
-                                   "--output-data" "./data/predictions.parquet"
-                                   "--output-metrics" "./data/metrics.json"]
+                            :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
+                            ;; :env '(("NO_JSON_LOG" . "true"))
+                            :args ["-m" "wood_processing_e2e"
+                                   "--config" "user_luca"]
                             ))
   (dap-register-debug-template "dap-debug-script" dap-script-args)
   (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
+  (dap-register-debug-template "flight-tower-mill" flight-tower-mill)
+  (dap-register-debug-template "flight-tower-e2e" flight-tower-e2e)
+  (dap-register-debug-template "flight-tower-calibration" flight-tower-calibration)
   ;; bind the templates
   (lc/local-leader-keys
     :keymaps 'python-mode-map
@@ -5418,6 +5614,16 @@ NOTE:
 #+begin_src emacs-lisp
 (provide 'init-ui-extra)
 ;;; init-ui-extra.el ends here
+#+end_src
+
+** init-org-export
+:PROPERTIES:
+:CUSTOM_ID: h:A646A19B-12BC-4B95-A592-BCB640E10659
+:header-args:    :emacs-lisp :tangle ./lisp/init-org-export.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-org-export)
+;;; init-org-export.el ends here
 #+end_src
 
 ** init-prog-tree-sitter

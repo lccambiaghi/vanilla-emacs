@@ -9,10 +9,10 @@
 (use-package darkroom
   :init
   ;; Don't scale the text, so ugly man!
-  (setq darkroom-text-scale-increase 1)
+  (setq darkroom-text-scale-increase 3)
   :general
   (lc/leader-keys
-    "tf" '(darkroom-tentative-mode :wk "focus")))
+    "t F" '(darkroom-tentative-mode :wk "focus")))
 
 (provide 'init-extra-focus)
 ;;; init-org-extra-focus.el ends here
