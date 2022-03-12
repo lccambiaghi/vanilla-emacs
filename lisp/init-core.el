@@ -408,7 +408,7 @@
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump nil)
+  (setq evil-want-C-i-jump t)
   (setq evil-want-Y-yank-to-eol t)
   ;; (setq evil-respect-visual-line-mode t)
   (setq evil-undo-system 'undo-fu)
@@ -643,6 +643,10 @@ be passed to EVAL-FUNC as its rest arguments"
     "t d" '(org-deadline :wk "deadline")
     "x" '(org-toggle-checkbox :wk "toggle checkbox")
     )
+	(org-mode-map
+   :states 'insert
+   "TAB" 'nil
+   "S-TAB" nil)
   (org-mode-map
    :states 'normal
    "z i" '(org-toggle-inline-images :wk "inline images"))
@@ -1657,7 +1661,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;;             ("<escape>" . minibuffer-keyboard-quit)
   ;;             )
   :init
-  (setq vertico-resize t)
+  ;; (setq vertico-resize t)
   
   ;; multiform extension
   (setq vertico-grid-separator "       ")

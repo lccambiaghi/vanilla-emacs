@@ -54,7 +54,39 @@ Let's consider some of the benefits:
 - People can read this file on Github ([[https://github.com/lccambiaghi/vanilla-emacs][here]]) 
 - I can comfortably document my configuration (and not from within comments), include links, ~sh~ code blocks, etc.
 - I can organize my configuration blocks in sections, easily disable some headings with ~COMMENT~
-- If I wanted, I could use ~noweb~ and ~tangle~ to break up the configuration in files
+** Modules
+:PROPERTIES:
+:CUSTOM_ID: h:C522D670-C206-44F7-96CE-17D01E578287
+:END:
+I tangle this file with the function ~lc/tangle-config~, you can read source code in [[#h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F][this]] section.
+Every time I save this ~.org~ file, it is tangled to multiple ~.el~ files.
+
+I achieve that by means of this file's "local variables", which I put at the end of the ~.org~ file:
+#+begin_src org
+# Local Variables:
+# eval: (add-hook 'after-save-hook (lambda ()(progn (lc/org-add-ids-to-headlines-in-file) (lc/tangle-config))) nil t)
+# End:
+#+end_src
+
+To design modules, I look at blocks in my config that I would like to toggle on and off.
+For example if I am on an iPad I may want to not load anything related to Python or ~vterm~.
+
+I assign org properties to each heading. These are determine which ~.el~ file they will be britten to.
+For example the header of the section concerning ~lsp-mode~ has the following properties:
+#+begin_src org
+:PROPERTIES:
+:CUSTOM_ID: h:6BC08822-D2B3-4BE9-9EBE-C42F89F0E688
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-lsp.el
+:END:
+#+end_src
+
+All subheadings under it will "inherit those properties and will be tangled to the same file.
+We also need to write some ~emacs-lisp~ at the end of the tanged file to "provide" those modules.
+[[#h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A][Here]] an example of one of these "footer" headers.
+
+I then have a lean ~init.el~ (written in [[#h:7B22A4F3-49A1-4848-A185-B4EEA060EECE][this]] section) which I use to control which modules I want to use in my session.
+On my main computer I typically want to enable all of them.
+
 ** How can I fork it?
 :PROPERTIES:
 :CUSTOM_ID: h:A4F99DF1-6997-41C6-92B2-2226913F0C21
@@ -1021,7 +1053,7 @@ in the rest of the file
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump nil)
+  (setq evil-want-C-i-jump t)
   (setq evil-want-Y-yank-to-eol t)
   ;; (setq evil-respect-visual-line-mode t)
   (setq evil-undo-system 'undo-fu)
@@ -1377,6 +1409,10 @@ Interesting bits:
     "t d" '(org-deadline :wk "deadline")
     "x" '(org-toggle-checkbox :wk "toggle checkbox")
     )
+	(org-mode-map
+   :states 'insert
+   "TAB" 'nil
+   "S-TAB" nil)
   (org-mode-map
    :states 'normal
    "z i" '(org-toggle-inline-images :wk "inline images"))
@@ -1431,6 +1467,7 @@ Interesting bits:
   (plist-put org-format-latex-options :scale 1.2)
   )
 #+END_SRC
+
 ** org code blocks in monospace font
 :PROPERTIES:
 :CUSTOM_ID: h:57AD5032-5D49-436D-883D-BA44315D7B65
@@ -1461,6 +1498,7 @@ Interesting bits:
 
 
 #+end_src
+
 ** org agenda
 :PROPERTIES:
 :CUSTOM_ID: h:345DD7DC-12A2-444B-923E-A61B11AB2D26
@@ -1745,6 +1783,7 @@ asynchronously."
         org-ellipsis " ↴ ")
   )
 #+END_SRC
+
 ** COMMENT bigger org headings
 :PROPERTIES:
 :CUSTOM_ID: h:199FAA28-4FB5-40EA-80F9-6D69F759221E
@@ -1772,6 +1811,7 @@ asynchronously."
 
   )
 #+end_src
+
 ** highlight todo
 :PROPERTIES:
 :CUSTOM_ID: h:6944ED2A-A880-48CC-A6F6-86847D15BF65
@@ -3196,7 +3236,7 @@ NOTE:
   ;;             ("<escape>" . minibuffer-keyboard-quit)
   ;;             )
   :init
-  (setq vertico-resize t)
+  ;; (setq vertico-resize t)
   
   ;; multiform extension
   (setq vertico-grid-separator "       ")
@@ -4737,7 +4777,7 @@ You can use ~consult-history~ to browse past searches
 (use-package dap-mode
   :hook
   ((dap-mode . corfu-mode)
-	 (dap-terminated . lc/hide-debug-windows)
+   (dap-terminated . lc/hide-debug-windows)
    (dap-session-created . (lambda (_arg) (projectile-save-project-buffers)))
    (dap-ui-repl-mode . (lambda () (setq-local truncate-lines t))))
   :general
@@ -4767,20 +4807,14 @@ You can use ~consult-history~ to browse past searches
   ;;   "Show df in tale in default browser"
   ;;   (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
   ;;   (dap-eval (concat "import dtale; dtale.show(" dataframe ", open_browser=True)")))
+	(setq lc/dap-temp-dataframe-buffer  "*inspect-df*")
+	(setq lc/dap-temp-dataframe-path "~/tmp-inspect-df.csv")
   (defun lc/dap-inspect-df (dataframe)
     "Save the df to csv and open the file with csv-mode"
     (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
-    (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df.csv', index=False)"))
+    (dap-eval (format  "%s.to_csv('%s', index=False)" dataframe lc/dap-temp-dataframe-path))
     (sleep-for 1)
-    (with-current-buffer 
-        (display-buffer
-         (with-current-buffer (find-file-noselect "~/tmp-inspect-df.csv")
-           (rename-buffer "*inspect-df*"))
-         '((;display-buffer-in-side-window
-            display-buffer-reuse-window)
-           (side . right)
-           (window-width . 0.5)
-           )))
+		(find-file-other-window lc/dap-temp-dataframe-path)
     )
   (defun lc/dap-inspect-df2 (dataframe)
     "Save the df to csv and open the file with csv-mode"
@@ -4797,13 +4831,8 @@ You can use ~consult-history~ to browse past searches
            (window-width . 0.5)
            )))
     )
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '(("*inspect-df*"
-  ;;                 (display-buffer-reuse-window display-buffer-in-side-window)
-  ;;                 (side . bottom)
-  ;;                 (reusable-frames . visible)
-  ;;                 (window-height . 0.33)
-  ;;                 )))
+	;; prevent minibuffer prompt about reloading from disk
+  (setq revert-without-query '("~/tmp-inspect-df.csv"))
   ;; (setq dap-auto-configure-features '(locals repl))
   (setq dap-auto-configure-features '(sessions repl))
   (setq dap-python-debugger 'debugpy)
@@ -4815,13 +4844,14 @@ You can use ~consult-history~ to browse past searches
   ;; hide stdout window  when done
   (defun lc/hide-debug-windows (session)
     "Hide debug windows when all debug sessions are dead."
-    ;; (when (get-buffer "*inspect-df*")
-    ;; 	(delete-window (get-buffer-window  "*inspect-df*")))
     (unless (-filter 'dap--session-running (dap--get-sessions))
+			;; delete output buffer
       (when-let (window (get-buffer-window (dap--debug-session-output-buffer (dap--cur-session-or-die))))
         (delete-window window))
-      ;; (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))
-      )
+			;; delete dataframe inspector window
+			(when-let
+					(window (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
+        (delete-window window)))
     )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
@@ -4832,15 +4862,15 @@ You can use ~consult-history~ to browse past searches
         '(("*dap-ui-sessions*"
            (side . bottom)
            (slot . 1)
-           (window-height . 0.4))
+           (window-height . 0.33))
           ("*debug-window*"
            (side . bottom)
            (slot . 2)
-           (window-height . 0.4))
+           (window-height . 0.33))
           ("*dap-ui-repl*"
            (side . bottom)
            (slot . 3)
-           (window-height . 0.4))))
+           (window-height . 0.33))))
   (dap-ui-mode 1)
   ;; python virtualenv
   (require 'dap-python)

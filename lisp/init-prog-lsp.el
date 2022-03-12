@@ -59,7 +59,7 @@
 (use-package dap-mode
   :hook
   ((dap-mode . corfu-mode)
-	 (dap-terminated . lc/hide-debug-windows)
+   (dap-terminated . lc/hide-debug-windows)
    (dap-session-created . (lambda (_arg) (projectile-save-project-buffers)))
    (dap-ui-repl-mode . (lambda () (setq-local truncate-lines t))))
   :general
@@ -89,20 +89,14 @@
   ;;   "Show df in tale in default browser"
   ;;   (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
   ;;   (dap-eval (concat "import dtale; dtale.show(" dataframe ", open_browser=True)")))
+	(setq lc/dap-temp-dataframe-buffer  "*inspect-df*")
+	(setq lc/dap-temp-dataframe-path "~/tmp-inspect-df.csv")
   (defun lc/dap-inspect-df (dataframe)
     "Save the df to csv and open the file with csv-mode"
     (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
-    (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df.csv', index=False)"))
+    (dap-eval (format  "%s.to_csv('%s', index=False)" dataframe lc/dap-temp-dataframe-path))
     (sleep-for 1)
-    (with-current-buffer 
-        (display-buffer
-         (with-current-buffer (find-file-noselect "~/tmp-inspect-df.csv")
-           (rename-buffer "*inspect-df*"))
-         '((;display-buffer-in-side-window
-            display-buffer-reuse-window)
-           (side . right)
-           (window-width . 0.5)
-           )))
+		(find-file-other-window lc/dap-temp-dataframe-path)
     )
   (defun lc/dap-inspect-df2 (dataframe)
     "Save the df to csv and open the file with csv-mode"
@@ -119,13 +113,8 @@
            (window-width . 0.5)
            )))
     )
-  ;; (add-to-list 'display-buffer-alist
-  ;;              '(("*inspect-df*"
-  ;;                 (display-buffer-reuse-window display-buffer-in-side-window)
-  ;;                 (side . bottom)
-  ;;                 (reusable-frames . visible)
-  ;;                 (window-height . 0.33)
-  ;;                 )))
+	;; prevent minibuffer prompt about reloading from disk
+  (setq revert-without-query '("~/tmp-inspect-df.csv"))
   ;; (setq dap-auto-configure-features '(locals repl))
   (setq dap-auto-configure-features '(sessions repl))
   (setq dap-python-debugger 'debugpy)
@@ -137,13 +126,14 @@
   ;; hide stdout window  when done
   (defun lc/hide-debug-windows (session)
     "Hide debug windows when all debug sessions are dead."
-    ;; (when (get-buffer "*inspect-df*")
-    ;; 	(delete-window (get-buffer-window  "*inspect-df*")))
     (unless (-filter 'dap--session-running (dap--get-sessions))
+			;; delete output buffer
       (when-let (window (get-buffer-window (dap--debug-session-output-buffer (dap--cur-session-or-die))))
         (delete-window window))
-      ;; (kill-buffer (dap--debug-session-output-buffer (dap--cur-session-or-die)))
-      )
+			;; delete dataframe inspector window
+			(when-let
+					(window (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
+        (delete-window window)))
     )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
@@ -154,15 +144,15 @@
         '(("*dap-ui-sessions*"
            (side . bottom)
            (slot . 1)
-           (window-height . 0.4))
+           (window-height . 0.33))
           ("*debug-window*"
            (side . bottom)
            (slot . 2)
-           (window-height . 0.4))
+           (window-height . 0.33))
           ("*dap-ui-repl*"
            (side . bottom)
            (slot . 3)
-           (window-height . 0.4))))
+           (window-height . 0.33))))
   (dap-ui-mode 1)
   ;; python virtualenv
   (require 'dap-python)
