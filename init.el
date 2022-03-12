@@ -33,7 +33,7 @@
   (require 'init-core)
   (require 'init-ui-extra)
   (require 'init-org-roam)
-  ;; (require 'init-org-export)
+  (require 'init-org-export)
   (require 'init-prog-vterm)
   (require 'init-prog-nix)
   (require 'init-prog-lsp)

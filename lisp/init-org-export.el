@@ -1,5 +1,5 @@
 (use-package org-html-themify
-	:after modus-themes
+  :after modus-themes
   :straight
   (org-html-themify
    :type git
@@ -7,10 +7,18 @@
    :repo "DogLooksGood/org-html-themify"
    :files ("*.el" "*.js" "*.css"))
   :hook (org-mode . org-html-themify-mode)
+  :init
+  (setq org-html-themify-themes
+        '((light . modus-operandi)
+          (dark . modus-operandi)))
   :config
   ;; otherwise it complains about invalid face
   (require 'hl-line)
+  
   )
+
+(use-package htmlize
+  :after org-html-themify)
 
 (use-package ox-gfm
 	:commands (org-gfm-export-as-markdown org-gfm-export-to-markdown)

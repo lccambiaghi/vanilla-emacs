@@ -765,43 +765,6 @@ be passed to EVAL-FUNC as its rest arguments"
   )
 
 (use-package org
-  :config
-  ;; temporary hack until straight.el supports building org properly
-  (defun org-git-version ()
-    "The Git version of org-mode.
-  Inserted by installing org-mode or when a release is made."
-    ;; (require 'git)
-    ;; (let ((git-repo (expand-file-name
-    ;;                  "straight/repos/org/" user-emacs-directory)))
-    ;;   (string-trim
-    ;;    (git-run "describe"
-    ;;             "--match=release\*"
-    ;;             "--abbrev=6"
-    ;;             "HEAD")))
-		"9.2.4")
-
-  (defun org-release ()
-    "The release version of org-mode.
-  Inserted by installing org-mode or when a release is made."
-    ;; (require 'git)
-    ;; (let ((git-repo (expand-file-name
-    ;;                  "straight/repos/org/" user-emacs-directory)))
-    ;;   (string-trim
-    ;;    (string-remove-prefix
-    ;;     "release_"
-    ;;     (git-run "describe"
-    ;;              "--match=release\*"
-    ;;              "--abbrev=0"
-    ;;              "HEAD"))))
-		"9.2.4"
-		)
-
-  ;; (provide 'org-version)
-	
-	;; (use-package git)
-  )
-
-(use-package org
 :init
 (setq org-capture-templates
         `(("b" "Blog" entry

@@ -63,6 +63,8 @@
       (call-interactively 'jupyter-repl-associate-buffer)))
   (advice-add 'jupyter-command :override #'jupyter-command-venv))
 
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
+
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
   :general

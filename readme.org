@@ -1,6 +1,7 @@
 #+TITLE: Luca's literate Emacs config
 #+STARTUP: content
 #+OPTIONS: auto-id:t
+#+OPTIONS: broken-links:t
 #+HTML_HEAD: <script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101260027);</script>
 #+HTML_HEAD: <script async src="//static.getclicky.com/js"></script>
 
@@ -121,12 +122,11 @@ I am particularly proud of some sections in this configuration, because of one o
 - They are particularly fine-tuned to my workflow
 
 Here they are, without any ranking:
-- [[#h:D9DB7FA2-18C6-46A9-9567-1FEFADD523AC][Adjust font size]] 
 - [[*general][general]]
 - [[#h:DC4B461C-91FC-4543-8C9C-FDF28121DCBA][eval operator]] 
 - [[*evil-indent-plus][evil-indent-plus]]
 - [[*evil-iedit-state][evil-iedit-state]]
-- [[*evil-mc][evil-mc]]
+- [[#h:B26642F5-695F-4475-92B5-2EB9B1C1A96A][evil-mc]]
 - [[*org mode][org mode]]
 - [[*ob-jupyter][ob-jupyter]]
 - [[*org-tree-slide][org-tree-slide]]
@@ -138,16 +138,17 @@ Here they are, without any ranking:
 - [[*dashboard][dashboard]]
 - [[*popup management][popup management]]
 - [[*projectile][projectile]]
-- [[*hydra-smerge][hydra-smerge]]
+- [[#h:DADD41F3-F805-4E89-9EDB-B21350A81A19][hydra-smerge]]
 - [[*envrc][envrc]]
 - [[*yasnippet][yasnippet]]
 - [[*dired][dired]]
 - [[*web browser][web browser]]
-- [[*lsp mode][lsp mode]]
+- [[#h:28CB5546-FBE4-481D-B620-623006DC0FDA][lsp mode]]
 - [[*dap-mode][dap-mode]]
 - [[*pytest][pytest]]
 - [[*jupyter][jupyter]]
 - [[*evil-lisp state][evil-lisp state]] 
+- [[#h:884FB8DF-D672-496E-9068-1FD15F0250E5][Adjust window size (transient)]]
 * early-init.el and init.el
 :PROPERTIES:
 :CUSTOM_ID: h:EC68944C-F745-45D8-9905-420E0813DBAF
@@ -244,7 +245,7 @@ Taken from DOOM's init
   (require 'init-core)
   (require 'init-ui-extra)
   (require 'init-org-roam)
-  ;; (require 'init-org-export)
+  (require 'init-org-export)
   (require 'init-prog-vterm)
   (require 'init-prog-nix)
   (require 'init-prog-lsp)
@@ -1545,7 +1546,7 @@ Interesting bits:
   )
 #+end_src
 
-** Hack to get org-version to work
+** COMMENT Hack to get org-version to work
 :PROPERTIES:
 :CUSTOM_ID: h:78D6F7DF-905E-4016-BF91-4E9E38580633
 :END:
@@ -2062,9 +2063,16 @@ Taken from DOOM:
 :CUSTOM_ID: h:89A2FA66-9647-4BF8-A45C-EA61D5D95FDC
 :END:
 I use this package to export my config to HTML. I then push it to the ~gh-pages~ branch
+
+NOTE:
+- Make sure the mode is active
+- Run ~org-export-dispatch~ and export to HTML
+- Make sure to set ~org-html-themify-themes~ to lighter variant so it is easier to read
+- The second export will not generate correct .css . Restart emacs and retry
+
 #+begin_src emacs-lisp
 (use-package org-html-themify
-	:after modus-themes
+  :after modus-themes
   :straight
   (org-html-themify
    :type git
@@ -2072,10 +2080,18 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
    :repo "DogLooksGood/org-html-themify"
    :files ("*.el" "*.js" "*.css"))
   :hook (org-mode . org-html-themify-mode)
+  :init
+  (setq org-html-themify-themes
+        '((light . modus-operandi)
+          (dark . modus-operandi)))
   :config
   ;; otherwise it complains about invalid face
   (require 'hl-line)
+  
   )
+
+(use-package htmlize
+  :after org-html-themify)
 #+end_src
 
 *** ox-gfm
@@ -5235,10 +5251,10 @@ Note:
 
 When exporting we can add this to the header:
 
-When exporting we can add this to the header:
-#+begin_quote
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
-#+end_quote
+When exporting ~.org~ file to HTML, we can add this header:
+#+begin_src org
+,#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
+#+end_src
 
 We can avoid evaluation of code with:
 #+begin_quote
