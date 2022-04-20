@@ -241,6 +241,8 @@
   ;; auto-close parentheses
   (electric-pair-mode +1)
   (setq electric-pair-preserve-balance nil)
+  ;; don't skip newline when auto-pairing parenthesis
+  (setq electric-pair-skip-whitespace-chars '(9 32))
   ;; mode-specific local-electric pairs
   (defconst lc/default-electric-pairs electric-pair-pairs)
   (defun lc/add-local-electric-pairs (pairs)
@@ -602,7 +604,11 @@ be passed to EVAL-FUNC as its rest arguments"
   :init
   (setq which-key-separator " ")
   (setq which-key-prefix-prefix "+")
-  ;; (setq which-key-idle-delay 0.5)
+  (setq which-key-show-early-on-C-h t)
+  ;; make sure which-key doesn't show normally but refreshes quickly after it is
+  ;; triggered.
+  (setq which-key-idle-delay 10000)
+  (setq which-key-idle-secondary-delay 0.05)
   :config
   (which-key-mode))
 
@@ -617,6 +623,7 @@ be passed to EVAL-FUNC as its rest arguments"
     "f t" '(org-babel-tangle :wk "tangle")
     "o C" '(org-capture :wk "capture")
     "o l" '(org-todo-list :wk "todo list")
+		  
     "o c" '((lambda () (interactive)
               (persp-switch "main")
               (find-file (concat user-emacs-directory "readme.org")))
@@ -740,17 +747,17 @@ be passed to EVAL-FUNC as its rest arguments"
             :wk "open todos"))
   :init
   (setq org-agenda-files '())
-  ;; if org folder exists, use agenda files
-  (when (file-directory-p "~/org/personal")
-    (setq org-agenda-files
-          (append org-agenda-files
-                  '("~/org/personal/birthdays.org"))))   
   
   ;; if roam work folder exists, add to agenda files
   (when (file-directory-p "~/roam/work")
     (setq org-agenda-files
           (append org-agenda-files
                   '("~/roam/work/todo.org"))))   
+
+	(when (file-directory-p "~/roam/personal")
+    (setq org-agenda-files
+          (append org-agenda-files
+                  '("~/roam/personal/20210721120340-birthdays.org" "~/roam/personal/inbox.org"))))
   
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
@@ -1201,16 +1208,17 @@ asynchronously."
         ;; modus-themes-no-mixed-fonts t
         modus-themes-bold-constructs t
         modus-themes-fringes 'nil ; {nil,'subtle,'intense}
-        modus-themes-mode-line '3d ; {nil,'3d,'moody}
+        modus-themes-mode-line '(3d) ; {nil,'3d,'moody}
         modus-themes-intense-hl-line nil
         modus-themes-mixed-fonts t
         modus-themes-prompts nil ; {nil,'subtle,'intense}
-        modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+        ;; modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
         modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
         modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
-        modus-themes-headings  ; Read further below in the manual for this one
-        '((1 . line-no-bold)
-          (t . rainbow-line-no-bold))
+        ;; modus-themes-headings  ; Read further below in the manual for this one
+        ;; (quote ((1 . t)           ; keep the default style
+        ;;         (2 . (background overline))
+        ;;         (t . (rainbow))))
         modus-themes-variable-pitch-headings t
         modus-themes-scale-headings t
         modus-themes-scale-1 1.1
@@ -1253,8 +1261,9 @@ asynchronously."
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-vivendi) (dark . modus-vivendi))))
     (modus-themes-load-vivendi)
-    (lc/update-centaur-tabs)
-		)
+    (when (bound-and-true-p centaur-tabs-mode)
+      (lc/update-centaur-tabs))
+    )
   (defun lc/load-light-theme ()
     (setq lc/theme 'light)
     ;; (with-eval-after-load 'org (plist-put org-format-latex-options :foreground "dark"))
@@ -1263,58 +1272,39 @@ asynchronously."
       (setq org-html-themify-themes '((light . modus-operandi) (dark . modus-operandi))))
     (setenv "BAT_THEME" "ansi")
     (modus-themes-load-operandi)
-    (lc/update-centaur-tabs))
+    (when (bound-and-true-p centaur-tabs-mode)
+      (lc/update-centaur-tabs)))
   (defun lc/update-centaur-tabs ()
     (centaur-tabs-display-update)
     (centaur-tabs-headline-match)
     (set-face-attribute 'centaur-tabs-selected nil :overline (face-background 'centaur-tabs-active-bar-face)))
-    (defun lc/change-theme-with-mac-system ()
-      (let ((appearance (plist-get (mac-application-state) :appearance)))
-        (cond ((equal appearance "NSAppearanceNameAqua")
-               (lc/load-light-theme))
-              ((equal appearance "NSAppearanceNameDarkAqua")
-               (lc/load-dark-theme)))))
-    (defun lc/change-theme-with-timers ()
-      (run-at-time "00:00" (* 60 60 24) 'lc/load-dark-theme)
-      (run-at-time "08:00" (* 60 60 24) 'lc/load-light-theme)
-      (run-at-time "18:00" (* 60 60 24) 'lc/load-dark-theme))
-    (defun lc/fix-fill-column-indicator ()
-      (when (display-graphic-p)
-        (modus-themes-with-colors
-          (custom-set-faces
-           `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive)))))))
-    :config
+  (defun lc/change-theme-with-mac-system ()
+    (let ((appearance (plist-get (mac-application-state) :appearance)))
+      (cond ((equal appearance "NSAppearanceNameAqua")
+             (lc/load-light-theme))
+            ((equal appearance "NSAppearanceNameDarkAqua")
+             (lc/load-dark-theme)))))
+  (defun lc/change-theme-with-timers ()
+    (run-at-time "00:00" (* 60 60 24) 'lc/load-dark-theme)
+    (run-at-time "08:00" (* 60 60 24) 'lc/load-light-theme)
+    (run-at-time "20:00" (* 60 60 24) 'lc/load-dark-theme))
+  (defun lc/fix-fill-column-indicator ()
     (when (display-graphic-p)
-      (lc/override-colors))
-    (if (and (boundp 'mac-effective-appearance-change-hook)
-             (plist-get (mac-application-state) :appearance))
-        (progn
-          (add-hook 'after-init-hook 'lc/change-theme-with-mac-system)
-          (add-hook 'mac-effective-appearance-change-hook 'lc/change-theme-with-mac-system))
-      ;; (add-hook 'after-init-hook 'lc/change-theme-with-timers)
-      ;; (add-hook 'emacs-startup-hook 'lc/load-light-theme)
-      (add-hook 'emacs-startup-hook 'lc/change-theme-with-timers)
-      )
-    )
-
-(use-package centaur-tabs
-  :hook (emacs-startup . centaur-tabs-mode)
-  :general
-  (general-nmap "gt" 'centaur-tabs-forward
-    "gT" 'centaur-tabs-backward)
-  (lc/leader-keys
-    "b K" '(centaur-tabs-kill-other-buffers-in-current-group :wk "kill other buffers"))
-  :init
-  (setq centaur-tabs-set-icons t)
-  (setq centaur-tabs-set-modified-marker t
-        centaur-tabs-modified-marker "M"
-        centaur-tabs-cycle-scope 'tabs)
-  (setq centaur-tabs-set-close-button nil)
-  (setq centaur-tabs-enable-ido-completion nil)
+      (modus-themes-with-colors
+        (custom-set-faces
+         `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive)))))))
   :config
-  (centaur-tabs-mode t)
-  ;; (centaur-tabs-headline-match)
-  (centaur-tabs-group-by-projectile-project)
+  (when (display-graphic-p)
+    (lc/override-colors))
+  (if (and (boundp 'mac-effective-appearance-change-hook)
+           (plist-get (mac-application-state) :appearance))
+      (progn
+        (add-hook 'after-init-hook 'lc/change-theme-with-mac-system)
+        (add-hook 'mac-effective-appearance-change-hook 'lc/change-theme-with-mac-system))
+    ;; (add-hook 'after-init-hook 'lc/change-theme-with-timers)
+    ;; (add-hook 'emacs-startup-hook 'lc/load-light-theme)
+    (add-hook 'emacs-startup-hook 'lc/change-theme-with-timers)
+    )
   )
 
 (use-package dashboard
@@ -1327,11 +1317,11 @@ asynchronously."
   (setq dashboard-set-file-icons t)
   (defun lc/is-after-17-or-weekends? ()
     (or (thread-first (nth 3 (split-string (current-time-string) " ")) ;; time of the day e.g. 18
-            ;; (substring 0 2)
-            (string-to-number)   ;;<
-            (> 16))
+                      ;; (substring 0 2)
+                      (string-to-number)   ;;<
+                      (> 16))
         (thread-first (substring (current-time-string) 0 3) ;; day of the week e.g. Fri
-            (member  '("Sat" "Sun")))))
+                      (member  '("Sat" "Sun")))))
   (setq dashboard-banner-logo-title nil)
   (setq dashboard-set-footer nil)
   ;; (setq dashboard-startup-banner [VALUE])
@@ -1353,21 +1343,26 @@ asynchronously."
             "Restore"
             (lambda (&rest _) (persp-state-load persp-state-default-file)))
            )))
-  (defun lc/dashboard-agenda-entry-format ()
+	(defun lc/dashboard-agenda-entry-format ()
     "Format agenda entry to show it on dashboard. Compared to the original, we remove tags at the end"
-    (let* ((schedule-time (org-get-scheduled-time (point)))
-           (deadline-time (org-get-deadline-time (point)))
-           (item (org-agenda-format-item
-                  (dashboard-agenda-entry-time (or schedule-time deadline-time))
-                  (org-get-heading)
-                  (org-outline-level)
-                  (org-get-category)
-                  nil;; (org-get-tags)
-                  t))
-           (loc (point))
-           (file (buffer-file-name)))
-      (dashboard-agenda--set-agenda-headline-face item)
-      (list item loc file)))
+  (let* ((scheduled-time (org-get-scheduled-time (point)))
+         (deadline-time (org-get-deadline-time (point)))
+         (entry-time (or scheduled-time deadline-time))
+         (item (org-agenda-format-item
+                (dashboard-agenda--formatted-time)
+                (dashboard-agenda--formatted-headline)
+                (org-outline-level)
+                (org-get-category)
+                nil;; (org-get-tags)
+								))
+         (loc (point))
+         (file (buffer-file-name))
+         (todo-state (org-get-todo-state))
+         (todo-index (and todo-state
+                          (length (member todo-state org-todo-keywords-1))))
+         (entry-data (list (cons 'time entry-time)
+                           (cons 'todo-index todo-index))))
+    (list item loc file entry-data)))
   (defun lc/dashboard-get-agenda ()
     "Get agenda items for today or for a week from now."
     (org-compile-prefix-format 'agenda)
@@ -1389,6 +1384,7 @@ asynchronously."
        "Next tasks"
        next
        list-size
+       'next
        "n"
        `(lambda (&rest ignore)
           (let ((buffer (find-file-other-window (nth 2 ',el))))
@@ -1617,7 +1613,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
             "M-<backspace>" #'vertico-directory-delete-word
             )
   (:keymaps '(normal insert visual motion)
-            "M-." #'vertico-repeat) ; Perfectly return to the state of the last Vertico minibuffer usage
+            "M-." #'vertico-repeat-last) ; Perfectly return to the state of the last Vertico minibuffer usage
   ;; :bind (:map vertico-map
   ;;             ("C-j" . vertico-next)
   ;;             ("C-k" . vertico-previous)
@@ -1859,7 +1855,8 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "TAB l" 'persp-next
     "TAB x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
     "TAB X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
-    "TAB m" '(lc/main-tab :wk "main"))
+    "TAB m" '(lc/main-tab :wk "main")
+    )
   :init
   (setq persp-state-default-file (expand-file-name ".persp" user-emacs-directory))
   (defun lc/main-tab ()

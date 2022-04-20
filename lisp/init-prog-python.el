@@ -141,5 +141,23 @@
             do (font-lock-add-keywords nil `((,r (1 '(face (:foreground ,c)))))))))
   )
 
+(use-package dash-at-point
+  :general
+  (lc/local-leader-keys
+    :keymaps 'python-mode-map
+    "h" '(dash-at-point :wk "docs"))
+  )
+
+(use-package code-cells
+  :hook (python-mode . code-cells-mode)
+	:config
+	(let ((map code-cells-mode-map))
+    (define-key map [remap evil-search-next] (code-cells-speed-key 'code-cells-forward-cell)) ;; n
+    (define-key map [remap evil-paste-after] (code-cells-speed-key 'code-cells-backward-cell)) ;; p
+    (define-key map [remap evil-backward-word-begin] (code-cells-speed-key 'code-cells-eval-above)) ;; b
+    (define-key map [remap evil-forward-word-end] (code-cells-speed-key 'code-cells-eval)) ;; e
+    (define-key map [remap evil-jump-forward] (code-cells-speed-key 'outline-cycle))) ;; TAB
+	)
+
 (provide 'init-prog-python)
 ;;; init-prog-python.el ends here

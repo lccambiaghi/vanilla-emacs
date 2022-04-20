@@ -38,7 +38,7 @@
   (require 'init-prog-nix)
   (require 'init-prog-lsp)
   (require 'init-prog-python)
-  ;; (require 'init-prog-jupyter)
+  (require 'init-prog-jupyter)
   (require 'init-prog-elisp)
   (require 'init-prog-markdown)
   ;; (require 'init-prog-r)

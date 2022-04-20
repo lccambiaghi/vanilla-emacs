@@ -38,9 +38,9 @@
   ;; (:map lsp-ui-mode-map
   ;;       ([remap lsp-find-references] . lsp-ui-peek-find-references))
   :general
-  (lc/local-leader-keys
-    "h" 'lsp-ui-doc-show
-    "H" 'lsp-ui-doc-hide)
+  ;; (lc/local-leader-keys
+  ;;   "h" 'lsp-ui-doc-show
+  ;;   "H" 'lsp-ui-doc-hide)
   (lsp-ui-peek-mode-map
    :states 'normal
    "C-j" 'lsp-ui-peek--select-next
@@ -78,7 +78,6 @@
     "d r" '(dap-ui-repl :wk "repl")
     "d h" '(dap-hydra :wk "hydra")
     "d i" '(lc/dap-inspect-df :wk "view df")
-    "d I" '(lc/dap-inspect-df2 :wk "view df2")
     ;; "d t" '(lc/dap-dtale-df :wk "dtale df")
     )
   (:keymaps 'dap-ui-repl-mode-map
@@ -89,31 +88,16 @@
   ;;   "Show df in tale in default browser"
   ;;   (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
   ;;   (dap-eval (concat "import dtale; dtale.show(" dataframe ", open_browser=True)")))
-	(setq lc/dap-temp-dataframe-buffer  "*inspect-df*")
-	(setq lc/dap-temp-dataframe-path "~/tmp-inspect-df.csv")
+  (setq lc/dap-temp-dataframe-buffer  "*inspect-df*")
+  (setq lc/dap-temp-dataframe-path "~/tmp-inspect-df.csv")
   (defun lc/dap-inspect-df (dataframe)
     "Save the df to csv and open the file with csv-mode"
     (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
     (dap-eval (format  "%s.to_csv('%s', index=False)" dataframe lc/dap-temp-dataframe-path))
     (sleep-for 1)
-		(find-file-other-window lc/dap-temp-dataframe-path)
+    (find-file-other-window lc/dap-temp-dataframe-path)
     )
-  (defun lc/dap-inspect-df2 (dataframe)
-    "Save the df to csv and open the file with csv-mode"
-    (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
-    (dap-eval (concat dataframe ".to_csv('~/tmp-inspect-df2.csv', index=False)"))
-    (sleep-for 1)
-    (with-current-buffer 
-        (display-buffer
-         (with-current-buffer (find-file-noselect "~/tmp-inspect-df2.csv")
-           (rename-buffer "*inspect-df2*"))
-         '((;display-buffer-in-side-window
-            display-buffer-reuse-window)
-           (side . right)
-           (window-width . 0.5)
-           )))
-    )
-	;; prevent minibuffer prompt about reloading from disk
+  ;; prevent minibuffer prompt about reloading from disk
   (setq revert-without-query '("~/tmp-inspect-df.csv"))
   ;; (setq dap-auto-configure-features '(locals repl))
   (setq dap-auto-configure-features '(sessions repl))
@@ -127,16 +111,26 @@
   (defun lc/hide-debug-windows (session)
     "Hide debug windows when all debug sessions are dead."
     (unless (-filter 'dap--session-running (dap--get-sessions))
-			;; delete output buffer
-      (when-let (window (get-buffer-window (dap--debug-session-output-buffer (dap--cur-session-or-die))))
-        (delete-window window))
-			;; delete dataframe inspector window
-			(when-let
-					(window (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
+      ;; delete output buffer
+      ;; (when-let (window (display-buffer-in-side-window
+      ;;         (dap--debug-session-output-buffer (dap--cur-session-or-die))
+      ;;         `((side . bottom) (slot . 5) (window-width . 0.20))))
+      ;;   (delete-window window))
+			(lc/kill-output-buffer)
+      ;; delete dataframe inspector window
+      (when-let
+          (window (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
         (delete-window window)))
     )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
+	(defun lc/kill-output-buffer ()
+  "Go to output buffer."
+  (interactive)
+  (let ((win (display-buffer-in-side-window
+              (dap--debug-session-output-buffer (dap--cur-session-or-die))
+              `((side . bottom) (slot . 5) (window-width . 0.20)))))
+    (delete-window win)))
   :config
   ;; configure windows
   (require 'dap-ui)
@@ -202,11 +196,22 @@
                             :args ["-m" "wood_processing_e2e"
                                    "--config" "user_luca"]
                             ))
+  (defvar mill-data-factory (list
+                             :name "mill"
+                             :type "python"
+                             :request "launch"
+                             :program (expand-file-name "~/git/Sodra.Common.FlightTower.Datafactory/ft_pipelines/__main__.py")
+                             :args ["-m" "wood_processing_e2e"
+                                    ;; "--config" "user_luca"
+                                    ]
+                             ))
+  
   (dap-register-debug-template "dap-debug-script" dap-script-args)
   (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
   (dap-register-debug-template "flight-tower-mill" flight-tower-mill)
   (dap-register-debug-template "flight-tower-e2e" flight-tower-e2e)
   (dap-register-debug-template "flight-tower-calibration" flight-tower-calibration)
+  (dap-register-debug-template "mill-data-factory" mill-data-factory)
   ;; bind the templates
   (lc/local-leader-keys
     :keymaps 'python-mode-map
