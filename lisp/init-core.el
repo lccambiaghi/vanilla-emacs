@@ -742,8 +742,8 @@ be passed to EVAL-FUNC as its rest arguments"
               (find-file (concat user-emacs-directory "readme.org")))
             :wk "open config")
     "o n" '((lambda () (interactive) (org-agenda nil "n")) :wk "next")
-    "o t" '((lambda () (interactive)
-              (find-file (concat org-directory "/personal/todo.org")))
+    "o i" '((lambda () (interactive)
+              (find-file (concat org-roam-directory "/personal/inbox.org")))
             :wk "open todos"))
   :init
   (setq org-agenda-files '())
@@ -1916,9 +1916,11 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (lc/leader-keys
     "f d" 'dired
     "f j" 'dired-jump)
-  (general-nmap
-    :keymaps 'dired-mode-map
+  (dired-mode-map
     :states 'normal
+		"h" 'dired-up-directory
+    "l" 'dired-find-file
+		"q" 'kill-current-buffer
     "F" '((lambda () (interactive)
             (let ((fn (dired-get-file-for-visit)))
               (start-process "open-directory" nil "open" "-R" fn)))
@@ -1927,25 +1929,17 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :init
   (setq dired-omit-files "^\\.[^.]\\|$Rhistory\\|$RData\\|__pycache__")
   (setq dired-listing-switches "-lah")
-	(setq ls-lisp-dirs-first t)
-	(setq ls-lisp-use-insert-directory-program nil)
+  (setq ls-lisp-dirs-first t)
+  (setq ls-lisp-use-insert-directory-program nil)
   (setq dired-dwim-target t)
+	(setf dired-kill-when-opening-new-dired-buffer t)
   (defun lc/dired-open-externally ()
     "Open marked dired file/folder(s) (or file/folder(s) at point if no marks)
   with external application"
     (interactive)
     (let ((fn (dired-get-file-for-visit)))
-              (start-process "open-external" nil "open" fn)))
+      (start-process "open-external" nil "open" fn)))
   )
-
-(use-package dired-single
-  :after dired
-  :general
-  (dired-mode-map
-   :states 'normal
-   "h" 'dired-single-up-directory
-   "l" 'dired-single-buffer
-   "q" 'kill-current-buffer))
 
 (use-package all-the-icons-dired
   :if (display-graphic-p)
@@ -2430,6 +2424,25 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :config
   (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
   (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
+  )
+
+(use-package avy
+  :general
+  (general-nmap
+    "gs" 'avy-goto-char-2)
+  ;; :bind (("C-:" . avy-goto-char)
+  ;;        ("C-'" . avy-goto-char-2)
+  ;;        ("C-;" . avy-goto-char-2)
+  ;;        ("M-g f" . avy-goto-line)
+  ;;        ("M-g w" . avy-goto-word-1)
+  ;;        ("M-g e" . avy-goto-word-0))
+  :hook (after-init . avy-setup-default)
+  :init
+  (setq avy-style 'pre)
+  ;; :custom ( avy-all-windows nil
+  ;;               avy-all-windows-alt t
+  ;;               avy-background t
+  ;;               avy-style 'pre)
   )
 
 (provide 'init-core)
