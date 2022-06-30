@@ -1,3 +1,4 @@
+;; [[file:../readme.org::#h:95658AC9-ADFE-4134-81C4-DEC01069B716][python mode:1]]
 (use-package python-mode
   :hook
   ((envrc-mode . (lambda ()
@@ -41,14 +42,18 @@
         python-shell-completion-string-code
         "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
   )
+;; python mode:1 ends here
 
+;; [[file:../readme.org::#h:373160D0-6591-4D96-9928-33EE610CEACE][lsp-pyright:1]]
 (use-package lsp-pyright
   :init
   (setq lsp-pyright-typechecking-mode "basic") ;; too much noise in "real" projects
   :hook (python-mode . (lambda ()
                          (require 'lsp-pyright)
                          (lsp-deferred))))
+;; lsp-pyright:1 ends here
 
+;; [[file:../readme.org::#h:8C50BED5-6727-41D9-83BE-E5ADB96D7C88][pytest:1]]
 (use-package python-pytest
   :general
   (lc/local-leader-keys
@@ -66,7 +71,9 @@
   :config
   (advice-add 'python-pytest--run :around #'lc/pytest-use-venv)
   )
+;; pytest:1 ends here
 
+;; [[file:../readme.org::#h:A98624AB-1B3D-47A2-873F-E961FDE431D9][flycheck:1]]
 (use-package flycheck
 	:hook ((lsp-mode . flycheck-mode)
 				 (envrc-mode . (lambda ()
@@ -79,14 +86,18 @@
 	;; only check on save
 	(setq flycheck-check-syntax-automatically '(mode-enabled save))
 )
+;; flycheck:1 ends here
 
+;; [[file:../readme.org::#h:2DC8F5D9-BD12-4CEA-9CBD-34B4CAC53495][blacken:1]]
 (use-package blacken
 	:general
 	(lc/local-leader-keys
       :keymaps 'python-mode-map
       "=" '(blacken-buffer :wk "format"))
 	)
+;; blacken:1 ends here
 
+;; [[file:../readme.org::#h:A0F0925F-11FB-43A8-8E26-A068FD70D7D0][csv mode:1]]
 (use-package csv-mode
   :hook (csv-mode . lc/init-csv-mode)
   :general
@@ -140,14 +151,9 @@
             for r = (format "^\\([^%c\n]+%c\\)\\{%d\\}" separator separator i)
             do (font-lock-add-keywords nil `((,r (1 '(face (:foreground ,c)))))))))
   )
+;; csv mode:1 ends here
 
-(use-package dash-at-point
-  :general
-  (lc/local-leader-keys
-    :keymaps 'python-mode-map
-    "h" '(dash-at-point :wk "docs"))
-  )
-
+;; [[file:../readme.org::#h:72656E4E-C0B1-49E4-92AB-961F08655435][code-cells:1]]
 (use-package code-cells
   :hook (python-mode . code-cells-mode)
 	:config
@@ -158,6 +164,9 @@
     (define-key map [remap evil-forward-word-end] (code-cells-speed-key 'code-cells-eval)) ;; e
     (define-key map [remap evil-jump-forward] (code-cells-speed-key 'outline-cycle))) ;; TAB
 	)
+;; code-cells:1 ends here
 
+;; [[file:../readme.org::#h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A][init-prog-python:1]]
 (provide 'init-prog-python)
 ;;; init-prog-python.el ends here
+;; init-prog-python:1 ends here

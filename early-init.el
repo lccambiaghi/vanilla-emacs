@@ -1,3 +1,4 @@
+;; [[file:readme.org::#h:7DBC58C1-3944-437C-87F9-95C9202BD34E][early-init.el:1]]
 ;;; early-init.el --- Early Init File -*- lexical-binding: t; no-byte-compile: t -*-
 ;; NOTE: early-init.el is now generated from readme.org.  Please edit that file instead
 
@@ -35,3 +36,4 @@
 (setq comp-deferred-compilation nil)
 
 ;;; early-init.el ends here
+;; early-init.el:1 ends here

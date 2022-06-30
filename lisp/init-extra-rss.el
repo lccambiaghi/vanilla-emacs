@@ -1,3 +1,4 @@
+;; [[file:../readme.org::#h:B0653EBC-9E48-4E3D-86A3-34E7450B4F03][elfeed:1]]
 (use-package elfeed
   :straight (elfeed :type git :host github :repo "skeeto/elfeed")
   :hook (elfeed-search-mode . elfeed-update)
@@ -24,6 +25,9 @@
                       ("http://irreal.org/blog/?tag=emacs&amp;feed=rss2" emacs)
                       ("https://www.reddit.com/search.rss?q=url%3A%28youtu.be+OR+youtube.com%29&sort=top&t=week&include_over_18=1&type=link"
                       reddit youtube popular))))
+;; elfeed:1 ends here
 
+;; [[file:../readme.org::#h:A8F1EDE6-D506-49E6-A459-3AF50486BC89][init-extra-rss:1]]
 (provide 'init-extra-rss)
 ;;; init-org-extra-rss.el ends here
+;; init-extra-rss:1 ends here

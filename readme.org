@@ -5,6 +5,7 @@
 #+OPTIONS: tags:nil
 #+HTML_HEAD: <script>var clicky_site_ids = clicky_site_ids || []; clicky_site_ids.push(101260027);</script>
 #+HTML_HEAD: <script async src="//static.getclicky.com/js"></script>
+#+PROPERTY: header-args:emacs-lisp :comments link
 
 * Introduction
 :PROPERTIES:
@@ -47,6 +48,11 @@ The main drawback is that it can happen that the ~org-mode~ file has a mistake a
 an incorrect ~init.el~ file. In that case you can't use your nice bindings but you are
 thrown in barebones emacs and you have to =C-x C-f= your way to the ~init.el~ and run
 ~check-parens~.
+
+You can also run ~org-babel-tangle-jump-to-org~ from the tangled file if you add:
+#+begin_src org
+,#+PROPERTY: header-args:emacs-lisp :comments link
+#+end_src
 
 Another drawback is that a big configuration can be slow to tangle and tangling on save can block ~emacs~.
 See [[#h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F][this section]] for a solution to this drawback.
@@ -325,128 +331,132 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
 #+begin_src emacs-lisp :tangle no
 (("Emacs-wgrep" . "f9687c28bbc2e84f87a479b6ce04407bb97cfb23")
  ("ace-window" . "0577c426a9833ab107bab46c60d1885c611b2fb9")
- ("all-the-icons-dired" . "5e9b097f9950cc9f86de922b07903a4e5fefc733")
- ("all-the-icons.el" . "6d48bc9e970ab559bc35a125c55fd83732595706")
+ ("all-the-icons-completion" . "9e7d456b0934ecb568b6f05a8445e3f4ce32261f")
+ ("all-the-icons-dired" . "147ed0dfd1034a686795a08dc63e2c293128597e")
+ ("all-the-icons.el" . "65c496d3d1d1298345beb9845840067bffb2ffd8")
  ("annalist.el" . "134fa3f0fb91a636a1c005c483516d4b64905a6d")
  ("avy" . "ba5f035be33693d1a136a5cbeedb24327f551a92")
- ("blacken" . "880cf502198753643a3e2ccd4131ee6973be2e8a")
+ ("blacken" . "563c744f545552cb92e8e84d5be4e2cdbabc93ca")
  ("bui.el" . "f3a137628e112a91910fd33c0cff0948fa58d470")
- ("centaur-tabs" . "5860a5c40c2318797f1274ea4c6907ae77ea1ec9")
  ("centered-cursor-mode.el" . "4093821cc9759ca5a3c6e527d4cc915fc3a5ad74")
- ("cfrs" . "c1f639d7bfd3e728cf85dbe224b06a4be76158f4")
- ("consult" . "0940ca016531f3412003c231b476e5023a510ff9")
- ("corfu" . "2f5e15add5e1fdd20ff83d647e460cd8f85327a5")
- ("csv-mode" . "a4ad2e59d4039bf3b1bdbebdfab21c122ad5b487")
- ("dap-mode" . "76cad34de8984f57c2b1e374e9c985cc7ec8dad0")
+ ("cfrs" . "f3a21f237b2a54e6b9f8a420a9da42b4f0a63121")
+ ("code-cells.el" . "8660bdeedee360e5eb632f1eb1356eb09d7dfbee")
+ ("consult" . "47c4f405efdf4692c6b7e1dd2098573db9aeae6c")
+ ("corfu" . "c8e6607c90a89ff19062cd37afc17e8bbb86aba3")
+ ("csv-mode" . "43f6106f0d4e21a18b5b7d7708d641d50fbdfa0b")
+ ("dap-mode" . "f918c0580bd17105cbe50aa701a2375abca5a6ab")
  ("darkroom" . "27b928a6e91c3207742180f7e209bae754c9c1fe")
  ("dash.el" . "da167c51e9fd167a48d06c7c0ee8e3ac7abd9718")
- ("diff-hl" . "6fa3af0843093f44e028584a93eef091ec7e79d2")
+ ("devdocs.el" . "4257e59dafbffb2616d240f84c5c25770ee28cac")
+ ("diff-hl" . "4a08b02afec1fc6b1e84de46cc34f75f6c9c3bcc")
  ("dired-hacks" . "7c0ef09d57a80068a11edc74c3568e5ead5cc15a")
  ("dired-hide-dotfiles" . "6a379f23f64045f5950d229254ce6f32dbbf5364")
- ("dired-single" . "b254f9b7bfc96a5eab5760a56811f2872d2c590a")
- ("docker-tramp.el" . "7bfbb55417e7d2aac53adf92cb0e3fd329c495c1")
- ("doom-modeline" . "5f30d231176186cbe5206aa133f91cea967717d9")
+ ("docker-tramp.el" . "930d7b46c180d8a13240a028c1b40af84f2a3219")
+ ("doom-modeline" . "edf18b93cceb5cf00e1006d0034663ef4d9fdc11")
  ("el-get" . "9353309744e4f8a7c9b1adf22ec99536fb2146b0")
- ("eldoc" . "37e51a5810c496356cdb7107d14c2b7eb2dbdf0b")
- ("elisp-refs" . "c06aec4486c034d0d4efae98cb7054749f9cc0ec")
- ("elisp-tree-sitter" . "48b06796a3b2e76ce004972d929de38146eafaa0")
- ("emacs-async" . "0d52411d3accc3e11a2c64838703a8ce9755c77c")
- ("emacs-bind-map" . "bf4181e3a41463684adfffc6c5c305b30480e30f")
- ("emacs-dashboard" . "1bb5c43b6be65f72c2ff3ab948697c902458a32f")
+ ("eldoc" . "eab3f2590621c6559cb92a5edc519fc7e51ef850")
+ ("elisp-refs" . "8f84280997d8b233d66fb9958a34b46078c58b03")
+ ("elisp-tree-sitter" . "5e1091658d625984c6c5756e3550c4d2eebd73a1")
+ ("emacs-async" . "c78bab7506a70a735d2c3deab13fa87bf44a83d3")
+ ("emacs-bind-map" . "510a24138d8de3b8df0783f1ac493a551fc9bd74")
+ ("emacs-dashboard" . "1d3fce6e8e8605f770f2b23184b055029128c477")
  ("emacs-hide-mode-line" . "bc5d293576c5e08c29e694078b96a5ed85631942")
+ ("emacs-jupyter" . "0a7055d7b12cf98723110415b08ee91869fa7d94")
  ("emacs-libvterm" . "a940dd2ee8a82684860e320c0f6d5e15d31d916f")
- ("emacs-python-pytest" . "b603c5c7f21d351364deeb78e503d3a54d08a152")
- ("emacs-undo-fu" . "ab8bc10e424bccc847800c31ab41888db789d55d")
- ("emacs-which-key" . "9f64733e4ac563c0cda3685acf4e1c2cf600319b")
+ ("emacs-python-pytest" . "ea53891a219659d9339220d5db50a8c525f199af")
+ ("emacs-undo-fu" . "e81c8da4416b15cac9d5ac7574e11471417a65ca")
+ ("emacs-web-server" . "22ce66ea43e0eadb9ec1d691a35d9695fc29cee6")
+ ("emacs-websocket" . "82b370602fa0158670b1c6c769f223159affce9b")
+ ("emacs-which-key" . "1217db8c6356659e67b35dedd9f5f260c06f6e99")
  ("emacs-winum" . "c5455e866e8a5f7eab6a7263e2057aff5f1118b9")
- ("emacsmirror-mirror" . "a122c213c5b3ff1bb7fd7995f07b7a18334a19e7")
- ("emacsql" . "c82a0e6b4d256a3743b718cfb640fa9efc045f6e")
- ("embark" . "c9b26c2e18f01ae401df6a69b7a0c1a6bc44b90c")
- ("envrc" . "456c4100de41d2cb50813058a9e727b6e83c5d1e")
+ ("emacs-zmq" . "38dc6c4119aee57666caf8f97c8a3d7f678823e0")
+ ("emacsmirror-mirror" . "75b9477acee5ab4bf6f404d6d6700d0524cdb4e3")
+ ("emacsql" . "374726060d74df0e2bcb9d0355ff41e2c400ed30")
+ ("embark" . "b80d96ce0ab79e73829322e46c6d7493eb2b8c34")
+ ("envrc" . "57d78f0138d9c676dff182e713249ad055ccf85d")
  ("epl" . "78ab7a85c08222cd15582a298a364774e3282ce6")
  ("eros" . "dd8910279226259e100dab798b073a52f9b4233a")
- ("evil" . "b5c6950f65e2cde92bd978ec2bc98e67820d91a0")
+ ("evil" . "3e41a823334abbba9cf16e482855699054d9dfe0")
  ("evil-cleverparens" . "8c45879d49bfa6d4e414b6c1df700a4a51cbb869")
- ("evil-collection" . "e6be41bed7b4399db116038c7f0bf2f484065b48")
- ("evil-goggles" . "08a22058fd6a167f9f1b684c649008caef571459")
+ ("evil-collection" . "e55718869252a8cd46e61e350bb514194a37f2f8")
+ ("evil-goggles" . "8f20a16e74016f37ad76dc4f2230d9b00c6df3c2")
  ("evil-iedit-state" . "93e4cbfcee802adbb9dd0ebd5836fea4fa932849")
- ("evil-indent-plus" . "0c7501e6efed661242c3a20e0a6c79a6455c2c40")
+ ("evil-indent-plus" . "b4dacbfdb57f474f798bfbf5026d434d549eb65c")
  ("evil-lisp-state" . "3c65fecd9917a41eaf6460f22187e2323821f3ce")
- ("evil-mc" . "246aecc17481dd23c172a9b845f02a9d9e322c7f")
- ("evil-nerd-commenter" . "63baf2d1c796edd11bbec5fe1dee711173d4155d")
+ ("evil-mc" . "63fd2fe0c213a4cc31c464d246f92931c4cb720f")
+ ("evil-nerd-commenter" . "42ba1a473b4f1df061baddd2f8b812a2f35e366e")
  ("evil-org-mode" . "a9706da260c45b98601bcd72b1d2c0a24a017700")
  ("evil-snipe" . "a79177df406a79b4ffa25743c752f21363bba1cc")
  ("evil-surround" . "282a975bda83310d20a2c536ac3cf95d2bf188a5")
  ("exec-path-from-shell" . "3a8d97c096c2c5714b667130fd8a80d5622ee067")
  ("f.el" . "50af874cd19042f17c8686813d52569b1025c76a")
- ("flycheck" . "784f184cdd9f9cb4e3dbb997c09d93e954142842")
+ ("flycheck" . "278d0810f05eb03600d835c2bdd67d6b55a58034")
  ("gcmh" . "0089f9c3a6d4e9a310d0791cf6fa8f35642ecfd9")
  ("general.el" . "9651024e7f40a8ac5c3f31f8675d3ebe2b667344")
- ("git-timemachine" . "3381797bcbf906b18dff654a2361032d2d01b4a3")
- ("gnu-elpa-mirror" . "ebddf266c5234580c9458a139b419c5db1374793")
- ("goto-chg" . "a7c69fa6a33774ee8ca759a064845a88483a4995")
- ("helpful" . "f865f17ad04cd270685187b0a5331ec8eb06e541")
+ ("git-timemachine" . "ca09684e94767cc0b2339b77b778b4de4f9d104f")
+ ("gnu-elpa-mirror" . "bc03f8141c285538418daeff450f67d90ead2403")
+ ("goto-chg" . "278cd3e6d5107693aa2bb33189ca503f22f227d0")
+ ("helpful" . "67cdd1030b3022d3dc4da2297f55349da57cde01")
  ("highlight-indent-guides" . "cf352c85cd15dd18aa096ba9d9ab9b7ab493e8f6")
- ("hl-todo" . "42f744ffb513cf2b95517144c64dbf3fc69f711a")
+ ("hl-todo" . "c0f0555a6b9f3818f29e6394db0b45d6d5675edf")
  ("ht.el" . "c4c1be487d6ecb353d07881526db05d7fc90ea87")
  ("hydra" . "9e9e00cb240ea1903ffd36a54956b3902c379d29")
- ("iedit" . "3c7159a107b01b8f740ced72f10351b10bb69784")
+ ("iedit" . "27c61866b1b9b8d77629ac702e5f48e67dfe0d3b")
+ ("imenu-list" . "76f2335ee6f2f066d87fe4e4729219d70c9bc70d")
  ("inheritenv" . "7e4c8b0d0a43b6f1c6c4d6dbd2f3bf5ce7f20067")
- ("isearch-mb" . "27c19935dd7f067c9feb9a5fda17844c39749346")
+ ("isearch-mb" . "e70ba8f594afef989006493dd71bd693a29e9f42")
  ("kind-icon" . "6e0e0c5c2f846685861ef6c157044b1a55572359")
  ("let-alist" . "592553db5929b54db40af0df90c5add0aaca045b")
- ("lsp-mode" . "a82a4fa3467ec918273ab65d48c5c7d2dbfaec74")
- ("lsp-pyright" . "d428dbcf1802fbe147271c8dc74b073bd9cd7403")
+ ("lsp-mode" . "95a5270ff783af063392286e8f45cf338c5a9765")
+ ("lsp-pyright" . "fa6698a6e33880feb16d264172aa665d14cb8a6f")
  ("lsp-treemacs" . "72d367757a89453a712f6ba1df9b6e789ece2bbd")
- ("lsp-ui" . "21ce926eedd41ef305c2d89412506ce59b1a7eac")
- ("magit" . "2e73b66c2980abb9211d9881a8710c8ac5a33184")
- ("marginalia" . "9229d88ae4757f3439e81f51799758c009838cb4")
- ("markdown-mode" . "4469553a7395359e96b8796e1fac4de73cb6ccc4")
- ("melpa" . "4e3d46311b4d15314b6d1a0d5ff95c5f7e366223")
- ("modus-themes" . "fe5e1f7a16bae0df0cc305dcb3e5be32cf10f0b5")
- ("nix-mode" . "3d04d92d9c3896d07bc9fed7e4f40032025fbe7b")
- ("no-littering" . "665e324abb690fb50e9d255bc656eb12bb83b0c6")
+ ("lsp-ui" . "96b1ecbfbf87a775f05b5f0b55253376a3bd61e7")
+ ("magit" . "b1702991eec2c068d282fc2f1bd665726a14e10d")
+ ("marginalia" . "e63d27e6fb24ed16339de9d813c555d40aa1e4ca")
+ ("markdown-mode" . "521658eb32e456681592443e04ae507c3a59ed07")
+ ("melpa" . "1a054aba2409fb8ae12a634952f3d1336a14eb70")
+ ("modus-themes" . "03f7046dff86c5342af778ad3f9850af7e950aed")
+ ("nix-mode" . "20ee8d88900b169831d6b0783bd82d2625e940c7")
+ ("no-littering" . "13414b7a294fa6f35bbeb535cdcab6b256e39da7")
  ("ob-async" . "9aac486073f5c356ada20e716571be33a350a982")
  ("olivetti" . "a31ac05a161a91fe5c157930b62a6c07037982ee")
- ("orderless" . "1ccf74ffdbb0dd34caa63022e92f947c09c49c86")
- ("org" . "b8656a2cef3d5da7270e391222d8139fc042edd5")
- ("org-appear" . "a4d10fc346ba14f487eb7aa95761b9295089ba55")
- ("org-fragtog" . "15861261a437aca2ec858317de71603d2957b423")
- ("org-reverse-datetree" . "e7a7109e4c34811d471bf685b710234564a556f6")
- ("org-roam" . "679ef6ef001fd1a69b691108178721aa913e7f0f")
+ ("orderless" . "f2c78c4a6059c5f892e48a3887d4368a547515ff")
+ ("org" . "6304afcaa40a29291bc0705f8527e0ab75f7b807")
+ ("org-appear" . "ffbd742267ff81ba8433177fac5d7fe22b6d68a9")
+ ("org-fragtog" . "680606189d5d28039e6f9301b55ec80517a24005")
+ ("org-reverse-datetree" . "c42078f8601b7f600135f66e75246a53c5f9975f")
+ ("org-roam" . "d71675fb479d11da3ae597bb13bc1c96256ff0b0")
  ("org-superstar-mode" . "03be6c0a3081c46a59b108deb8479ee24a6d86c0")
- ("org-tree-slide" . "917612a0d1593de533b7bf0a2792d7e37bb2ca3d")
+ ("org-tree-slide" . "3faa042393ebfe5699a3bffce775f039d7416ceb")
  ("paredit" . "8330a41e8188fe18d3fa805bb9aa529f015318e8")
- ("persistent-scratch" . "57221e5fdff22985c0ea2f3e7c282ce823ea5932")
+ ("persistent-scratch" . "4e159967801b75d07303221c4e5a2b89039c6a11")
  ("persp-projectile" . "4e374d7650c7e041df5af5ac280a44d4a4ec705a")
- ("perspective-el" . "d8211a80fbc2cc0d9e163ef6a3e1d0a693b4e00e")
+ ("perspective-el" . "d3afc52ed098b713b6607943bd1ee0ef899db267")
  ("pfuture" . "bde5b06795e3e35bfb2bba4c34b538d506a0856e")
  ("pkg-info" . "76ba7415480687d05a4353b27fea2ae02b8d9d61")
- ("posframe" . "80cb98aff695a102772cc414d96611bdaf96f00e")
- ("powerline" . "390a95fe5b71cfc20e18d034b4b35b5c159a83fc")
- ("projectile" . "24de2940a8a1f46a7715175a66be67733f1c8fa8")
- ("python-mode" . "dcb376044d020dfe30f8e4273e61863b7d9615ce")
+ ("posframe" . "c91d4d53fa479ceb604071008ce0a901770eff57")
+ ("projectile" . "20df208385ce7b80207602c9931e31094eca85fb")
+ ("python-mode" . "29c6815c585c200eda2541b678e499d06c3e14d2")
  ("rainbow-delimiters" . "a32b39bdfe6c61c322c37226d66e1b6d4f107ed0")
  ("restart-emacs" . "1607da2bc657fe05ae01f7fdf26f716eafead02c")
  ("s.el" . "08661efb075d1c6b4fa812184c1e5e90c08795a9")
  ("shrink-path.el" . "c14882c8599aec79a6e8ef2d06454254bb3e1e41")
- ("smartparens" . "f59a40d54f35299007c396bd667ce3e9ec4714e3")
+ ("smartparens" . "37f77bf2e2199be9fe27e981317b02cfd0e8c70e")
  ("spinner" . "34905eae12a236753fa88abc831eff1e41e8576e")
  ("straight.el" . "af5437f2afd00936c883124d6d3098721c2d306c")
- ("svg-lib" . "d736ea09d6aa7064ff974f5bee0f3aadc0d157d4")
+ ("svg-lib" . "5ff87b7f9a85e728360a63d8e4ae7aaa7eccf7d3")
  ("toml-mode.el" . "f6c61817b00f9c4a3cab1bae9c309e0fc45cdd06")
- ("transient" . "45241225cf6bec864964191c0b3dc8bfad989723")
+ ("transient" . "270eff1c7cc910dfe9882e97df608627028eaa40")
  ("transpose-frame" . "12e523d70ff78cc8868097b56120848befab5dbc")
- ("tree-sitter-langs" . "3c0c82f9fb0a796f5ebd7e1e4c89f13d5ab6ef58")
- ("treemacs" . "deb7f2cd9eb06960798edd7393df2602902ed071")
+ ("tree-sitter-langs" . "f4effc81fcac3592bce7072619a0e17043412cf4")
+ ("treemacs" . "b18a05b1f62074a40e6011d83cd4c92cbee040dd")
  ("use-package" . "a7422fb8ab1baee19adb2717b5b47b9c3812a84c")
- ("vertico" . "9a3cdb754b018bd43a34fec464d4a88eae167c0e")
- ("vterm-toggle" . "ea0bfeaa200d9ed02b51bbbd83222657b02637e7")
- ("with-editor" . "36d36957628621e8340f755b22082e1f4ed8e2d7")
+ ("vertico" . "742c57635eadf74743f0d70b9125c4d2a95e22df")
+ ("vterm-toggle" . "2a6861ef6af91dad4be082139214a30116b50acf")
+ ("with-editor" . "e8569e027ff5c9bef8d9ff0734e3293e1c0574a2")
  ("xwwp" . "f67e070a6e1b233e60274deb717274b000923231")
- ("yaml-mode" . "a79d2a7b9281f8c56f461d717b1ba40fc58e22fd")
+ ("yaml-mode" . "535273d5a1eb76999d20afbcf4d9f056d8ffd2da")
  ("yasnippet" . "5cbdbf0d2015540c59ed8ee0fcf4788effdf75b6"))
-:beta
 #+end_src
 
 ** Enable use-package statistics
@@ -588,6 +598,12 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     "Font size used for laptop"
     :type 'int
     :group 'lc)
+	
+	(defcustom lc/monitor-font-size
+		 150
+    "Font size used for laptop"
+    :type 'int
+    :group 'lc)
 
   (defcustom lc/theme nil
     "Current theme (light or dark)"
@@ -609,21 +625,27 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 :END:
 #+begin_src emacs-lisp
 (use-package emacs
-	:init
-	(defun lc/get-font-size ()
-		"font size is calculated according to the size of the primary screen"
-		(let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(nf-2)/10)^2 + ($nf/10)^2 )/2.54}'")
-					 (command "osascript -e 'tell application \"finder\" to get bounds of window of desktop' | cut -d',' -f3")
-					 (screen-width (string-to-number (shell-command-to-string command))))  ;;<
-      (if (> screen-width 2560) lc/laptop-font-size lc/laptop-font-size))) 
-	
-  ;; Main typeface
-  (set-face-attribute 'default nil :font lc/default-font-family :height (lc/get-font-size))
-  ;; Set the fixed pitch face (monospace)
-  (set-face-attribute 'fixed-pitch nil :font lc/default-font-family)
-  ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font lc/variable-pitch-font-family)
-	)
+  :hook (after-init . lc/set-font-size)
+  :init
+  (defun lc/get-font-size ()
+    "font size is calculated according to the size of the primary screen"
+    (let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(nf-2)/10)^2 + ($nf/10)^2 )/2.54}'")
+           (command "osascript -e 'tell application \"finder\" to get bounds of window of desktop' | cut -d',' -f3")
+           (screen-width (string-to-number (shell-command-to-string command))))  ;;<
+      (if (> screen-width 2560) lc/monitor-font-size lc/laptop-font-size))) 
+  (defun lc/set-font-size ()
+    (interactive)
+    ;; Main typeface
+    (set-face-attribute 'default nil :family lc/default-font-family :height (lc/get-font-size))
+    ;; Set the fixed pitch face (monospace)
+    (set-face-attribute 'fixed-pitch nil :family lc/default-font-family)
+    ;; Set the variable pitch face
+    (set-face-attribute 'variable-pitch nil :family lc/variable-pitch-font-family)
+    ;; modeline
+    (set-face-attribute 'mode-line nil :family lc/default-font-family :height (lc/get-font-size))
+    (set-face-attribute 'mode-line-inactive nil :family lc/default-font-family :height (lc/get-font-size))
+    )
+  )
 #+end_src
 
 ** COMMENT Adjust font size
@@ -780,8 +802,7 @@ Used by DOOM to manage garbage collection
 #+begin_src emacs-lisp
 (use-package emacs
 	:init
-	(unless (and (fboundp 'server-running-p)
-               (server-running-p))
+	(unless (and (fboundp 'server-running-p) (server-running-p))
     (server-start)))
 #+end_src
 
@@ -1057,23 +1078,28 @@ in the rest of the file
   (setq evil-want-Y-yank-to-eol t)
   ;; (setq evil-respect-visual-line-mode t)
   (setq evil-undo-system 'undo-fu)
-	(setq evil-search-module 'evil-search)  ;; enables gn
+  (setq evil-search-module 'evil-search)  ;; enables gn
   ;; move to window when splitting
   (setq evil-split-window-below t)
   (setq evil-vsplit-window-right t)
   ;; (setq-local evil-scroll-count 0)
   (setq evil-auto-indent nil)
+  ;; emacs bindings in insert mode
+  ;; (setq evil-disable-insert-state-bindings t)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-	(define-key evil-motion-state-map "_" 'evil-end-of-line)
-	(define-key evil-motion-state-map "0" 'evil-beginning-of-line)
+  (define-key evil-motion-state-map "_" 'evil-end-of-line)
+  (define-key evil-motion-state-map "0" 'evil-beginning-of-line)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal)
   ;; don't move cursor after ==
   (defun lc/evil-dont-move-cursor (orig-fn &rest args)
     (save-excursion (apply orig-fn args)))
   (advice-add 'evil-indent :around #'lc/evil-dont-move-cursor)
+  ;; disable TAB in normal mode to jump forward
+  (with-eval-after-load 'evil-maps
+    (define-key evil-motion-state-map (kbd "TAB") nil))
   )
 #+END_SRC
 
@@ -1387,7 +1413,7 @@ Interesting bits:
     "f t" '(org-babel-tangle :wk "tangle")
     "o C" '(org-capture :wk "capture")
     "o l" '(org-todo-list :wk "todo list")
-		  
+    
     "o c" '((lambda () (interactive)
               (persp-switch "main")
               (find-file (concat user-emacs-directory "readme.org")))
@@ -1414,7 +1440,7 @@ Interesting bits:
     "t d" '(org-deadline :wk "deadline")
     "x" '(org-toggle-checkbox :wk "toggle checkbox")
     )
-	(org-mode-map
+  (org-mode-map
    :states 'insert
    "TAB" 'nil
    "S-TAB" nil)
@@ -1468,7 +1494,8 @@ Interesting bits:
   ;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
   ;; (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
   (setq org-latex-pdf-process '("tectonic %f"))
-  (add-to-list 'org-export-backends 'beamer)
+  (setq org-export-backends '(html))
+  ;; (add-to-list 'org-export-backends 'beamer)
   (plist-put org-format-latex-options :scale 1.2)
   )
 #+END_SRC
@@ -1747,7 +1774,8 @@ asynchronously."
   (let ((command (if (file-directory-p "/Applications/Emacs.app")
                      "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
                    ;; on iPad
-                   "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'  2>&1 | grep -v '^Loading.*\.\.\.$' | grep -v '^Using ' | grep -v '^dump '| grep -v '^Finding '"
+									 "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                   ;; "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'  2>&1 | grep -v '^Loading.*\.\.\.$' | grep -v '^Using ' | grep -v '^dump '| grep -v '^Finding '"
                    )))
     ;; prevent emacs from killing until tangle-process finished
     (add-to-list 'kill-emacs-query-functions
@@ -1860,6 +1888,7 @@ Look at ~hl-todo-keyword-faces~ to know the keywords (can't get to change them..
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
+     ;; (clojure . t)
      ;; (ledger . t)
      (shell . t)))
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
@@ -2363,6 +2392,10 @@ To set up roam:
   :general
   (lc/leader-keys
     "TAB n" '((lambda () (interactive) (persp-switch "notes")) :wk "notes")
+    "n n" '((lambda () (interactive)
+              (persp-switch "notes")
+              (org-roam-node-find))
+            :wk "notes workspace")
     "n b" 'org-roam-buffer-toggle
     "n f" 'org-roam-node-find
     "n g" 'org-roam-graph
@@ -2431,17 +2464,18 @@ To set up roam:
 :CUSTOM_ID: h:77D92E3F-D17F-408C-A168-928D64D1AEF8
 :END:
 #+BEGIN_SRC emacs-lisp
-  (use-package doom-modeline
-    :demand
-    :init
-    (setq doom-modeline-buffer-encoding nil)
-    (setq doom-modeline-env-enable-python nil)
-    (setq doom-modeline-height 15)
-    (setq doom-modeline-project-detection 'projectile)
-    :config
-    (doom-modeline-mode 1)
-    (set-face-attribute 'doom-modeline-evil-insert-state nil :foreground "orange")
-)
+(use-package doom-modeline
+  :demand
+  :init
+  (setq doom-modeline-buffer-encoding nil)
+  (setq doom-modeline-env-enable-python nil)
+  (setq doom-modeline-project-detection 'projectile)
+  (setq doom-modeline-buffer-file-name-style 'relative-to-project)
+  :config
+  (doom-modeline-mode 1)
+  ;; (set-face-attribute 'doom-modeline-evil-insert-state nil :foreground "orange")
+  (setq doom-modeline-height 20)
+  )
 #+END_SRC
 
 ** Modus themes + alternate light/dark themes          :modus_themes:
@@ -2453,25 +2487,23 @@ This defines a hook that is run when macOS system theme changes from light to da
 We use this hook to switch from light to dark theme.
 
 #+BEGIN_SRC emacs-lisp
-(use-package modus-themes
-  :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
-  :demand
+(use-package emacs
+  ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+  ;; :demand
   :if (display-graphic-p)
   :hook (modus-themes-after-load-theme . lc/fix-fill-column-indicator)
   :general
   (lc/leader-keys
     "t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
   :init
-  (setq modus-themes-slanted-constructs t
+  (setq modus-themes-italic-constructs t
         ;; modus-themes-no-mixed-fonts t
         modus-themes-bold-constructs t
         modus-themes-fringes 'nil ; {nil,'subtle,'intense}
         modus-themes-mode-line '(3d) ; {nil,'3d,'moody}
-        modus-themes-intense-hl-line nil
-        modus-themes-mixed-fonts t
         modus-themes-prompts nil ; {nil,'subtle,'intense}
         ;; modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
-        modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
+        ;; modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
         modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
         ;; modus-themes-headings  ; Read further below in the manual for this one
         ;; (quote ((1 . t)           ; keep the default style
@@ -2518,7 +2550,7 @@ We use this hook to switch from light to dark theme.
     (with-eval-after-load 'org (plist-put org-format-latex-options :background "Transparent"))
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-vivendi) (dark . modus-vivendi))))
-    (modus-themes-load-vivendi)
+    (load-theme 'modus-vivendi t)
     (when (bound-and-true-p centaur-tabs-mode)
       (lc/update-centaur-tabs))
     )
@@ -2529,7 +2561,7 @@ We use this hook to switch from light to dark theme.
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-operandi) (dark . modus-operandi))))
     (setenv "BAT_THEME" "ansi")
-    (modus-themes-load-operandi)
+    (load-theme 'modus-operandi t)
     (when (bound-and-true-p centaur-tabs-mode)
       (lc/update-centaur-tabs)))
   (defun lc/update-centaur-tabs ()
@@ -2551,7 +2583,6 @@ We use this hook to switch from light to dark theme.
       (modus-themes-with-colors
         (custom-set-faces
          `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive)))))))
-  :config
   (when (display-graphic-p)
     (lc/override-colors))
   (if (and (boundp 'mac-effective-appearance-change-hook)
@@ -2559,8 +2590,6 @@ We use this hook to switch from light to dark theme.
       (progn
         (add-hook 'after-init-hook 'lc/change-theme-with-mac-system)
         (add-hook 'mac-effective-appearance-change-hook 'lc/change-theme-with-mac-system))
-    ;; (add-hook 'after-init-hook 'lc/change-theme-with-timers)
-    ;; (add-hook 'emacs-startup-hook 'lc/load-light-theme)
     (add-hook 'emacs-startup-hook 'lc/change-theme-with-timers)
     )
   )
@@ -2869,7 +2898,7 @@ Containing LEFT, and RIGHT aligned respectively."
   (add-to-list 'dashboard-item-generators  '(next . lc/dashboard-insert-next))
   (setq dashboard-items '((agenda . 5)
                           (next . 10)
-                          ;; (bookmarks . 5)
+                          (bookmarks . 5)
                           ;; (recents  . 5)
                           (projects . 5)))
   )
@@ -3249,6 +3278,7 @@ NOTE:
     :states '(normal insert)
     "C-p" 'consult-yank-pop)
   (lc/leader-keys
+    "r r" '(consult-bookmark :wk "go to bookmark")
     "s i" '(consult-isearch :wk "isearch")
     "s o" '(consult-outline :which-key "outline")
     "s s" 'consult-line
@@ -3290,6 +3320,9 @@ NOTE:
 :PROPERTIES:
 :CUSTOM_ID: h:CAEABB84-0DAE-41CB-B08B-A77B956B991E
 :END:
+NOTE:
+- ~vertico-indexed~ lets you choose candidates according to their index, e.g. =C-3 RET= will select third candidate.
+
 #+begin_src emacs-lisp
 (use-package vertico
   ;; :straight (vertico :type git :host github :repo "minad/vertico")
@@ -3319,8 +3352,9 @@ NOTE:
             ;; "C-;" #'kb/vertico-multiform-flat-toggle
             "M-<backspace>" #'vertico-directory-delete-word
             )
-  (:keymaps '(normal insert visual motion)
-            "M-." #'vertico-repeat-last) ; Perfectly return to the state of the last Vertico minibuffer usage
+  (lc/leader-keys
+    "s ." '(vertico-repeat-last :wk "repeat search")
+    )
   ;; :bind (:map vertico-map
   ;;             ("C-j" . vertico-next)
   ;;             ("C-k" . vertico-previous)
@@ -3380,6 +3414,7 @@ NOTE:
   :config
   ;; (vertico-multiform-mode)	
   (vertico-mode)
+  ;; (vertico-indexed-mode)
 
   ;; Prefix the current candidate with “» ”. From
   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
@@ -3440,12 +3475,13 @@ NOTE:
 
 #+begin_src emacs-lisp
 (use-package dabbrev
-	:general
-	(python-mode-map
+  :general
+  (python-mode-map
    :states 'insert
-   "<backtab>" 'dabbrev-completion
-   ;; ("C-M-/" . dabbrev-expand)
-   )
+   "<backtab>" 'dabbrev-completion)
+  (org-mode-map
+   :states 'insert
+   "<backtab>" 'dabbrev-completion)
   )
 #+end_src
 
@@ -3720,6 +3756,20 @@ Taken from DOOM
 )
 #+end_src
 
+** bookmarks
+:PROPERTIES:
+:CUSTOM_ID: h:7BC2D32A-F652-48F9-AEA6-D595ACB41386
+:END:
+#+begin_src emacs-lisp
+(use-package emacs
+  :straight (:type built-in)
+:general
+(lc/leader-keys
+ "r m" '(bookmark-set :wk "set bookmark")
+)
+)
+#+end_src
+
 * Programming
 :PROPERTIES:
 :CUSTOM_ID: h:EB91F91E-8984-4806-8254-B0487044D30C
@@ -3762,6 +3812,13 @@ NOTE:
     (interactive)
     (let ((projectile-git-command "git ls-files -zco"))
       (projectile-find-file)))
+  (defun lc/projectile-find-project-name-split-dots (project-root)
+    (thread-first (directory-file-name project-root)
+                  (split-string "[/]") (last) (car)
+                  (split-string "[.]") (last) (car))
+    )
+  (setq projectile-project-name-function
+        #'lc/projectile-find-project-name-split-dots)
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
     (unless (file-remote-p default-directory) ad-do-it))
@@ -3817,8 +3874,12 @@ NOTE:
     "TAB d" 'persp-kill
     "TAB h" 'persp-prev
     "TAB l" 'persp-next
-    "TAB x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
-    "TAB X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
+    "TAB x" '((lambda () (interactive)
+                (persp-kill (persp-current-name))) :wk "kill current")
+    "TAB X" '((lambda () (interactive)
+                (seq-doseq (name (persp-names))
+                  (persp-kill name))
+                (lc/main-tab)) :wk "kill all")
     "TAB m" '(lc/main-tab :wk "main")
     )
   :init
@@ -4130,9 +4191,10 @@ NOTE:
 :END:
 50/72 rule for commit messages: https://www.midori-global.com/blog/2018/04/02/git-50-72-rule
 
-~magit-cycle-margin-style~ to show more precise commit timestamps
-
-On iPad, we may need to ~(require 'sendmail)~ before calling ~magit-status~
+NOTE:
+- ~magit-cycle-margin-style~ to show more precise commit timestamps
+- On iPad, we may need to ~(require 'sendmail)~ before calling ~magit-status~
+- You can use ~magit-diff-range~ to compare branches if you select the branch as target
 
 #+BEGIN_SRC emacs-lisp
 (use-package magit
@@ -4154,12 +4216,16 @@ On iPad, we may need to ~(require 'sendmail)~ before calling ~magit-status~
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   (setq magit-log-arguments '("--graph" "--decorate" "--color"))
   (setq git-commit-fill-column 72)
-	;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
-	;; (when lc/is-ipad (require 'sendmail))
+  ;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
+  ;; (when lc/is-ipad (require 'sendmail))
   :config
-	(setq magit-buffer-name-format (concat "*" magit-buffer-name-format "*"))
+  (setq magit-buffer-name-format (concat "*" magit-buffer-name-format "*"))
   (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
+	; adding autostash suffix to magit-pull
+  (transient-append-suffix 'magit-pull "-A"
+    '("-A" "Autostash" "--autostash")
+    )
   )
 #+END_SRC
 
@@ -4629,6 +4695,10 @@ NOTE:
 :CUSTOM_ID: h:884FB8DF-D672-496E-9068-1FD15F0250E5
 :END:
 #+begin_src emacs-lisp
+(use-package default-text-scale
+  :hook (emacs-startup . default-text-scale-mode)
+  )
+
 (use-package transient
   :general
   (lc/leader-keys
@@ -4637,8 +4707,16 @@ NOTE:
   (transient-define-prefix lc/font-size-transient ()
     "Change font size"
     ["Font size"
-     ("+" "Increase" (lambda () (interactive) (progn (text-scale-increase) (lc/font-size-transient))))
-     ("-" "Decrease" (lambda () (interactive) (progn (text-scale-decrease) (lc/font-size-transient))))
+     ("+" "Increase" (lambda () (interactive) (default-text-scale-increase) (lc/font-size-transient)))
+     ("-" "Decrease" (lambda () (interactive) (default-text-scale-decrease) (lc/font-size-transient)))
+     ("0" "Reset" (lambda () (interactive)
+                       (setq default-text-scale--complement 0)
+                       (set-face-attribute 'default
+                                           nil
+                                           :height (lc/get-font-size))
+                       (message "Default font size is now %d"
+                                (face-attribute 'default :height))
+                       (lc/font-size-transient)))
      ])
   )
 #+end_src
@@ -4708,7 +4786,8 @@ You can use ~consult-history~ to browse past searches
 (use-package avy
   :general
   (general-nmap
-    "gs" 'avy-goto-char-2)
+    ;; "gs" 'avy-goto-char-2)
+    "gs" 'avy-goto-char-timer)
   ;; :bind (("C-:" . avy-goto-char)
   ;;        ("C-'" . avy-goto-char-2)
   ;;        ("C-;" . avy-goto-char-2)
@@ -4722,6 +4801,36 @@ You can use ~consult-history~ to browse past searches
   ;;               avy-all-windows-alt t
   ;;               avy-background t
   ;;               avy-style 'pre)
+  )
+#+end_src
+
+** devdocs
+:PROPERTIES:
+:CUSTOM_ID: h:21F53DE6-4F2C-4B38-9C72-98E303687C7D
+:END:
+NOTE:
+- =devdocs-install= to install docs of e.g. ~pandas~
+#+begin_src emacs-lisp
+(use-package devdocs
+  :demand
+  :general
+  (lc/leader-keys
+    "hD" 'devdocs-lookup
+    )
+  )
+#+end_src
+
+** imenu-list
+:PROPERTIES:
+:CUSTOM_ID: h:82A4886B-7891-4109-A164-0865E8E93CAD
+:END:
+#+begin_src emacs-lisp
+(use-package imenu-list
+  :general
+  (lc/leader-keys
+    "t i" 'imenu-list-smart-toggle
+    )
+
   )
 #+end_src
 
@@ -4915,6 +5024,10 @@ You can use ~consult-history~ to browse past searches
     "d i" '(lc/dap-inspect-df :wk "view df")
     ;; "d t" '(lc/dap-dtale-df :wk "dtale df")
     )
+  (dap-ui-repl-mode-map
+   :states '(insert)
+   "<up>" 'comint-previous-input
+   )
   (:keymaps 'dap-ui-repl-mode-map
             "<backtab>" 'dabbrev-completion
             "TAB" 'lc/py-indent-or-complete)
@@ -4951,21 +5064,45 @@ You can use ~consult-history~ to browse past searches
       ;;         (dap--debug-session-output-buffer (dap--cur-session-or-die))
       ;;         `((side . bottom) (slot . 5) (window-width . 0.20))))
       ;;   (delete-window window))
-			(lc/kill-output-buffer)
+      (lc/kill-output-buffer)
       ;; delete dataframe inspector window
-      (when-let
-          (window (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
-        (delete-window window)))
+      ;; (when-let
+      ;;     (win (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
+      ;;   (delete-window win))
+			)
     )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
-	(defun lc/kill-output-buffer ()
-  "Go to output buffer."
-  (interactive)
-  (let ((win (display-buffer-in-side-window
-              (dap--debug-session-output-buffer (dap--cur-session-or-die))
-              `((side . bottom) (slot . 5) (window-width . 0.20)))))
-    (delete-window win)))
+  (defun lc/kill-output-buffer ()
+    "Go to output buffer."
+    (interactive)
+    (let ((win (display-buffer-in-side-window
+                (dap--debug-session-output-buffer (dap--cur-session-or-die))
+                `((side . bottom) (slot . 5) (window-width . 0.20)))))
+      (delete-window win)))
+  (defun lc/window-resize-to-percentage (percentage)
+    (interactive)
+    (window-resize nil (- (truncate (* percentage (frame-height))) (window-height))))
+  (defun lc/reset-dap-windows ()
+    (interactive)
+    ;; display sessions and repl
+    (seq-doseq (feature-start-stop dap-auto-configure-features)
+      (when-let
+          (start-stop (alist-get feature-start-stop
+                                 ;; <
+                                 dap-features->windows
+                                 ))
+        (funcall (car start-stop))))
+    ;; display output buffer
+    (save-excursion (dap-go-to-output-buffer t))
+    ;; resize window
+    (save-window-excursion
+			;; switch to main window
+      (winum-select-window-1)
+      (lc/window-resize-to-percentage 0.66)
+      )
+    )
+  
   :config
   ;; configure windows
   (require 'dap-ui)
@@ -5037,10 +5174,10 @@ You can use ~consult-history~ to browse past searches
                              :request "launch"
                              :program (expand-file-name "~/git/Sodra.Common.FlightTower.Datafactory/ft_pipelines/__main__.py")
                              :args ["-m" "wood_processing_e2e"
-                                    ;; "--config" "user_luca"
+                                    "--config" "user_luca"
                                     ]
                              ))
-  
+
   (dap-register-debug-template "dap-debug-script" dap-script-args)
   (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
   (dap-register-debug-template "flight-tower-mill" flight-tower-mill)
@@ -5283,7 +5420,7 @@ Disabled ~flymake~ as I can't find a way to make it work with ~flake8~ on a pyth
     "i i" '(pyimport-insert-missing :wk "autoimport")))
 #+end_src
 
-*** dash at point
+*** COMMENT dash at point
 :PROPERTIES:
 :CUSTOM_ID: h:CAE53061-F38A-49C9-9256-2087E6D89052
 :END:
@@ -5407,6 +5544,7 @@ We can avoid evaluation of code with:
   (lc/local-leader-keys
     :keymaps 'org-mode-map
     "=" '((lambda () (interactive) (jupyter-org-insert-src-block t nil)) :wk "block below")
+    "," 'org-ctrl-c-ctrl-c
     "m" '(jupyter-org-merge-blocks :wk "merge")
     "+" '(jupyter-org-insert-src-block :wk "block above")
     "?" '(jupyter-inspect-at-point :wk "inspect")
@@ -5660,7 +5798,8 @@ NOTE:
 (use-package clojure-mode
   :mode "\\.clj$"
   :init
-  (setq clojure-align-forms-automatically t))
+  (setq clojure-align-forms-automatically t)
+	)
 #+end_src
 
 *** clojure-lsp
@@ -5742,9 +5881,10 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
 :END:
 #+begin_src emacs-lisp
 (use-package org
-:config
-(require 'ob-clojure)
-(setq org-babel-clojure-backend 'cider))
+  :config
+  (require 'ob-clojure)
+  (setq org-babel-clojure-backend 'cider)
+  )
 #+end_src
 
 *** aggressive-indent
@@ -5862,6 +6002,20 @@ NOTE:
                       reddit youtube popular))))
 #+end_src
  
+** COMMENT clip2org
+:PROPERTIES:
+:CUSTOM_ID: h:6A493FA9-FC60-4E69-98F0-ADF2BDE452D2
+:END:
+#+begin_src emacs-lisp
+(use-package clip2org
+  :straight (clip2org :type git :host github :repo "kungsgeten/clip2org" :branch "master")
+	 :commands (clip2org)
+	 :init
+	 (setq clip2org-clippings-file "/Users/cambiaghiluca/Desktop/clippings.txt")
+	 (setq clip2org-include-date nil)
+  )
+#+end_src
+
 ** COMMENT reddit
 :PROPERTIES:
 :CUSTOM_ID: h:B616A404-0B56-4C56-9A8C-343E212F536A

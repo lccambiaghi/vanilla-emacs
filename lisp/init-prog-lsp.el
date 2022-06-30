@@ -1,3 +1,4 @@
+;; [[file:../readme.org::#h:28CB5546-FBE4-481D-B620-623006DC0FDA][lsp-mode:1]]
 (use-package lsp-mode
   :commands
   (lsp lsp-deferred)
@@ -28,7 +29,9 @@
 	(setq lsp-headerline-breadcrumb-enable nil)
   (setq lsp-diagnostics-provider :none)
   )
+;; lsp-mode:1 ends here
 
+;; [[file:../readme.org::#h:B69B077F-B96E-4A86-859D-A3D29547D39C][lsp-ui:1]]
 (use-package lsp-ui
   :hook
   ((lsp-mode . lsp-ui-mode)
@@ -55,7 +58,9 @@
   (setq lsp-ui-peek-always-show t)
   (setq lsp-ui-peek-fontify 'always)
   )
+;; lsp-ui:1 ends here
 
+;; [[file:../readme.org::#h:85405E87-7858-4F5C-A229-B72E70F68597][dap-mode:1]]
 (use-package dap-mode
   :hook
   ((dap-mode . corfu-mode)
@@ -80,6 +85,10 @@
     "d i" '(lc/dap-inspect-df :wk "view df")
     ;; "d t" '(lc/dap-dtale-df :wk "dtale df")
     )
+  (dap-ui-repl-mode-map
+   :states '(insert)
+   "<up>" 'comint-previous-input
+   )
   (:keymaps 'dap-ui-repl-mode-map
             "<backtab>" 'dabbrev-completion
             "TAB" 'lc/py-indent-or-complete)
@@ -116,21 +125,45 @@
       ;;         (dap--debug-session-output-buffer (dap--cur-session-or-die))
       ;;         `((side . bottom) (slot . 5) (window-width . 0.20))))
       ;;   (delete-window window))
-			(lc/kill-output-buffer)
+      (lc/kill-output-buffer)
       ;; delete dataframe inspector window
-      (when-let
-          (window (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
-        (delete-window window)))
+      ;; (when-let
+      ;;     (win (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
+      ;;   (delete-window win))
+			)
     )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
-	(defun lc/kill-output-buffer ()
-  "Go to output buffer."
-  (interactive)
-  (let ((win (display-buffer-in-side-window
-              (dap--debug-session-output-buffer (dap--cur-session-or-die))
-              `((side . bottom) (slot . 5) (window-width . 0.20)))))
-    (delete-window win)))
+  (defun lc/kill-output-buffer ()
+    "Go to output buffer."
+    (interactive)
+    (let ((win (display-buffer-in-side-window
+                (dap--debug-session-output-buffer (dap--cur-session-or-die))
+                `((side . bottom) (slot . 5) (window-width . 0.20)))))
+      (delete-window win)))
+  (defun lc/window-resize-to-percentage (percentage)
+    (interactive)
+    (window-resize nil (- (truncate (* percentage (frame-height))) (window-height))))
+  (defun lc/reset-dap-windows ()
+    (interactive)
+    ;; display sessions and repl
+    (seq-doseq (feature-start-stop dap-auto-configure-features)
+      (when-let
+          (start-stop (alist-get feature-start-stop
+                                 ;; <
+                                 dap-features->windows
+                                 ))
+        (funcall (car start-stop))))
+    ;; display output buffer
+    (save-excursion (dap-go-to-output-buffer t))
+    ;; resize window
+    (save-window-excursion
+			;; switch to main window
+      (winum-select-window-1)
+      (lc/window-resize-to-percentage 0.66)
+      )
+    )
+  
   :config
   ;; configure windows
   (require 'dap-ui)
@@ -202,10 +235,10 @@
                              :request "launch"
                              :program (expand-file-name "~/git/Sodra.Common.FlightTower.Datafactory/ft_pipelines/__main__.py")
                              :args ["-m" "wood_processing_e2e"
-                                    ;; "--config" "user_luca"
+                                    "--config" "user_luca"
                                     ]
                              ))
-  
+
   (dap-register-debug-template "dap-debug-script" dap-script-args)
   (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
   (dap-register-debug-template "flight-tower-mill" flight-tower-mill)
@@ -219,6 +252,9 @@
     "d s" '((lambda () (interactive) (dap-debug dap-script-args)) :wk "script")
     )
   )
+;; dap-mode:1 ends here
 
+;; [[file:../readme.org::#h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A][init-prog-lsp:1]]
 (provide 'init-prog-lsp)
 ;;; init-prog-lsp.el ends here
+;; init-prog-lsp:1 ends here

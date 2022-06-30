@@ -1,8 +1,12 @@
+;; [[file:../readme.org::#h:C757468F-281B-4A9D-84AF-26B9B656F01C][Clojure mode:1]]
 (use-package clojure-mode
   :mode "\\.clj$"
   :init
-  (setq clojure-align-forms-automatically t))
+  (setq clojure-align-forms-automatically t)
+	)
+;; Clojure mode:1 ends here
 
+;; [[file:../readme.org::#h:1613B1A4-02B4-4EB0-AC4B-53FA0BF3CF60][clojure-lsp:1]]
 (use-package clojure-mode
   :hook
   ((clojure-mode clojurescript-mode)
@@ -12,7 +16,9 @@
                    )
        (lsp-deferred)))
   )
+;; clojure-lsp:1 ends here
 
+;; [[file:../readme.org::#h:3D8B9BAA-05E9-4F0B-8988-4B56882BB607][Cider:1]]
 (use-package cider
   :hook ((cider-repl-mode . evil-normalize-keymaps)
          (cider-mode . (lambda ()
@@ -44,16 +50,24 @@
   (setq nrepl-sync-request-timeout nil)
 	(setq cider-repl-display-help-banner nil)
   )
+;; Cider:1 ends here
 
+;; [[file:../readme.org::#h:3B21567B-6B7B-4747-B44B-AA2480FA49E5][ob-clojure:1]]
 (use-package org
-:config
-(require 'ob-clojure)
-(setq org-babel-clojure-backend 'cider))
+  :config
+  (require 'ob-clojure)
+  (setq org-babel-clojure-backend 'cider)
+  )
+;; ob-clojure:1 ends here
 
+;; [[file:../readme.org::#h:804F32D8-081E-427C-8949-90D3ECF5879F][aggressive-indent:1]]
 ;; keep the file indented
 (use-package aggressive-indent
   :hook ((clojure-mode . aggressive-indent-mode)
          (emacs-lisp-mode . aggressive-indent-mode)))
+;; aggressive-indent:1 ends here
 
+;; [[file:../readme.org::#h:39D468C7-8D6B-4F16-A3FE-8675917B3DBD][init-prog-clojure:1]]
 (provide 'init-prog-clojure)
 ;;; init-org-prog-clojure.el ends here
+;; init-prog-clojure:1 ends here

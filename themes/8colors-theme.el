@@ -1,3 +1,4 @@
+;; [[file:../readme.org::#h:EA99CF6B-278E-482F-A865-7E31407734CE][8 colors theme:1]]
 (deftheme 8colors
   "Theme using only 8 colors")
 
@@ -24,3 +25,4 @@
  )
 
 (provide-theme '8colors)
+;; 8 colors theme:1 ends here

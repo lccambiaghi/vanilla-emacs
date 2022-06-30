@@ -1,3 +1,4 @@
+;; [[file:readme.org::#h:E6162DC2-7E1C-4843-8448-FF104A444B40][init.el: startup optimization:1]]
 ;;; init.el --- Personal configuration file -*- lexical-binding: t; no-byte-compile: t; -*-
 ;; NOTE: init.el is now generated from readme.org.  Please edit that file instead
 
@@ -24,7 +25,9 @@
   )
 ;; Ensure Doom is running out of this file's directory
 (setq user-emacs-directory (file-truename (file-name-directory load-file-name)))
+;; init.el: startup optimization:1 ends here
 
+;; [[file:readme.org::#h:7B22A4F3-49A1-4848-A185-B4EEA060EECE][init.el: load modules:1]]
 ;; (add-to-list 'load-path "~/.emacs.d/lisp/")
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
@@ -51,3 +54,4 @@
   )
 
 ;;; init.el ends here
+;; init.el: load modules:1 ends here
