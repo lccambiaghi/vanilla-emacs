@@ -1,3 +1,4 @@
+;; [[file:../readme.org::#h:686F7A63-013E-48ED-AC56-DF39BD398E20][bootstrap straight and straight-use-package:1]]
 (setq straight-use-package-by-default t)
 (setq straight-vc-git-default-clone-depth 1)
 (setq straight-recipes-gnu-elpa-use-mirror t)
@@ -22,9 +23,13 @@
 ;; This is a variable that has been renamed but straight still refers when
 ;; doing :sraight (:no-native-compile t)
 (setq comp-deferred-compilation-black-list nil)
+;; bootstrap straight and straight-use-package:1 ends here
 
+;; [[file:../readme.org::#h:F75CE115-0722-49E4-9BD8-8A57BADAD080][Enable use-package statistics:1]]
 (setq use-package-compute-statistics t)
+;; Enable use-package statistics:1 ends here
 
+;; [[file:../readme.org::#h:94661C0F-79D0-4CD4-AA3F-CADB0E79398C][Sane defaults:1]]
 (use-package emacs
   :init
   (setq inhibit-startup-screen t
@@ -106,7 +111,9 @@
   ;; Completion is often bound to M-TAB.
   (setq tab-always-indent 'complete)
   )
+;; Sane defaults:1 ends here
 
+;; [[file:../readme.org::#h:AC160303-DF53-4597-9BAA-3AE1E7E13431][custom variables:1]]
 (use-package emacs
   :init
   (setq lc/is-ipad ( 	;; <
@@ -129,6 +136,12 @@
     "Font size used for laptop"
     :type 'int
     :group 'lc)
+	
+	(defcustom lc/monitor-font-size
+		 150
+    "Font size used for laptop"
+    :type 'int
+    :group 'lc)
 
   (defcustom lc/theme nil
     "Current theme (light or dark)"
@@ -142,30 +155,42 @@
   ;; (setq lc/is-slow-ssh (string= (getenv "IS_TRAMP") "true"))
   
   )
+;; custom variables:1 ends here
 
+;; [[file:../readme.org::#h:3CDD0539-5A95-468C-85F0-71B391D7115D][Font:1]]
 (use-package emacs
-	:init
-	(defun lc/get-font-size ()
-		"font size is calculated according to the size of the primary screen"
-		(let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(nf-2)/10)^2 + ($nf/10)^2 )/2.54}'")
-					 (command "osascript -e 'tell application \"finder\" to get bounds of window of desktop' | cut -d',' -f3")
-					 (screen-width (string-to-number (shell-command-to-string command))))  ;;<
-      (if (> screen-width 2560) lc/laptop-font-size lc/laptop-font-size))) 
-	
-  ;; Main typeface
-  (set-face-attribute 'default nil :font lc/default-font-family :height (lc/get-font-size))
-  ;; Set the fixed pitch face (monospace)
-  (set-face-attribute 'fixed-pitch nil :font lc/default-font-family)
-  ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font lc/variable-pitch-font-family)
-	)
+  :hook (after-init . lc/set-font-size)
+  :init
+  (defun lc/get-font-size ()
+    "font size is calculated according to the size of the primary screen"
+    (let* (;; (command "xrandr | awk '/primary/{print sqrt( ($(nf-2)/10)^2 + ($nf/10)^2 )/2.54}'")
+           (command "osascript -e 'tell application \"finder\" to get bounds of window of desktop' | cut -d',' -f3")
+           (screen-width (string-to-number (shell-command-to-string command))))  ;;<
+      (if (> screen-width 2560) lc/monitor-font-size lc/laptop-font-size))) 
+  (defun lc/set-font-size ()
+    (interactive)
+    ;; Main typeface
+    (set-face-attribute 'default nil :family lc/default-font-family :height (lc/get-font-size))
+    ;; Set the fixed pitch face (monospace)
+    (set-face-attribute 'fixed-pitch nil :family lc/default-font-family)
+    ;; Set the variable pitch face
+    (set-face-attribute 'variable-pitch nil :family lc/variable-pitch-font-family)
+    ;; modeline
+    (set-face-attribute 'mode-line nil :family lc/default-font-family :height (lc/get-font-size))
+    (set-face-attribute 'mode-line-inactive nil :family lc/default-font-family :height (lc/get-font-size))
+    )
+  )
+;; Font:1 ends here
 
+;; [[file:../readme.org::#h:f73c5fb4-246e-423c-8cfd-0482dcb1f699][Zoom:1]]
 (use-package emacs
   :init
   (global-set-key (kbd "C-=") 'text-scale-increase)
   (global-set-key (kbd "C--") 'text-scale-decrease)
   )
+;; Zoom:1 ends here
 
+;; [[file:../readme.org::#h:7BA73F60-D31F-4A96-9DEE-02A4FC1BEE8B][macOS:1]]
 (use-package emacs
   :init
   (defun lc/is-macos ()
@@ -185,12 +210,16 @@
       (global-set-key [(s q)] 'kill-emacs)
       )
 	)
+;; macOS:1 ends here
 
+;; [[file:../readme.org::#h:A17DC2B8-4E73-4F43-BD6E-07ADAEC9A3A7][Garbage collector magic hack:1]]
 (use-package gcmh
   :demand
   :config
   (gcmh-mode 1))
+;; Garbage collector magic hack:1 ends here
 
+;; [[file:../readme.org::#h:273CA7B2-AE07-4571-AB4A-92523B11DB41][helpful:1]]
 (use-package helpful
   :after evil
   :init
@@ -200,10 +229,14 @@
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . helpful-variable)
   ([remap describe-key] . helpful-key))
+;; helpful:1 ends here
 
+;; [[file:../readme.org::#h:FC10A86D-86E6-45C2-8759-ADE233B0D80C][eldoc:1]]
 (use-package eldoc
   :hook (emacs-lisp-mode cider-mode))
+;; eldoc:1 ends here
 
+;; [[file:../readme.org::#h:B1611A44-8567-4370-80B4-9D904434E274][exec path from shell:1]]
 (use-package exec-path-from-shell
   ;; :if (memq window-system '(mac ns))
   :if (lc/is-macos)
@@ -217,7 +250,9 @@
   ;;    "SSH_AGENT_PID" "SSH_AUTH_SOCK" "SHELL"
   ;;    "JAVA_HOME"))
   )
+;; exec path from shell:1 ends here
 
+;; [[file:../readme.org::#h:2DB2921D-434E-4321-A15E-4B3329ABC946][no littering:1]]
 (use-package no-littering
   :demand
   :config
@@ -225,13 +260,16 @@
     (add-to-list 'recentf-exclude no-littering-var-directory)
     (add-to-list 'recentf-exclude no-littering-etc-directory))
   )
+;; no littering:1 ends here
 
+;; [[file:../readme.org::#h:5F50A0A6-0C8E-4804-BBF5-A8D9B1372F12][server mode:1]]
 (use-package emacs
 	:init
-	(unless (and (fboundp 'server-running-p)
-               (server-running-p))
+	(unless (and (fboundp 'server-running-p) (server-running-p))
     (server-start)))
+;; server mode:1 ends here
 
+;; [[file:../readme.org::#h:BE3F251D-5F39-4337-B27C-CFB81EE9A504][Auto-pair parenthesis:1]]
 (use-package emacs
   :hook
   ((org-jupyter-mode . (lambda () (lc/add-local-electric-pairs '())))
@@ -257,7 +295,9 @@
                 (lambda (c) (eq c ?<   ;; >
 																)))
 	)
+;; Auto-pair parenthesis:1 ends here
 
+;; [[file:../readme.org::#h:6A783697-911E-433D-B8ED-CC70F5F217FA][Rename file:1]]
 (use-package emacs
   :init
   (defun lc/rename-current-file ()
@@ -274,7 +314,9 @@
     "Return expanded filename prompt."
     (expand-file-name (read-file-name prompt)))
   )
+;; Rename file:1 ends here
 
+;; [[file:../readme.org::#h:AC4FAE7D-5AF3-4D5A-810F-55AB4C7D1C1B][xref:1]]
 (use-package xref
   :straight (:type built-in)
   :init
@@ -285,7 +327,9 @@
   ;; (setq xref-file-name-display 'project-relative)
   ;; (setq xref-search-program 'grep)
   )
+;; xref:1 ends here
 
+;; [[file:../readme.org::#h:8BB05594-D909-4E99-960B-5624F915E664][Don't close windows on escape:1]]
 (use-package emacs
   :init
   (defadvice keyboard-escape-quit
@@ -293,7 +337,9 @@
     (let ((buffer-quit-function (lambda () ())))
       ad-do-it))
   )
+;; Don't close windows on escape:1 ends here
 
+;; [[file:../readme.org::#h:403F77CB-A591-4431-B568-CD802876F770][general:1]]
 (use-package general
   :demand t
   :config
@@ -399,7 +445,9 @@
     "d" '(:ignore t :which-key "debug")
     "e" '(:ignore t :which-key "eval")
     "t" '(:ignore t :which-key "test")))
+;; general:1 ends here
 
+;; [[file:../readme.org::#h:331844DD-1F0E-4348-84F5-F53350749226][evil mode:1]]
 (use-package evil
   :demand
   :general
@@ -414,25 +462,32 @@
   (setq evil-want-Y-yank-to-eol t)
   ;; (setq evil-respect-visual-line-mode t)
   (setq evil-undo-system 'undo-fu)
-	(setq evil-search-module 'evil-search)  ;; enables gn
+  (setq evil-search-module 'evil-search)  ;; enables gn
   ;; move to window when splitting
   (setq evil-split-window-below t)
   (setq evil-vsplit-window-right t)
   ;; (setq-local evil-scroll-count 0)
   (setq evil-auto-indent nil)
+  ;; emacs bindings in insert mode
+  ;; (setq evil-disable-insert-state-bindings t)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-	(define-key evil-motion-state-map "_" 'evil-end-of-line)
-	(define-key evil-motion-state-map "0" 'evil-beginning-of-line)
+  (define-key evil-motion-state-map "_" 'evil-end-of-line)
+  (define-key evil-motion-state-map "0" 'evil-beginning-of-line)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal)
   ;; don't move cursor after ==
   (defun lc/evil-dont-move-cursor (orig-fn &rest args)
     (save-excursion (apply orig-fn args)))
   (advice-add 'evil-indent :around #'lc/evil-dont-move-cursor)
+  ;; disable TAB in normal mode to jump forward
+  ;; (with-eval-after-load 'evil-maps
+  ;;   (define-key evil-motion-state-map (kbd "TAB") nil))
   )
+;; evil mode:1 ends here
 
+;; [[file:../readme.org::#h:04B5B86D-5E51-41A8-ACE5-D07EBCDBA4E7][evil-collection:1]]
 (use-package evil-collection
   :after evil
   :demand
@@ -440,15 +495,17 @@
 	(setq evil-collection-magit-use-z-for-folds nil)
   :config
   (evil-collection-init))
+;; evil-collection:1 ends here
 
+;; [[file:../readme.org::#h:DC4B461C-91FC-4543-8C9C-FDF28121DCBA][eval operator:1]]
 (use-package evil
   :config
   (defcustom evil-extra-operator-eval-modes-alist
     '((emacs-lisp-mode eros-eval-region)
       ;; (scheme-mode geiser-eval-region)
       (clojure-mode cider-eval-region)
-			(jupyter-python jupyter-eval-region) ;; when executing in src block
-      (python-mode python-shell-send-region) ;; when executing in org-src-edit mode
+			(jupyter-repl-interaction-mode jupyter-eval-line-or-region) ;; when executing in src block
+      ;; (python-mode python-shell-send-region) ;; when executing in org-src-edit mode
       )
     "Alist used to determine evil-operator-eval's behaviour.
 Each element of this alist should be of this form:
@@ -475,7 +532,9 @@ be passed to EVAL-FUNC as its rest arguments"
   (define-key evil-motion-state-map "gr" 'evil-operator-eval)
   
   )
+;; eval operator:1 ends here
 
+;; [[file:../readme.org::#h:DF40753F-AE4C-4A22-90B1-7468A5C86485][evil-goggles:1]]
 (use-package evil-goggles
   :after evil
   :demand
@@ -490,21 +549,27 @@ be passed to EVAL-FUNC as its rest arguments"
   (evil-goggles-mode)
   (evil-goggles-use-diff-faces)
   )
+;; evil-goggles:1 ends here
 
+;; [[file:../readme.org::#h:142C0F28-5AE4-4034-B61C-3CE4D1E6B2BB][evil-snipe:1]]
 (use-package evil-snipe
 	:after evil
 	:demand
 	:config
 	(evil-snipe-mode +1)
   (evil-snipe-override-mode +1))
+;; evil-snipe:1 ends here
 
+;; [[file:../readme.org::#h:1FF5CDDF-D69C-46D3-A5CD-97C058F5E8BA][evil-nerd-commenter:1]]
 (use-package evil-nerd-commenter
   :general
   (general-nvmap
     "gc" 'evilnc-comment-operator
     "gC" 'evilnc-copy-and-comment-operator)
   )
+;; evil-nerd-commenter:1 ends here
 
+;; [[file:../readme.org::#h:0F159B03-E7CB-4AC7-8871-BED1534559E6][evil-surround:1]]
 (use-package evil-surround
   :general
   (:states 'operator
@@ -513,7 +578,9 @@ be passed to EVAL-FUNC as its rest arguments"
   (:states 'visual
    "S" 'evil-surround-region
    "gS" 'evil-Surround-region))
+;; evil-surround:1 ends here
 
+;; [[file:../readme.org::#h:F5CFE676-28DE-4B1F-BDDF-3DA431FAB728][evil-indent-plus:1]]
 (use-package evil-indent-plus
 	:after evil
 	:demand
@@ -525,7 +592,9 @@ be passed to EVAL-FUNC as its rest arguments"
 	(define-key evil-inner-text-objects-map "j" 'evil-indent-plus-i-indent-up-down)
 	(define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down)
 	)
+;; evil-indent-plus:1 ends here
 
+;; [[file:../readme.org::#h:02F42E4A-7DB4-4150-AA74-22CB3FE7636C][evil cleverparens: outer form text object:1]]
 (use-package evil-cleverparens
 	:after evil
   :hook (emacs-lisp-mode . lc/init-cleverparens)
@@ -550,17 +619,20 @@ be passed to EVAL-FUNC as its rest arguments"
     (define-key evil-inner-text-objects-map "f" #'evil-cp-inner-defun)
     )
   )
+;; evil cleverparens: outer form text object:1 ends here
 
+;; [[file:../readme.org::#h:4055D055-3521-41DE-8BC5-0196F89BB3F8][evil-iedit-state:1]]
 (use-package evil-iedit-state
   :straight (evil-iedit-state :type git :host github :repo "kassick/evil-iedit-state" :branch "master")
   :general
   (lc/leader-keys
 		"s e" '(evil-iedit-state/iedit-mode :wk "iedit")
 		"s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
+;; evil-iedit-state:1 ends here
 
+;; [[file:../readme.org::#h:B26642F5-695F-4475-92B5-2EB9B1C1A96A][evil-mc: multi cursor:1]]
 (use-package evil-mc
 	:after evil
-	:demand
   :general
 	(general-nmap
     "M-n" #'evil-mc-make-and-goto-next-match
@@ -577,7 +649,9 @@ be passed to EVAL-FUNC as its rest arguments"
   :config
   (global-evil-mc-mode 1)
   )
+;; evil-mc: multi cursor:1 ends here
 
+;; [[file:../readme.org::#h:FD4609AC-AD2E-44EA-81FC-0154D84C9701][Fix scroll error when centaur tabs is active:1]]
 (use-package evil
   :init
   (defun lc/evil-posn-x-y (position)
@@ -594,7 +668,9 @@ be passed to EVAL-FUNC as its rest arguments"
   :config
   (advice-add 'evil-posn-x-y :override #'lc/evil-posn-x-y)
   )
+;; Fix scroll error when centaur tabs is active:1 ends here
 
+;; [[file:../readme.org::#h:4F5BF801-2E48-44B3-8822-240BC6D08732][which-key:1]]
 (use-package which-key
   :demand
   :general
@@ -611,7 +687,9 @@ be passed to EVAL-FUNC as its rest arguments"
   (setq which-key-idle-secondary-delay 0.05)
   :config
   (which-key-mode))
+;; which-key:1 ends here
 
+;; [[file:../readme.org::#h:934C85A9-D8DB-455F-A19C-570300047FD5][org mode:1]]
 (use-package org
   ;; :straight org-plus-contrib
   ;; :straight (:type built-in)
@@ -623,7 +701,7 @@ be passed to EVAL-FUNC as its rest arguments"
     "f t" '(org-babel-tangle :wk "tangle")
     "o C" '(org-capture :wk "capture")
     "o l" '(org-todo-list :wk "todo list")
-		  
+    
     "o c" '((lambda () (interactive)
               (persp-switch "main")
               (find-file (concat user-emacs-directory "readme.org")))
@@ -650,9 +728,9 @@ be passed to EVAL-FUNC as its rest arguments"
     "t d" '(org-deadline :wk "deadline")
     "x" '(org-toggle-checkbox :wk "toggle checkbox")
     )
-	(org-mode-map
+  (org-mode-map
    :states 'insert
-   "TAB" 'nil
+   "TAB" 'lc/org-indent-or-complete
    "S-TAB" nil)
   (org-mode-map
    :states 'normal
@@ -688,6 +766,14 @@ be passed to EVAL-FUNC as its rest arguments"
                                          ("->" . "→")
                                          ("->>" . "↠")))
   (setq prettify-symbols-unprettify-at-point 'right-edge)
+  (defun lc/org-indent-or-complete ()
+    "Complete if point is at end of a word, otherwise indent line."
+    (interactive)
+    (if (looking-at "\\>")
+        (dabbrev-expand nil)
+      (org-cycle)
+      ))
+  (setq warning-suppress-types (append warning-suppress-types '((org-element-cache))))
   :config
   ;; (efs/org-font-setup)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -704,10 +790,13 @@ be passed to EVAL-FUNC as its rest arguments"
   ;; see https://www.reddit.com/r/emacs/comments/l45528/questions_about_mving_from_standard_latex_to_org/gkp4f96/?utm_source=reddit&utm_medium=web2x&context=3
   ;; (setq org-latex-pdf-process '("TEXINPUTS=:$HOME/git/AltaCV//: tectonic %f"))
   (setq org-latex-pdf-process '("tectonic %f"))
-  (add-to-list 'org-export-backends 'beamer)
+  (setq org-export-backends '(html))
+  ;; (add-to-list 'org-export-backends 'beamer)
   (plist-put org-format-latex-options :scale 1.2)
   )
+;; org mode:1 ends here
 
+;; [[file:../readme.org::#h:57AD5032-5D49-436D-883D-BA44315D7B65][org code blocks in monospace font:1]]
 (use-package org
 :config
 (defun my-adjoin-to-list-or-symbol (element list-or-symbol)
@@ -730,7 +819,9 @@ be passed to EVAL-FUNC as its rest arguments"
 					;; 'org-table 'org-block-background
 					)))
 	)
+;; org code blocks in monospace font:1 ends here
 
+;; [[file:../readme.org::#h:345DD7DC-12A2-444B-923E-A61B11AB2D26][org agenda:1]]
 (use-package org
   :general
   (lc/leader-keys
@@ -770,7 +861,9 @@ be passed to EVAL-FUNC as its rest arguments"
                   ((org-agenda-overriding-header "Next Tasks")))))
           ("w" "Work Tasks" tags-todo "+work")))
   )
+;; org agenda:1 ends here
 
+;; [[file:../readme.org::#h:7B2FC50C-4C28-4E16-96B9-CF3CB51DBE08][org capture templates:1]]
 (use-package org
 :init
 (setq org-capture-templates
@@ -816,7 +909,9 @@ be passed to EVAL-FUNC as its rest arguments"
                     ":PROPERTIES:\n:CAPTURED: %U\n:END:\n\n"
                     "%i%?"))))
 	)
+;; org capture templates:1 ends here
 
+;; [[file:../readme.org::#h:06CE7B8F-EFC7-4216-99C5-DE419A649C83][cycle only one heading:1]]
 (use-package org
 	:init
 	(defun +org-cycle-only-current-subtree-h (&optional arg)
@@ -846,54 +941,61 @@ All my (performant) foldings needs are met between this and `org-show-subtree'
   ;; Only fold the current tree, rather than recursively
   (add-hook 'org-tab-first-hook #'+org-cycle-only-current-subtree-h)
   )
+;; cycle only one heading:1 ends here
 
+;; [[file:../readme.org::#h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F][async tangle:1]]
 (use-package org
-	:config
-	(require 's)
-	(defun lc/async-process (command &optional name filter)
-  "Start an async process by running the COMMAND string with bash. Return the
+  :config
+  (require 's)
+  (defun lc/async-process (command &optional name filter)
+    "Start an async process by running the COMMAND string with bash. Return the
 process object for it.
 
 NAME is name for the process. Default is \"async-process\".
 
 FILTER is function that runs after the process is finished, its args should be
 \"(process output)\". Default is just messages the output."
-  (make-process
-   :command `("bash" "-c" ,command)
-   :name (if name name
-           "async-process")
-   :filter (if filter filter
-             (lambda (process output) (message (s-trim output))))))
+    (make-process
+     :command `("bash" "-c" ,command)
+     :name (if name name
+             "async-process")
+     :filter (if filter filter
+               (lambda (process output) (message (s-trim output))))))
 
-	
-(defun lc/tangle-config ()
-  "Export code blocks from the literate config file
+  
+  (defun lc/tangle-config ()
+    "Export code blocks from the literate config file
 asynchronously."
-  (interactive)
-  (let ((command (if (file-directory-p "/Applications/Emacs.app")
-                     "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
-                   ;; on iPad
-                   "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'  2>&1 | grep -v '^Loading.*\.\.\.$' | grep -v '^Using ' | grep -v '^dump '| grep -v '^Finding '"
-                   )))
-    ;; prevent emacs from killing until tangle-process finished
-    (add-to-list 'kill-emacs-query-functions
-                 (lambda ()
-                   (or (not (process-live-p (get-process "tangle-process")))
-                       (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
-    ;; tangle config asynchronously
-    (lc/async-process
-     (format command
-             (expand-file-name "readme.org" user-emacs-directory)
-             (expand-file-name "init.el" user-emacs-directory))
-     "tangle-process")
+    (interactive)
+    (let ((command (if (file-directory-p "/Applications/Emacs.app")
+                       "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                     ;; on iPad
+                     "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                     ;; "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'  2>&1 | grep -v '^Loading.*\.\.\.$' | grep -v '^Using ' | grep -v '^dump '| grep -v '^Finding '"
+                     )))
+      ;; prevent emacs from killing until tangle-process finished
+      ;; (add-to-list 'kill-emacs-query-functions
+      ;;              (lambda ()
+      ;;                (or (not (process-live-p (get-process "tangle-process")))
+      ;;                    (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
+      ;; tangle config asynchronously
+      (lc/async-process
+       (format command
+               (expand-file-name "readme.org" user-emacs-directory)
+               (expand-file-name "init.el" user-emacs-directory))
+       "tangle-process")
+      )
+
     )
-
   )
-)
+;; async tangle:1 ends here
 
+;; [[file:../readme.org::#h:5640311D-E41F-495D-BF61-9A1CE260B67D][org reverse datetree:1]]
 (use-package org-reverse-datetree
   :after org :demand)
+;; org reverse datetree:1 ends here
 
+;; [[file:../readme.org::#h:9F509775-5901-47BA-AE19-C193598F3FE8][org-superstar:1]]
 (use-package org-superstar
   :hook (org-mode . org-superstar-mode)
   :init
@@ -901,7 +1003,9 @@ asynchronously."
         ;; org-superstar-special-todo-items t
         org-ellipsis " ↴ ")
   )
+;; org-superstar:1 ends here
 
+;; [[file:../readme.org::#h:6944ED2A-A880-48CC-A6F6-86847D15BF65][highlight todo:1]]
 (use-package hl-todo
 	:hook ((prog-mode org-mode) . lc/hl-todo-init)
 	:init
@@ -916,7 +1020,9 @@ asynchronously."
 																				("DEPRECATED" . "#bfd9ff")))
 		(hl-todo-mode))
 	)
+;; highlight todo:1 ends here
 
+;; [[file:../readme.org::#h:9C85D837-71F4-4205-B1DD-5ECBE3FD4B11][org babel:1]]
 (use-package org
   :general
   (lc/local-leader-keys
@@ -933,6 +1039,7 @@ asynchronously."
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
+     ;; (clojure . t)
      ;; (ledger . t)
      (shell . t)))
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
@@ -941,12 +1048,16 @@ asynchronously."
 ;; enable mermaid diagram blocks
 ;; (use-package ob-mermaid
 ;;   :custom (ob-mermaid-cli-path "~/.asdf/shims/mmdc"))
+;; org babel:1 ends here
 
+;; [[file:../readme.org::#h:D407A727-7E47-48F6-AA29-F487A8890F43][ob-async:1]]
 (use-package ob-async
   :hook (org-load . (lambda () (require 'ob-async)))
   :init
   (setq ob-async-no-async-languages-alist '("jupyter-python" "jupyter-R" "jupyter-julia")))
+;; ob-async:1 ends here
 
+;; [[file:../readme.org::#h:0642C8C0-3B4E-4C72-BD41-40F58FFAB736][org-tree-slide:1]]
 (use-package org-tree-slide
 	:after org
 	:hook ((org-tree-slide-play . (lambda () (+remap-faces-at-start-present)))
@@ -1006,7 +1117,9 @@ asynchronously."
 	;; (org-tree-slide-heading-level-3 ((t (:height 1.5 :weight bold))))
 	;; (org-tree-slide-heading-level-4 ((t (:height 1.5 :weight bold))))
 	)
+;; org-tree-slide:1 ends here
 
+;; [[file:../readme.org::#h:FB4154EE-27F2-4B52-B0BB-5F95D7920EAD][evil-org-mode:1]]
 (use-package evil-org-mode
   :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
   :hook ((org-mode . evil-org-mode)
@@ -1102,39 +1215,25 @@ asynchronously."
     (dotimes (_ count) (+org--insert-item 'above)))
 
   )
+;; evil-org-mode:1 ends here
 
+;; [[file:../readme.org::#h:474F4B7B-336B-48A8-B888-B46584E331AC][org-appear:1]]
 (use-package org-appear
   :straight (org-appear :type git :host github :repo "awth13/org-appear")
-	:hook (org-mode . org-appear-mode)
+  :hook (org-mode . org-appear-mode)
   :init
   (setq org-appear-autoemphasis  t)
   (setq org-appear-autolinks t)
   (setq org-appear-autosubmarkers t)
-	)
+  )
+;; org-appear:1 ends here
 
+;; [[file:../readme.org::#h:040DD3F1-043C-403F-A145-813BA69FC42E][automatic latex preview:1]]
 (use-package org-fragtog
 	:hook (org-mode . org-fragtog-mode))
+;; automatic latex preview:1 ends here
 
-(use-package org
-  :config
-  (require 'org-crypt)
-  (require 'epa-file)
-  (epa-file-enable)
-  (org-crypt-use-before-save-magic)
-  (setq org-tags-exclude-from-inheritance (quote ("crypt")))
-  (setq org-crypt-key nil)
-  (defun ag/reveal-and-move-back ()
-    (org-reveal)
-    (goto-char ag/old-point))
-  (defun ag/org-reveal-after-save-on ()
-    (setq ag/old-point (point))
-    (add-hook 'after-save-hook 'ag/reveal-and-move-back))
-  (defun ag/org-reveal-after-save-off ()
-    (remove-hook 'after-save-hook 'ag/reveal-and-move-back))
-  (add-hook 'org-babel-pre-tangle-hook 'ag/org-reveal-after-save-on)
-  (add-hook 'org-babel-post-tangle-hook 'ag/org-reveal-after-save-off)
-  )
-
+;; [[file:../readme.org::#h:AC175A47-E576-4AA6-A9C7-709129F4C56F][use org-id in links:1]]
 (use-package org
   :init
   (defun lc/org-custom-id-get (&optional pom create prefix)
@@ -1171,49 +1270,56 @@ asynchronously."
   (require 'org-id)
   (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id)
   )
+;; use org-id in links:1 ends here
 
+;; [[file:../readme.org::#h:502F0F06-A555-40FF-8ADA-0A7AA9E67D7E][all the icons:1]]
 (use-package all-the-icons
   :if (not lc/is-ipad)
   :demand
   )
+;; all the icons:1 ends here
 
+;; [[file:../readme.org::#h:46FD92F6-91D6-47B8-887F-98375B978F7C][all the icons completion:1]]
 (use-package all-the-icons-completion
   :after (marginalia all-the-icons)
   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
   :init
   (all-the-icons-completion-mode))
+;; all the icons completion:1 ends here
 
+;; [[file:../readme.org::#h:77D92E3F-D17F-408C-A168-928D64D1AEF8][doom modeline:1]]
 (use-package doom-modeline
-    :demand
-    :init
-    (setq doom-modeline-buffer-encoding nil)
-    (setq doom-modeline-env-enable-python nil)
-    (setq doom-modeline-height 15)
-    (setq doom-modeline-project-detection 'projectile)
-    :config
-    (doom-modeline-mode 1)
-    (set-face-attribute 'doom-modeline-evil-insert-state nil :foreground "orange")
-)
-
-(use-package modus-themes
-  :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
   :demand
+  :init
+  (setq doom-modeline-buffer-encoding nil)
+  (setq doom-modeline-env-enable-python nil)
+  (setq doom-modeline-project-detection 'projectile)
+  (setq doom-modeline-buffer-file-name-style 'relative-to-project)
+  :config
+  (doom-modeline-mode 1)
+  ;; (set-face-attribute 'doom-modeline-evil-insert-state nil :foreground "orange")
+  (setq doom-modeline-height 20)
+  )
+;; doom modeline:1 ends here
+
+;; [[file:../readme.org::#h:5F1EC880-5646-4E50-A460-C2F23BD864FC][Modus themes + alternate light/dark themes:1]]
+(use-package emacs
+  ;; :straight (modus-themes :type git :host gitlab :repo "protesilaos/modus-themes" :branch "main")
+  ;; :demand
   :if (display-graphic-p)
   :hook (modus-themes-after-load-theme . lc/fix-fill-column-indicator)
   :general
   (lc/leader-keys
     "t t" '((lambda () (interactive) (modus-themes-toggle)) :wk "toggle theme"))
   :init
-  (setq modus-themes-slanted-constructs t
+  (setq modus-themes-italic-constructs t
         ;; modus-themes-no-mixed-fonts t
         modus-themes-bold-constructs t
         modus-themes-fringes 'nil ; {nil,'subtle,'intense}
         modus-themes-mode-line '(3d) ; {nil,'3d,'moody}
-        modus-themes-intense-hl-line nil
-        modus-themes-mixed-fonts t
         modus-themes-prompts nil ; {nil,'subtle,'intense}
         ;; modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
-        modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
+        ;; modus-themes-diffs nil ; {nil,'desaturated,'fg-only}
         modus-themes-org-blocks 'greyscale ; {nil,'greyscale,'rainbow}
         ;; modus-themes-headings  ; Read further below in the manual for this one
         ;; (quote ((1 . t)           ; keep the default style
@@ -1260,7 +1366,7 @@ asynchronously."
     (with-eval-after-load 'org (plist-put org-format-latex-options :background "Transparent"))
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-vivendi) (dark . modus-vivendi))))
-    (modus-themes-load-vivendi)
+    (load-theme 'modus-vivendi t)
     (when (bound-and-true-p centaur-tabs-mode)
       (lc/update-centaur-tabs))
     )
@@ -1271,7 +1377,7 @@ asynchronously."
     (with-eval-after-load 'org-html-themify
       (setq org-html-themify-themes '((light . modus-operandi) (dark . modus-operandi))))
     (setenv "BAT_THEME" "ansi")
-    (modus-themes-load-operandi)
+    (load-theme 'modus-operandi t)
     (when (bound-and-true-p centaur-tabs-mode)
       (lc/update-centaur-tabs)))
   (defun lc/update-centaur-tabs ()
@@ -1293,7 +1399,6 @@ asynchronously."
       (modus-themes-with-colors
         (custom-set-faces
          `(fill-column-indicator ((,class :background ,bg-inactive :foreground ,bg-inactive)))))))
-  :config
   (when (display-graphic-p)
     (lc/override-colors))
   (if (and (boundp 'mac-effective-appearance-change-hook)
@@ -1301,12 +1406,12 @@ asynchronously."
       (progn
         (add-hook 'after-init-hook 'lc/change-theme-with-mac-system)
         (add-hook 'mac-effective-appearance-change-hook 'lc/change-theme-with-mac-system))
-    ;; (add-hook 'after-init-hook 'lc/change-theme-with-timers)
-    ;; (add-hook 'emacs-startup-hook 'lc/load-light-theme)
     (add-hook 'emacs-startup-hook 'lc/change-theme-with-timers)
     )
   )
+;; Modus themes + alternate light/dark themes:1 ends here
 
+;; [[file:../readme.org::#h:2F4C0A6C-96BE-4818-B794-D1593C23FB00][dashboard:1]]
 (use-package dashboard
   :demand
   :init
@@ -1343,26 +1448,26 @@ asynchronously."
             "Restore"
             (lambda (&rest _) (persp-state-load persp-state-default-file)))
            )))
-	(defun lc/dashboard-agenda-entry-format ()
+  (defun lc/dashboard-agenda-entry-format ()
     "Format agenda entry to show it on dashboard. Compared to the original, we remove tags at the end"
-  (let* ((scheduled-time (org-get-scheduled-time (point)))
-         (deadline-time (org-get-deadline-time (point)))
-         (entry-time (or scheduled-time deadline-time))
-         (item (org-agenda-format-item
-                (dashboard-agenda--formatted-time)
-                (dashboard-agenda--formatted-headline)
-                (org-outline-level)
-                (org-get-category)
-                nil;; (org-get-tags)
-								))
-         (loc (point))
-         (file (buffer-file-name))
-         (todo-state (org-get-todo-state))
-         (todo-index (and todo-state
-                          (length (member todo-state org-todo-keywords-1))))
-         (entry-data (list (cons 'time entry-time)
-                           (cons 'todo-index todo-index))))
-    (list item loc file entry-data)))
+    (let* ((scheduled-time (org-get-scheduled-time (point)))
+           (deadline-time (org-get-deadline-time (point)))
+           (entry-time (or scheduled-time deadline-time))
+           (item (org-agenda-format-item
+                  (dashboard-agenda--formatted-time)
+                  (dashboard-agenda--formatted-headline)
+                  (org-outline-level)
+                  (org-get-category)
+                  nil;; (org-get-tags)
+                  ))
+           (loc (point))
+           (file (buffer-file-name))
+           (todo-state (org-get-todo-state))
+           (todo-index (and todo-state
+                            (length (member todo-state org-todo-keywords-1))))
+           (entry-data (list (cons 'time entry-time)
+                             (cons 'todo-index todo-index))))
+      (list item loc file entry-data)))
   (defun lc/dashboard-get-agenda ()
     "Get agenda items for today or for a week from now."
     (org-compile-prefix-format 'agenda)
@@ -1411,11 +1516,14 @@ asynchronously."
   (add-to-list 'dashboard-item-generators  '(next . lc/dashboard-insert-next))
   (setq dashboard-items '((agenda . 5)
                           (next . 10)
-                          ;; (bookmarks . 5)
+                          (bookmarks . 5)
                           ;; (recents  . 5)
-                          (projects . 5)))
+                          ;; (projects . 5)
+													))
   )
+;; dashboard:1 ends here
 
+;; [[file:../readme.org::#h:91E3AC2B-6981-4915-8508-4CA5D7182939][popup management:1]]
 (use-package emacs
   :init
   (setq display-buffer-alist
@@ -1431,7 +1539,9 @@ asynchronously."
 ;;          (reusable-frames . t))))
 
 ;; (setq even-window-sizes nil)  ; display-buffer hint: avoid resizing
+;; popup management:1 ends here
 
+;; [[file:../readme.org::#h:A7A49256-4E2B-45CD-A898-347C37867645][Fill column indicator:1]]
 (use-package display-fill-column-indicator
   :straight (:type built-in)
   :hook
@@ -1440,7 +1550,9 @@ asynchronously."
   (setq-default fill-column  90)
   ;; (setq display-fill-column-indicator-character "|")
 	)
+;; Fill column indicator:1 ends here
 
+;; [[file:../readme.org::#h:98E70637-DC1F-4528-B848-C12D5092BD7A][Highlight indentation guides:1]]
 ;; add a visual intent guide
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
@@ -1456,7 +1568,9 @@ asynchronously."
   ;; (set-face-background 'highlight-indent-guides-even-face "dimgray")
   ;; (set-face-foreground 'highlight-indent-guides-character-face "dimgray")
   )
+;; Highlight indentation guides:1 ends here
 
+;; [[file:../readme.org::#h:2D8DEB14-A1F1-4B46-B08A-CF97A0A9B237][Enlarge window:1]]
 (use-package emacs
 	:general
   (lc/leader-keys
@@ -1499,14 +1613,26 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 									 (set-window-parameter window 'window-preserved-size preserved-p))
 								 (add-hook 'doom-switch-window-hook #'doom--enlargened-forget-last-wconf-h)))))))))
 	)
+;; Enlarge window:1 ends here
 
+;; [[file:../readme.org::#h:EA99CF6B-278E-482F-A865-7E31407734CE][8 colors theme:2]]
 (use-package emacs
   :init
   (unless (> (display-color-cells) 8)
     (setq custom-theme-directory (concat user-emacs-directory "themes"))
     (custom-set-variables '(custom-enabled-themes '(8colors manoj-dark)))
     ))
+;; 8 colors theme:2 ends here
 
+;; [[file:../readme.org::#h:E54A78C6-FD42-40C8-BB33-E076D0D1EB94][Transparent frame:1]]
+(use-package emacs
+  :init
+  (set-frame-parameter (selected-frame) 'alpha '(93 . 93))
+  (add-to-list 'default-frame-alist '(alpha . (93 . 93)))
+  )
+;; Transparent frame:1 ends here
+
+;; [[file:../readme.org::#h:37ACBBF7-989F-4A57-9454-06B79B8EB4F0][marginalia:1]]
 (use-package marginalia
   :after vertico
   :init
@@ -1515,7 +1641,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (with-eval-after-load 'projectile
     (add-to-list 'marginalia-command-categories '(projectile-find-file . file)))
   )
+;; marginalia:1 ends here
 
+;; [[file:../readme.org::#h:D28488FC-484F-4AD9-8989-736BE88C9AA2][embark:1]]
 (use-package embark
   :after vertico
   :general
@@ -1538,7 +1666,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                  (window-parameters (mode-line-format . none))))
   ;; (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
   )
+;; embark:1 ends here
 
+;; [[file:../readme.org::#h:61053422-6027-47A9-8175-8F8479F78E5F][wgrep:1]]
 (use-package wgrep
   :general
   (grep-mode-map "W" 'wgrep-change-to-wgrep-mode)
@@ -1546,7 +1676,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq wgrep-auto-save-buffer t)
   (setq wgrep-change-readonly-file t)
   )
+;; wgrep:1 ends here
 
+;; [[file:../readme.org::#h:E08EB7E2-CBD9-460C-B77E-9EFF7846C249][consult:1]]
 (use-package consult
   :commands (consult-ripgrep)
   :general
@@ -1554,6 +1686,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     :states '(normal insert)
     "C-p" 'consult-yank-pop)
   (lc/leader-keys
+    "r r" '(consult-bookmark :wk "go to bookmark")
     "s i" '(consult-isearch :wk "isearch")
     "s o" '(consult-outline :which-key "outline")
     "s s" 'consult-line
@@ -1574,7 +1707,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (with-eval-after-load 'selectrum
     (require 'consult-selectrum))
   )
+;; consult:1 ends here
 
+;; [[file:../readme.org::#h:002E04ED-FEBA-4058-8570-561963C2450F][embark-consult:1]]
 (use-package embark-consult
   :after (embark consult)
   ;; :demand t ; only necessary if you have the hook below
@@ -1583,7 +1718,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;; :hook
   ;; (embark-collect-mode . embark-consult-preview-minor-mode)
 	)
+;; embark-consult:1 ends here
 
+;; [[file:../readme.org::#h:CAEABB84-0DAE-41CB-B08B-A77B956B991E][vertico:1]]
 (use-package vertico
   ;; :straight (vertico :type git :host github :repo "minad/vertico")
   :straight (vertico :files (:defaults "extensions/*")
@@ -1612,8 +1749,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
             ;; "C-;" #'kb/vertico-multiform-flat-toggle
             "M-<backspace>" #'vertico-directory-delete-word
             )
-  (:keymaps '(normal insert visual motion)
-            "M-." #'vertico-repeat-last) ; Perfectly return to the state of the last Vertico minibuffer usage
+  (lc/leader-keys
+    "s ." '(vertico-repeat-last :wk "repeat search")
+    )
   ;; :bind (:map vertico-map
   ;;             ("C-j" . vertico-next)
   ;;             ("C-k" . vertico-previous)
@@ -1673,6 +1811,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :config
   ;; (vertico-multiform-mode)	
   (vertico-mode)
+  ;; (vertico-indexed-mode)
 
   ;; Prefix the current candidate with “» ”. From
   ;; https://github.com/minad/vertico/wiki#prefix-current-candidate-with-arrow
@@ -1722,16 +1861,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t))
+;; vertico:1 ends here
 
-(use-package dabbrev
-	:general
-	(python-mode-map
-   :states 'insert
-   "<backtab>" 'dabbrev-completion
-   ;; ("C-M-/" . dabbrev-expand)
-   )
-  )
-
+;; [[file:../readme.org::#h:A2B7EF59-9D10-4C12-98D1-9F569EF9BE38][corfu:1]]
 ;; Configure corfu
 (use-package corfu
   :straight (corfu :type git :host github :repo "minad/corfu")
@@ -1749,15 +1881,15 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (setq corfu-min-width 80)
   (setq corfu-max-width corfu-min-width)       ; Always have the same width
-	 (setq corfu-preselect-first t)   
-	 
-	 (defun corfu-enable-always-in-minibuffer ()
-  "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-  (unless (or (bound-and-true-p mct--active) ; Useful if I ever use MCT
-              (bound-and-true-p vertico--input))
-    (setq-local corfu-auto nil)       ; Ensure auto completion is disabled
-    (corfu-mode 1)))
-   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
+  (setq corfu-preselect-first t)   
+  
+  (defun corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+    (unless (or (bound-and-true-p mct--active) ; Useful if I ever use MCT
+                (bound-and-true-p vertico--input))
+      (setq-local corfu-auto nil)       ; Ensure auto completion is disabled
+      (corfu-mode 1)))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
   ;; :custom
   ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
   ;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
@@ -1767,7 +1899,36 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;; (corfu-echo-documentation nil) ;; Disable documentation in the echo area
   ;; (corfu-scroll-margin 5)        ;; Use scroll margin
   )
+;; corfu:1 ends here
 
+;; [[file:../readme.org::#h:E2D8F1CB-9FB9-4045-A087-7045C6FAA084][cape:1]]
+;; Add extensions
+(use-package cape
+  :hook ((org-mode . lc/add-cape-functions)
+         (lsp-completion-mode . lc/add-cape-functions))
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (defun lc/add-cape-functions ()
+    (interactive)
+    (add-to-list 'completion-at-point-functions #'cape-file t)
+    ;; (fset #'cape-path (cape-company-to-capf #'company-files))
+    ;; (add-to-list 'completion-at-point-functions #'cape-path t)
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev t)
+    )
+  ;;(add-to-list 'completion-at-point-functions #'cape-history)
+  ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+  ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
+  ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+  ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;;(add-to-list 'completion-at-point-functions #'cape-line)
+  )
+;; cape:1 ends here
+
+;; [[file:../readme.org::#h:713949BB-4722-41EB-A86A-64A7A8531DE6][kind-icon:1]]
 (use-package kind-icon
   :straight (kind-icon :type git :host github :repo "jdtsmith/kind-icon")
   :after corfu :demand
@@ -1782,9 +1943,22 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     (add-hook 'modus-themes-after-load-theme-hook #'(lambda () (interactive) (kind-icon-reset-cache))))
 
 )
+;; kind-icon:1 ends here
 
+;; [[file:../readme.org::#h:7BC2D32A-F652-48F9-AEA6-D595ACB41386][bookmarks:1]]
+(use-package emacs
+  :straight (:type built-in)
+  :general
+  (lc/leader-keys
+    "r m" '(bookmark-set :wk "set bookmark")
+    "r d" '(bookmark-delete :wk "delete bookmark")
+    )
+  )
+;; bookmarks:1 ends here
+
+;; [[file:../readme.org::#h:788EC6E4-44DD-4E93-A1FC-517CA9213396][projectile:1]]
 (use-package projectile
-  :demand
+	:demand
   :general
   (lc/leader-keys
     :states 'normal
@@ -1807,6 +1981,13 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     (interactive)
     (let ((projectile-git-command "git ls-files -zco"))
       (projectile-find-file)))
+  (defun lc/projectile-find-project-name-split-dots (project-root)
+    (thread-first (directory-file-name project-root)
+                  (split-string "[/]") (last) (car)
+                  (split-string "[.]") (last) (car))
+    )
+  (setq projectile-project-name-function
+        #'lc/projectile-find-project-name-split-dots)
   :config
   (defadvice projectile-project-root (around ignore-remote first activate)
     (unless (file-remote-p default-directory) ad-do-it))
@@ -1842,7 +2023,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "Git status in project."
     (projectile-vc))
   )
+;; projectile:1 ends here
 
+;; [[file:../readme.org::#h:6E4E5BD6-1930-4DCE-8E26-5ADAC2B9A152][perspective:1]]
 (use-package perspective
   :commands (persp-new persp-switch persp-state-save)
   :general
@@ -1853,8 +2036,12 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     "TAB d" 'persp-kill
     "TAB h" 'persp-prev
     "TAB l" 'persp-next
-    "TAB x" '((lambda () (interactive) (persp-kill (persp-current-name))) :wk "kill current")
-    "TAB X" '((lambda () (interactive) (persp-kill (persp-names))) :wk "kill all")
+    "TAB x" '((lambda () (interactive)
+                (persp-kill (persp-current-name))) :wk "kill current")
+    "TAB X" '((lambda () (interactive)
+                (seq-doseq (name (persp-names))
+                  (persp-kill name))
+                (lc/main-tab)) :wk "kill all")
     "TAB m" '(lc/main-tab :wk "main")
     )
   :init
@@ -1878,7 +2065,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :config
   (persp-mode)
   (add-hook 'kill-emacs-hook #'persp-state-save))
+;; perspective:1 ends here
 
+;; [[file:../readme.org::#h:85ED0544-8351-4B05-843D-8BB9F3454041][persp-projectile:1]]
 (use-package persp-projectile
   :after projectile
   :init
@@ -1907,7 +2096,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     ;;             :wk "org")
     )
   )
+;; persp-projectile:1 ends here
 
+;; [[file:../readme.org::#h:3789628F-1F87-48C6-BC70-2E31E6F485D0][dired:1]]
 (use-package dired
   :straight (:type built-in)
   :hook
@@ -1952,7 +2143,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :config
   (evil-collection-define-key 'normal 'dired-mode-map
     "H" 'dired-hide-dotfiles-mode))
+;; dired:1 ends here
 
+;; [[file:../readme.org::#h:230AF0C3-8214-46BB-AB84-C81C047DC8C8][dired subtree:1]]
 (use-package dired-subtree
   :general
   (dired-mode-map
@@ -1963,7 +2156,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
               :after (lambda () (interactive)
                        (when all-the-icons-dired-mode
                          (revert-buffer)))))
+;; dired subtree:1 ends here
 
+;; [[file:../readme.org::#h:FF4B176D-E133-4013-9926-87F9A20E3BBD][persistent scratch:1]]
 (use-package persistent-scratch
   :hook
   (org-mode . (lambda ()
@@ -1983,18 +2178,24 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq persistent-scratch-autosave-interval 60)
   :config
   (persistent-scratch-setup-default))
+;; persistent scratch:1 ends here
 
+;; [[file:../readme.org::#h:D5084868-D46D-4AC7-ACE4-A7EDB10703EE][rainbow parenthesis:1]]
 (use-package rainbow-delimiters
   :hook ((emacs-lisp-mode . rainbow-delimiters-mode)
          (clojure-mode . rainbow-delimiters-mode))
   )
+;; rainbow parenthesis:1 ends here
 
+;; [[file:../readme.org::#h:4C37CFFC-D045-47B4-BFDC-801977247199][restart-emacs:1]]
 (use-package restart-emacs
   :general
   (lc/leader-keys
     "R" '(restart-emacs :wk "restart"))
   )
+;; restart-emacs:1 ends here
 
+;; [[file:../readme.org::#h:e38bee3c-2451-4c32-b22c-228c2f2c4d4f][term:1]]
 (use-package term
   :if lc/is-ipad
   :straight (:type built-in)
@@ -2014,7 +2215,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;; (setq explicit-shell-file-name "C:/Program Files/Git/bin/bash")
   ;; (setq explicit-bash.exe-args '("--login" "-i"))
   )
+;; term:1 ends here
 
+;; [[file:../readme.org::#h:48EFC0F4-8C5C-47CF-A464-420A618A01C2][tramp:1]]
 (use-package tramp
   :straight (:type built-in)
   :init
@@ -2046,15 +2249,30 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   )
 
 (use-package docker-tramp)
+;; tramp:1 ends here
 
+;; [[file:../readme.org::#h:FEB4E3B3-47E7-4AAE-ADD7-524A57387301][undo fu:1]]
 (use-package undo-fu
-  :demand
+  ;; :demand
   :general
   (:states 'normal
            "u" 'undo-fu-only-undo
            "s-z" 'undo-fu-only-undo
            "\C-r" 'undo-fu-only-redo))
+;; undo fu:1 ends here
 
+;; [[file:../readme.org::#h:FC2D5A9A-DBD5-4878-AB4E-BBF5826B98E8][undo fu session (persistent undo history):1]]
+(use-package undo-fu-session
+  :after undo-fu
+	 :demand
+  :init
+  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'"))
+  :config
+  (global-undo-fu-session-mode)
+  )
+;; undo fu session (persistent undo history):1 ends here
+
+;; [[file:../readme.org::#h:61B8B839-46CA-4AE6-AD57-A6D291E7C225][magit:1]]
 (use-package magit
   :general
   (lc/leader-keys
@@ -2074,14 +2292,20 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   (setq magit-log-arguments '("--graph" "--decorate" "--color"))
   (setq git-commit-fill-column 72)
-	;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
-	;; (when lc/is-ipad (require 'sendmail))
+  ;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
+  ;; (when lc/is-ipad (require 'sendmail))
   :config
-	(setq magit-buffer-name-format (concat "*" magit-buffer-name-format "*"))
+  (setq magit-buffer-name-format (concat "*" magit-buffer-name-format "*"))
   (evil-define-key* '(normal visual) magit-mode-map
     "zz" #'evil-scroll-line-to-center)
+	; adding autostash suffix to magit-pull
+  (transient-append-suffix 'magit-pull "-A"
+    '("-A" "Autostash" "--autostash")
+    )
   )
+;; magit:1 ends here
 
+;; [[file:../readme.org::#h:5CA4BCDE-A8D6-472F-9FA1-FA5514CC9388][git-timemachine:1]]
 (use-package git-timemachine
   :hook (git-time-machine-mode . evil-normalize-keymaps)
   :init (setq git-timemachine-show-minibuffer-details t)
@@ -2091,7 +2315,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
    "C-k" 'git-timemachine-show-previous-revision
    "C-j" 'git-timemachine-show-next-revision
    "q" 'git-timemachine-quit))
+;; git-timemachine:1 ends here
 
+;; [[file:../readme.org::#h:DA2BAD8C-A37A-4A89-BEE0-A7FB367CD345][diff-hl:1]]
 (use-package diff-hl
   :demand
 	:general
@@ -2109,7 +2335,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   :config
   (global-diff-hl-mode)
   )
+;; diff-hl:1 ends here
 
+;; [[file:../readme.org::#h:DADD41F3-F805-4E89-9EDB-B21350A81A19][smerge + hydra-smerge:1]]
 (use-package hydra
 	:after evil
   :demand
@@ -2178,17 +2406,23 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     ("r" smerge-resolve)
     ("R" smerge-kill-current)
     ("q" nil :color blue)))
+;; smerge + hydra-smerge:1 ends here
 
+;; [[file:../readme.org::#h:65206410-8DD7-499E-AA70-6D9C781C0E0D][envrc:1]]
 (use-package inheritenv
   :straight (inheritenv :type git :host github :repo "purcell/inheritenv"))
+;; envrc:1 ends here
 
+;; [[file:../readme.org::#h:65206410-8DD7-499E-AA70-6D9C781C0E0D][envrc:2]]
 (use-package envrc
   :straight (envrc :type git :host github :repo "purcell/envrc")
   :commands (envrc-mode)
   :hook ((python-mode . envrc-mode)
          (org-jupyter-mode . envrc-mode))
   )
+;; envrc:2 ends here
 
+;; [[file:../readme.org::#h:ae484d90-a853-4e7a-a073-42485a76f0aa][yasnippet:1]]
 (use-package yasnippet
   :general
   (yas-minor-mode-map
@@ -2207,7 +2441,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (yas-reload-all)
   (add-hook 'post-command-hook #'lc/yas-try-expanding-auto-snippets)
   )
+;; yasnippet:1 ends here
 
+;; [[file:../readme.org::#h:83403D79-9668-48DC-82FB-98FAFFD7DF11][LaTeX yasnippets:1]]
 (use-package yasnippet
   :config
   (setq lc/greek-alphabet
@@ -2296,7 +2532,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
         (list (concat lc/latex-math-prefix key) value (concat "Math symbol " value))))
     lc/latex-math-symbols))
   )
+;; LaTeX yasnippets:1 ends here
 
+;; [[file:../readme.org::#h:01E26AB9-2829-4076-9665-E218832FB1A3][search google:1]]
 (use-package emacs
   :general
   (lc/leader-keys
@@ -2314,7 +2552,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                                          (region-end)))
       (google-search-str (read-from-minibuffer "Search: "))))
   )
+;; search google:1 ends here
 
+;; [[file:../readme.org::#h:6872D17A-1A2E-4394-A83B-16D5328D88BC][search github:1]]
 (use-package emacs
   :general
   (lc/leader-keys
@@ -2331,7 +2571,9 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
        (concat "https://github.com/search?l=" language
                "&type=code&q=" code))))
   )
+;; search github:1 ends here
 
+;; [[file:../readme.org::#h:14F8ECDE-9E15-46F7-B903-ECE383251C48][transient help commands:1]]
 (use-package transient
   :general
   (lc/leader-keys
@@ -2393,6 +2635,12 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
      ]
     )
   )
+;; transient help commands:1 ends here
+
+;; [[file:../readme.org::#h:884FB8DF-D672-496E-9068-1FD15F0250E5][transient increase/decrease font size:1]]
+(use-package default-text-scale
+  :hook (emacs-startup . default-text-scale-mode)
+  )
 
 (use-package transient
   :general
@@ -2402,11 +2650,22 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (transient-define-prefix lc/font-size-transient ()
     "Change font size"
     ["Font size"
-     ("+" "Increase" (lambda () (interactive) (progn (text-scale-increase) (lc/font-size-transient))))
-     ("-" "Decrease" (lambda () (interactive) (progn (text-scale-decrease) (lc/font-size-transient))))
+     ("+" "Increase" (lambda () (interactive) (default-text-scale-increase) (with-eval-after-load 'doom-modeline (doom-modeline-refresh-font-width-cache)) (lc/font-size-transient)))
+     ("-" "Decrease" (lambda () (interactive) (default-text-scale-decrease) (with-eval-after-load 'doom-modeline (doom-modeline-refresh-font-width-cache)) (lc/font-size-transient)))
+     ("0" "Reset" (lambda () (interactive)
+                    (setq default-text-scale--complement 0)
+                    (set-face-attribute 'default
+                                        nil
+                                        :height (lc/get-font-size))
+                    (message "Default font size is now %d"
+                             (face-attribute 'default :height))
+                    (lc/font-size-transient)))
      ])
+  (transient-bind-q-to-quit)
   )
+;; transient increase/decrease font size:1 ends here
 
+;; [[file:../readme.org::#h:58E5AE2F-4E1C-4B72-9B63-B96AEF55F4DA][isearch-mb:1]]
 (use-package isearch-mb
   :straight (isearch-mb :type git :host github :repo "astoff/isearch-mb")
   :demand
@@ -2425,11 +2684,14 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
   (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
   )
+;; isearch-mb:1 ends here
 
+;; [[file:../readme.org::#h:37FF0EE6-B8B7-4208-8F31-7361AB22DC52][avy:1]]
 (use-package avy
   :general
   (general-nmap
-    "gs" 'avy-goto-char-2)
+    ;; "gs" 'avy-goto-char-2)
+    "gs" 'avy-goto-char-timer)
   ;; :bind (("C-:" . avy-goto-char)
   ;;        ("C-'" . avy-goto-char-2)
   ;;        ("C-;" . avy-goto-char-2)
@@ -2444,6 +2706,29 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   ;;               avy-background t
   ;;               avy-style 'pre)
   )
+;; avy:1 ends here
 
+;; [[file:../readme.org::#h:21F53DE6-4F2C-4B38-9C72-98E303687C7D][devdocs:1]]
+(use-package devdocs
+  :demand
+  :general
+  (lc/leader-keys
+    "hD" 'devdocs-lookup
+    )
+  )
+;; devdocs:1 ends here
+
+;; [[file:../readme.org::#h:82A4886B-7891-4109-A164-0865E8E93CAD][imenu-list:1]]
+(use-package imenu-list
+  :general
+  (lc/leader-keys
+    "t i" 'imenu-list-smart-toggle
+    )
+
+  )
+;; imenu-list:1 ends here
+
+;; [[file:../readme.org::#h:24A7FE78-E6B9-4C81-A2BE-6A049A8209AD][init-core:1]]
 (provide 'init-core)
 ;;; init-core.el ends here
+;; init-core:1 ends here

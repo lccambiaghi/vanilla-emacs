@@ -1,5 +1,5 @@
 #+TITLE: Luca's literate Emacs config
-#+STARTUP: content
+#+STARTUP: show3levels
 #+OPTIONS: auto-id:t
 #+OPTIONS: broken-links:t
 #+OPTIONS: tags:nil
@@ -260,6 +260,7 @@ Taken from DOOM's init
   (require 'init-prog-jupyter)
   (require 'init-prog-elisp)
   (require 'init-prog-markdown)
+  (require 'init-prog-stan)
   ;; (require 'init-prog-r)
   ;; (require 'init-prog-clojure)
   (require 'init-prog-tree-sitter)
@@ -463,16 +464,21 @@ We can then restore package versions using ~M-x straight-thaw-versions~.
 :PROPERTIES:
 :CUSTOM_ID: h:F75CE115-0722-49E4-9BD8-8A57BADAD080
 :END:
-If you'd like to see how many packages you've loaded, what stage of initialization they've reached, and how much aggregate time they've spent (roughly), you can enable ~use-package-compute-statistics~ after loading use-package but before any use-package forms, and then run the command M-x ~use-package-report~ to see the results. The buffer displayed is a tabulated list. You can use S in a column to sort the rows based on it.
+If you'd like to see how many packages you've loaded, what stage of initialization they've
+reached, and how much aggregate time they've spent (roughly), you can enable
+~use-package-compute-statistics~ after loading use-package but before any use-package forms,
+and then run the command M-x ~use-package-report~ to see the results. The buffer displayed
+is a tabulated list. You can use =S= in a column to sort the rows based on it.
 
 #+BEGIN_SRC emacs-lisp
 (setq use-package-compute-statistics t)
 #+END_SRC
 
 From the report:
-- evil 0.56
-- embark 0.25
-- projectile 0.18
+- dashboard 3.18 (org)
+- evil-collection 2.48 (evil)
+- projectile 1.67
+- devdocs 1.17
   
 * Emacs
 :PROPERTIES:
@@ -1098,8 +1104,8 @@ in the rest of the file
     (save-excursion (apply orig-fn args)))
   (advice-add 'evil-indent :around #'lc/evil-dont-move-cursor)
   ;; disable TAB in normal mode to jump forward
-  (with-eval-after-load 'evil-maps
-    (define-key evil-motion-state-map (kbd "TAB") nil))
+  ;; (with-eval-after-load 'evil-maps
+  ;;   (define-key evil-motion-state-map (kbd "TAB") nil))
   )
 #+END_SRC
 
@@ -1137,8 +1143,8 @@ For example:
     '((emacs-lisp-mode eros-eval-region)
       ;; (scheme-mode geiser-eval-region)
       (clojure-mode cider-eval-region)
-			(jupyter-python jupyter-eval-region) ;; when executing in src block
-      (python-mode python-shell-send-region) ;; when executing in org-src-edit mode
+			(jupyter-repl-interaction-mode jupyter-eval-line-or-region) ;; when executing in src block
+      ;; (python-mode python-shell-send-region) ;; when executing in org-src-edit mode
       )
     "Alist used to determine evil-operator-eval's behaviour.
 Each element of this alist should be of this form:
@@ -1318,7 +1324,6 @@ Keybindings:
 #+begin_src emacs-lisp
 (use-package evil-mc
 	:after evil
-	:demand
   :general
 	(general-nmap
     "M-n" #'evil-mc-make-and-goto-next-match
@@ -1442,7 +1447,7 @@ Interesting bits:
     )
   (org-mode-map
    :states 'insert
-   "TAB" 'nil
+   "TAB" 'lc/org-indent-or-complete
    "S-TAB" nil)
   (org-mode-map
    :states 'normal
@@ -1478,6 +1483,14 @@ Interesting bits:
                                          ("->" . "→")
                                          ("->>" . "↠")))
   (setq prettify-symbols-unprettify-at-point 'right-edge)
+  (defun lc/org-indent-or-complete ()
+    "Complete if point is at end of a word, otherwise indent line."
+    (interactive)
+    (if (looking-at "\\>")
+        (dabbrev-expand nil)
+      (org-cycle)
+      ))
+  (setq warning-suppress-types (append warning-suppress-types '((org-element-cache))))
   :config
   ;; (efs/org-font-setup)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -1749,49 +1762,49 @@ Taken from https://github.com/KaratasFurkan/.emacs.d
 
 #+begin_src emacs-lisp
 (use-package org
-	:config
-	(require 's)
-	(defun lc/async-process (command &optional name filter)
-  "Start an async process by running the COMMAND string with bash. Return the
+  :config
+  (require 's)
+  (defun lc/async-process (command &optional name filter)
+    "Start an async process by running the COMMAND string with bash. Return the
 process object for it.
 
 NAME is name for the process. Default is \"async-process\".
 
 FILTER is function that runs after the process is finished, its args should be
 \"(process output)\". Default is just messages the output."
-  (make-process
-   :command `("bash" "-c" ,command)
-   :name (if name name
-           "async-process")
-   :filter (if filter filter
-             (lambda (process output) (message (s-trim output))))))
+    (make-process
+     :command `("bash" "-c" ,command)
+     :name (if name name
+             "async-process")
+     :filter (if filter filter
+               (lambda (process output) (message (s-trim output))))))
 
-	
-(defun lc/tangle-config ()
-  "Export code blocks from the literate config file
+  
+  (defun lc/tangle-config ()
+    "Export code blocks from the literate config file
 asynchronously."
-  (interactive)
-  (let ((command (if (file-directory-p "/Applications/Emacs.app")
-                     "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
-                   ;; on iPad
-									 "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
-                   ;; "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'  2>&1 | grep -v '^Loading.*\.\.\.$' | grep -v '^Using ' | grep -v '^dump '| grep -v '^Finding '"
-                   )))
-    ;; prevent emacs from killing until tangle-process finished
-    (add-to-list 'kill-emacs-query-functions
-                 (lambda ()
-                   (or (not (process-live-p (get-process "tangle-process")))
-                       (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
-    ;; tangle config asynchronously
-    (lc/async-process
-     (format command
-             (expand-file-name "readme.org" user-emacs-directory)
-             (expand-file-name "init.el" user-emacs-directory))
-     "tangle-process")
-    )
+    (interactive)
+    (let ((command (if (file-directory-p "/Applications/Emacs.app")
+                       "/Applications/Emacs.app/Contents/MacOS/Emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                     ;; on iPad
+                     "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'"
+                     ;; "emacs %s --batch --eval '(org-babel-tangle nil \"%s\")'  2>&1 | grep -v '^Loading.*\.\.\.$' | grep -v '^Using ' | grep -v '^dump '| grep -v '^Finding '"
+                     )))
+      ;; prevent emacs from killing until tangle-process finished
+      ;; (add-to-list 'kill-emacs-query-functions
+      ;;              (lambda ()
+      ;;                (or (not (process-live-p (get-process "tangle-process")))
+      ;;                    (y-or-n-p "\"fk/tangle-config\" is running; kill it? "))))
+      ;; tangle config asynchronously
+      (lc/async-process
+       (format command
+               (expand-file-name "readme.org" user-emacs-directory)
+               (expand-file-name "init.el" user-emacs-directory))
+       "tangle-process")
+      )
 
+    )
   )
-)
 #+end_src
 
 ** org reverse datetree
@@ -2235,12 +2248,12 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 #+begin_src emacs-lisp
 (use-package org-appear
   :straight (org-appear :type git :host github :repo "awth13/org-appear")
-	:hook (org-mode . org-appear-mode)
+  :hook (org-mode . org-appear-mode)
   :init
   (setq org-appear-autoemphasis  t)
   (setq org-appear-autolinks t)
   (setq org-appear-autosubmarkers t)
-	)
+  )
 
 #+end_src
 
@@ -2253,7 +2266,7 @@ Automatically disaply emphasis markers and links when the cursor is on them.
 	:hook (org-mode . org-fragtog-mode))
 #+end_src
 
-** org-encrypt
+** COMMENT org-encrypt
 :PROPERTIES:
 :CUSTOM_ID: h:65931801-3A7E-4828-B052-F978731F3004
 :END:
@@ -2830,26 +2843,26 @@ Containing LEFT, and RIGHT aligned respectively."
             "Restore"
             (lambda (&rest _) (persp-state-load persp-state-default-file)))
            )))
-	(defun lc/dashboard-agenda-entry-format ()
+  (defun lc/dashboard-agenda-entry-format ()
     "Format agenda entry to show it on dashboard. Compared to the original, we remove tags at the end"
-  (let* ((scheduled-time (org-get-scheduled-time (point)))
-         (deadline-time (org-get-deadline-time (point)))
-         (entry-time (or scheduled-time deadline-time))
-         (item (org-agenda-format-item
-                (dashboard-agenda--formatted-time)
-                (dashboard-agenda--formatted-headline)
-                (org-outline-level)
-                (org-get-category)
-                nil;; (org-get-tags)
-								))
-         (loc (point))
-         (file (buffer-file-name))
-         (todo-state (org-get-todo-state))
-         (todo-index (and todo-state
-                          (length (member todo-state org-todo-keywords-1))))
-         (entry-data (list (cons 'time entry-time)
-                           (cons 'todo-index todo-index))))
-    (list item loc file entry-data)))
+    (let* ((scheduled-time (org-get-scheduled-time (point)))
+           (deadline-time (org-get-deadline-time (point)))
+           (entry-time (or scheduled-time deadline-time))
+           (item (org-agenda-format-item
+                  (dashboard-agenda--formatted-time)
+                  (dashboard-agenda--formatted-headline)
+                  (org-outline-level)
+                  (org-get-category)
+                  nil;; (org-get-tags)
+                  ))
+           (loc (point))
+           (file (buffer-file-name))
+           (todo-state (org-get-todo-state))
+           (todo-index (and todo-state
+                            (length (member todo-state org-todo-keywords-1))))
+           (entry-data (list (cons 'time entry-time)
+                             (cons 'todo-index todo-index))))
+      (list item loc file entry-data)))
   (defun lc/dashboard-get-agenda ()
     "Get agenda items for today or for a week from now."
     (org-compile-prefix-format 'agenda)
@@ -2900,7 +2913,8 @@ Containing LEFT, and RIGHT aligned respectively."
                           (next . 10)
                           (bookmarks . 5)
                           ;; (recents  . 5)
-                          (projects . 5)))
+                          ;; (projects . 5)
+													))
   )
 #+END_SRC
 
@@ -3192,6 +3206,18 @@ You can use ~insert-char~ to insert the emoji or ~emojify-insert-emoji~
   )
 #+end_src
 
+** Transparent frame
+:PROPERTIES:
+:CUSTOM_ID: h:E54A78C6-FD42-40C8-BB33-E076D0D1EB94
+:END:
+#+begin_src emacs-lisp
+(use-package emacs
+  :init
+  (set-frame-parameter (selected-frame) 'alpha '(93 . 93))
+  (add-to-list 'default-frame-alist '(alpha . (93 . 93)))
+  )
+#+end_src
+
 * Completion framework
 :PROPERTIES:
 :CUSTOM_ID: h:06E0EA9F-7CF4-4B99-8A4A-2C63A4F8A6B6
@@ -3466,25 +3492,6 @@ NOTE:
   (setq enable-recursive-minibuffers t))
 #+end_src
 
-** dabbrev
-:PROPERTIES:
-:CUSTOM_ID: h:240FC4A5-CDED-4456-9EBA-9EDF05CE62B9
-:END:
-NOTE:
-- When =TAB= does not work, use =S-TAB= as backup
-
-#+begin_src emacs-lisp
-(use-package dabbrev
-  :general
-  (python-mode-map
-   :states 'insert
-   "<backtab>" 'dabbrev-completion)
-  (org-mode-map
-   :states 'insert
-   "<backtab>" 'dabbrev-completion)
-  )
-#+end_src
-
 ** COMMENT consult-selectrum
 :PROPERTIES:
 :CUSTOM_ID: h:37452726-47A2-44E3-818C-01835F9DCBCD
@@ -3715,15 +3722,15 @@ Taken from DOOM
   (setq corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (setq corfu-min-width 80)
   (setq corfu-max-width corfu-min-width)       ; Always have the same width
-	 (setq corfu-preselect-first t)   
-	 
-	 (defun corfu-enable-always-in-minibuffer ()
-  "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-  (unless (or (bound-and-true-p mct--active) ; Useful if I ever use MCT
-              (bound-and-true-p vertico--input))
-    (setq-local corfu-auto nil)       ; Ensure auto completion is disabled
-    (corfu-mode 1)))
-   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
+  (setq corfu-preselect-first t)   
+  
+  (defun corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+    (unless (or (bound-and-true-p mct--active) ; Useful if I ever use MCT
+                (bound-and-true-p vertico--input))
+      (setq-local corfu-auto nil)       ; Ensure auto completion is disabled
+      (corfu-mode 1)))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
   ;; :custom
   ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
   ;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
@@ -3732,6 +3739,56 @@ Taken from DOOM
   ;; (corfu-preselect-first nil)    ;; Disable candidate preselection
   ;; (corfu-echo-documentation nil) ;; Disable documentation in the echo area
   ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+  )
+#+end_src
+
+** COMMENT dabbrev
+:PROPERTIES:
+:CUSTOM_ID: h:240FC4A5-CDED-4456-9EBA-9EDF05CE62B9
+:END:
+NOTE:
+- When =TAB= does not work, use =S-TAB= as backup
+
+#+begin_src emacs-lisp
+(use-package dabbrev
+  :general
+  (python-mode-map
+   :states 'insert
+   "<backtab>" 'dabbrev-completion)
+  (org-mode-map
+   :states 'insert
+   "<backtab>" 'dabbrev-completion)
+  )
+#+end_src
+
+** cape
+:PROPERTIES:
+:CUSTOM_ID: h:E2D8F1CB-9FB9-4045-A087-7045C6FAA084
+:END:
+#+begin_src emacs-lisp
+;; Add extensions
+(use-package cape
+  :hook ((org-mode . lc/add-cape-functions)
+         (lsp-completion-mode . lc/add-cape-functions))
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (defun lc/add-cape-functions ()
+    (interactive)
+    (add-to-list 'completion-at-point-functions #'cape-file t)
+    ;; (fset #'cape-path (cape-company-to-capf #'company-files))
+    ;; (add-to-list 'completion-at-point-functions #'cape-path t)
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev t)
+    )
+  ;;(add-to-list 'completion-at-point-functions #'cape-history)
+  ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+  ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
+  ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+  ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;;(add-to-list 'completion-at-point-functions #'cape-line)
   )
 #+end_src
 
@@ -3763,11 +3820,12 @@ Taken from DOOM
 #+begin_src emacs-lisp
 (use-package emacs
   :straight (:type built-in)
-:general
-(lc/leader-keys
- "r m" '(bookmark-set :wk "set bookmark")
-)
-)
+  :general
+  (lc/leader-keys
+    "r m" '(bookmark-set :wk "set bookmark")
+    "r d" '(bookmark-delete :wk "delete bookmark")
+    )
+  )
 #+end_src
 
 * Programming
@@ -3789,7 +3847,7 @@ NOTE:
 
 #+BEGIN_SRC emacs-lisp
 (use-package projectile
-  :demand
+	:demand
   :general
   (lc/leader-keys
     :states 'normal
@@ -4173,12 +4231,27 @@ NOTE:
 :END:
 #+begin_src emacs-lisp
 (use-package undo-fu
-  :demand
+  ;; :demand
   :general
   (:states 'normal
            "u" 'undo-fu-only-undo
            "s-z" 'undo-fu-only-undo
            "\C-r" 'undo-fu-only-redo))
+#+end_src
+
+** undo fu session (persistent undo history)
+:PROPERTIES:
+:CUSTOM_ID: h:FC2D5A9A-DBD5-4878-AB4E-BBF5826B98E8
+:END:
+#+begin_src emacs-lisp
+(use-package undo-fu-session
+  :after undo-fu
+	 :demand
+  :init
+  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'"))
+  :config
+  (global-undo-fu-session-mode)
+  )
 #+end_src
 
 ** git                                                                  :git:
@@ -4694,6 +4767,9 @@ NOTE:
 :PROPERTIES:
 :CUSTOM_ID: h:884FB8DF-D672-496E-9068-1FD15F0250E5
 :END:
+NOTE:
+- If after increasing and resetting font size your modeline is still "fat", you can reset, decrease and reset to fix it
+
 #+begin_src emacs-lisp
 (use-package default-text-scale
   :hook (emacs-startup . default-text-scale-mode)
@@ -4707,17 +4783,18 @@ NOTE:
   (transient-define-prefix lc/font-size-transient ()
     "Change font size"
     ["Font size"
-     ("+" "Increase" (lambda () (interactive) (default-text-scale-increase) (lc/font-size-transient)))
-     ("-" "Decrease" (lambda () (interactive) (default-text-scale-decrease) (lc/font-size-transient)))
+     ("+" "Increase" (lambda () (interactive) (default-text-scale-increase) (with-eval-after-load 'doom-modeline (doom-modeline-refresh-font-width-cache)) (lc/font-size-transient)))
+     ("-" "Decrease" (lambda () (interactive) (default-text-scale-decrease) (with-eval-after-load 'doom-modeline (doom-modeline-refresh-font-width-cache)) (lc/font-size-transient)))
      ("0" "Reset" (lambda () (interactive)
-                       (setq default-text-scale--complement 0)
-                       (set-face-attribute 'default
-                                           nil
-                                           :height (lc/get-font-size))
-                       (message "Default font size is now %d"
-                                (face-attribute 'default :height))
-                       (lc/font-size-transient)))
+                    (setq default-text-scale--complement 0)
+                    (set-face-attribute 'default
+                                        nil
+                                        :height (lc/get-font-size))
+                    (message "Default font size is now %d"
+                             (face-attribute 'default :height))
+                    (lc/font-size-transient)))
      ])
+  (transient-bind-q-to-quit)
   )
 #+end_src
 
@@ -5476,24 +5553,27 @@ Disabled ~flymake~ as I can't find a way to make it work with ~flake8~ on a pyth
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
   :general
   (lc/local-leader-keys
-    :keymaps 'python-mode-map
+    :keymaps '(jupyter-org-interaction-mode-map jupyter-repl-interaction-mode-map)
+    :states 'normal
     "e" '(:ignore true :wk "eval")
     "e e" '(jupyter-eval-line-or-region :wk "line")
     "e d" '(jupyter-eval-defun :wk "defun")
     "e b" '((lambda () (interactive) (lc/jupyter-eval-buffer)) :wk "buffer")
-    "J" '(lc/jupyter-repl :wk "jupyter REPL")
-    "k" '(:ignore true :wk "kernel"))
-  ;; (lc/local-leader-keys
-  ;;   :keymaps 'python-mode-map
-  ;;   :states 'visual
-  ;;   "e" '(jupyter-eval-region :wk "eval"))
-	(lc/local-leader-keys
-    :keymaps 'jupyter-org-interaction-mode-map
-    :states 'normal
+    "e r" '(jupyter-eval-remove-overlays :wk "remove overlays")
+    "k" '(:ignore true :wk "kernel")
+    "k d" '(lc/kill-repl-kernel :wk "kill")
     "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
-    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
+    "k r" '(jupyter-repl-restart-kernel :wk "restart")
+    "J" '(lc/jupyter-repl :wk "jupyter REPL")
+    )
+  (lc/local-leader-keys
+    :keymaps '(jupyter-org-interaction-mode-map jupyter-repl-interaction-mode-map)
+    :states 'visual
+    "e" '(jupyter-eval-line-or-region :wk "region")
+    )
   :init
   (setq jupyter-repl-prompt-margin-width 4)
+  (setq jupyter-eval-use-overlays t)
   (defun jupyter-command-venv (&rest args)
     "This overrides jupyter-command to use the virtualenv's jupyter"
     (let ((jupyter-executable (executable-find "jupyter")))
@@ -5510,7 +5590,25 @@ Disabled ~flymake~ as I can't find a way to make it work with ~flake8~ on a pyth
     (if (bound-and-true-p jupyter-current-client)
         (jupyter-repl-pop-to-buffer)
       (call-interactively 'jupyter-repl-associate-buffer)))
-  (advice-add 'jupyter-command :override #'jupyter-command-venv))
+  (defun lc/kill-repl-kernel ()
+    "Kill repl buffer associated with current jupyter kernel"
+    (interactive)
+    (if jupyter-current-client
+        (jupyter-with-repl-buffer jupyter-current-client
+          (kill-buffer (current-buffer)))
+      (error "Buffer not associated with a REPL, see `jupyter-repl-associate-buffer'"))
+    )
+  (advice-add 'jupyter-command :override #'jupyter-command-venv)
+  ;; TODO refactor to avoid duplication of dap code
+  (setq lc/jupyter-temp-dataframe-buffer  "*inspect-df*")
+  (setq lc/jupyter-temp-dataframe-path "~/tmp-inspect-df.csv")
+  (defun lc/jupyter-inspect-df (dataframe)
+    "Save the df to csv and open the file with csv-mode"
+    (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
+    (jupyter-eval (format  "%s.to_csv('%s', index=False)" dataframe lc/jupyter-temp-dataframe-path))
+    (find-file-other-window lc/jupyter-temp-dataframe-path)
+    )
+  )
 #+end_src
 
 *** ob-jupyter
@@ -5909,7 +6007,10 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
-  :init (setq markdown-command "multimarkdown"))
+  :init
+	(setq markdown-command "multimarkdown")
+	(setq markdown-fontify-code-blocks-natively t)
+	)
 #+end_src
 
 ** yaml mode                                                  :prog_markdown:
@@ -5930,6 +6031,21 @@ If invoked with OUTPUT-TO-CURRENT-BUFFER, output the result to current buffer."
 #+begin_src emacs-lisp
 (use-package toml-mode
 	:mode "\\.toml\\'")
+#+end_src
+
+** stan mode
+:PROPERTIES:
+:CUSTOM_ID: h:33FE46F3-DB69-4F9F-B40B-9E1C970040D5
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-stan.el
+:END:
+#+begin_src emacs-lisp
+(use-package stan-mode
+  :mode ("\\.stan\\'" . stan-mode)
+  :hook (stan-mode . stan-mode-setup)
+  ;;
+  :config
+  ;; The officially recommended offset is 2.
+  (setq stan-indentation-offset 2))
 #+end_src
 
 * Gimmicks
@@ -6200,6 +6316,16 @@ NOTE:
 ;;; init-prog-markdown.el ends here
 #+end_src
 
+** init-prog-stan
+:PROPERTIES:
+:CUSTOM_ID: h:B315364E-ECF0-4ABC-9ACB-7546F6BB734C
+:header-args:    :emacs-lisp :tangle ./lisp/init-prog-stan.el
+:END:
+#+begin_src emacs-lisp
+(provide 'init-prog-stan)
+;;; init-prog-stan.el ends here
+#+end_src
+
 ** init-extra-focus
 :PROPERTIES:
 :header-args:    :emacs-lisp :tangle ./lisp/init-extra-focus.el
@@ -6248,16 +6374,6 @@ NOTE:
 :PROPERTIES:
 :CUSTOM_ID: h:167C14F0-55E7-4524-98BC-1C605BA44337
 :END:
-*** Make different font configurations (toggle big font)
-:PROPERTIES:
-:CUSTOM_ID: h:48656013-A692-467F-93DB-9E09967DE531
-:END:
-*** Make different window configurations for dap-mode
-:PROPERTIES:
-:CUSTOM_ID: h:42BF8EDB-1ABA-4DA9-A362-4D595791FA69
-:END:
-+ One with just the code and the REPL
-+ One with everything
 *** Improve LaTeX setup
 :PROPERTIES:
 :CUSTOM_ID: h:10F1C33B-B19C-4769-895D-2F81411D18EA
@@ -6291,111 +6407,12 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
 				))))
 #+end_src
 
-*** View dataframe in SES mode
-:PROPERTIES:
-:CUSTOM_ID: h:5F6DBFD0-7C74-4102-BBCD-3F6CB2913882
-:END:
-#+begin_src emacs-lisp
-(defun lc/jupyter-df-to-tsv (dataframe)
-  (thread-last
-    (jupyter-eval (concat "df" ".to_csv(sep='\t')"))
-    (string-replace "'" "")
-    ;; (subst-char-in-string ?\\ ?\\ )
-    ;; (string-replace "\\t" "t")
-    ))
-
-;; (defun lc/dap-eval (expression)
-;;   (dap-eval expression)
-;;   (sleep-for 2)
-;;   )
-
-(defun lc/dap-eval (expression)
-  "Eval and print EXPRESSION."
-  (interactive "sEval: ")
-  (let* ((debug-session (dap--cur-active-session-or-die))
-         (active-frame-id (-some->> debug-session
-                            dap--debug-session-active-frame
-                            (gethash "id")))
-         (result (dap--send-message
-                  (dap--make-request "evaluate"
-                                     (list :expression expression
-                                           :frameId active-frame-id
-                                           :context "hover"
-                                           ))
-                  (lambda (res) (setf result (or res :finished)))
-                  debug-session)))
-    (while (not result)
-      (accept-process-output nil 0.001))
-    ;; (thread-first
-    ;;   (gethash "result" (gethash "body" result))
-    ;;   (substring 4 -1)
-    ;;   )
-    ))
-
-(defun lc/dap-df-to-tsv (dataframe)
-  (lc/dap-eval (concat dataframe ".to_csv(sep='\t')")))
-
-(defun lc/pd-to-ses (dataframe)
-  (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
-  ;; (interactive "sVariable: ")
-  (let ((buffer (get-buffer-create
-                 (generate-new-buffer-name "*ein:ses pandas*")))
-        (tsv (lc/dap-df-to-tsv dataframe)))
-    ;; Open `ses-mode' buffer
-    (with-current-buffer buffer
-      (ses-mode)
-      (ses-yank-tsf tsv nil)
-      (ses-command-hook)
-      ;; (cl-flet ((y-or-n-p
-      ;;            (prompt)
-      ;;            (if (string-prefix-p "Yank will insert " prompt) t (error "Unexpected prompt: %s" prompt)))))
-      )
-    (pop-to-buffer buffer)))
-
-#+end_src
-
-*** ~demo-it~
-:PROPERTIES:
-:CUSTOM_ID: h:4CBD79C8-23E1-4415-AE16-7004B020DCAE
-:END:
-- https://github.com/howardabrams/demo-it
-- https://github.com/howardabrams/literate-devops-demo/blob/master/literate-devops-demo.el
-- https://github.com/howardabrams/magit-demo/blob/master/magit-demo.el
-*** More transient commands!
-:PROPERTIES:
-:CUSTOM_ID: h:CFC79023-39C4-46DE-8B94-49920C2E9444
-:END:
-#+begin_src emacs-lisp
-(transient-define-prefix jh/terraform-transient-command ()
-  "Run a terrafrom command."
-  ["Get"
-   ("g" "Get" jh/terraform-transient-get)]
-  ["Run"
-   ("a" "Apply" jh/terraform-transient-apply)
-   ("p" "Plan" jh/terraform-plan)
-   ("i" "Init" jh/terraform-init)])
-
-(transient-define-prefix jh/terraform-transient-get ()
-  ["Arguments"
-   ("-u" "Update modules" "-update")]
-  ["Actions"
-   ("g" "Get" jh/terraform-get)])
-
-(defun jh/terraform-get ()
-  "Get any non-retrieved modules for the current terraform configuration."
-  (interactive)
-  (jh/terraform-run-async-command "get"))
-
-(defun jh/terraform-run-async-command (action &rest args)
-  "Run the terraform ACTION with optional ARGS asynchronously."
-  (let ((command (string-join (cons action (transient-get-value)) " ")))
-    (async-shell-command (format "terraform %s" command))))
-#+end_src
-
-*** docstrings
+*** python: python docstrings
 :PROPERTIES:
 :CUSTOM_ID: h:5ED70817-7A77-4C7D-91E5-4CECC5E00990
 :END:
+- Have a look here: https://www.reddit.com/r/emacs/comments/lgqqsu/automatic_python_docstring_generation/
+
 #+begin_src emacs-lisp
 (use-package docstr
  :straight (:host github :repo "jcs-elpa/docstr")
@@ -6405,31 +6422,37 @@ https://gist.github.com/bigodel/56a4627afdfe9ad28f6dcc68b89a97f8
  (cl-pushnew '("/" . docstr-trigger-rust) docstr-trigger-alist :test #'equal))
 #+end_src
 
-*** Switch to ~project.el~
+*** projectile: Switch to ~project.el~
 :PROPERTIES:
 :CUSTOM_ID: h:779BF318-A030-42EC-A00A-BAEE5CDB5A95
 :END:
 - Start here: https://protesilaos.com/dotemacs/#h:7862f39e-aed0-4d02-9f1e-60c4601a9734
 - Then here: https://github.com/CIAvash/persp-mode-project-bridge
+- ACTUALLY here: https://github.com/mclear-tools/tabspaces
+*** org-tree-slide: Switch from ~org-tree-slide~ to ~org-present~
+:PROPERTIES:
+:CUSTOM_ID: h:36CDF8EA-BA0B-4BE1-994A-8A4FC8D6FCE1
+:END:
+https://github.com/daviwil/emacs-from-scratch/blob/master/show-notes/Emacs-Tips-04.org
+*** jupyter: see dataframe in csv-mode
+:PROPERTIES:
+:CUSTOM_ID: h:97388CDF-A4DD-413E-8124-1D61EBDEFC5E
+:END:
+*** jupyter: kill kernel associated with buffer
+:PROPERTIES:
+:CUSTOM_ID: h:5D358503-AB43-4358-9069-536613B5DE60
+:END:
 ** To fix
 :PROPERTIES:
 :CUSTOM_ID: h:92086A48-355B-426E-AB82-DB73FAA11A1C
 :END:
-*** ~helpful-variable~ sometimes throws syntax error
-:PROPERTIES:
-:CUSTOM_ID: h:9ABC9A4D-D71E-49E7-9C13-34DF1FFB2836
-:END:
-*** Can't export both light and dark themes, one of the two has wrong rainbow delimiters 
+*** org-html-themify: Can't export both light and dark themes, one of the two has wrong rainbow delimiters 
 :PROPERTIES:
 :CUSTOM_ID: h:6E70D3BF-8DDD-429F-92B8-BCBFCB42F94C
 :END:
-*** Can't export twice in a row
+*** org-html-themify: Can't export twice in a row
 :PROPERTIES:
 :CUSTOM_ID: h:5F766A45-274C-464F-AF6E-C7BB4BB17BC8
-:END:
-*** Setting of the theme is somehow wrong, dark is always set
-:PROPERTIES:
-:CUSTOM_ID: h:E9A59F97-B380-43D7-97EB-DAE30A17328F
 :END:
 * COMMENT Local variables
 :PROPERTIES:

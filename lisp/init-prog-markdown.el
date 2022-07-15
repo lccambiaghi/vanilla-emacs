@@ -4,7 +4,10 @@
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
-  :init (setq markdown-command "multimarkdown"))
+  :init
+	(setq markdown-command "multimarkdown")
+	(setq markdown-fontify-code-blocks-natively t)
+	)
 ;; markdown:1 ends here
 
 ;; [[file:../readme.org::#h:351ADC7D-38F2-47FF-9D9B-1C3F2F7B61D3][yaml mode:1]]

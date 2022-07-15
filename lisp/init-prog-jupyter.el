@@ -1,3 +1,4 @@
+;; [[file:../readme.org::#h:DE534B1B-9DF0-4966-A21C-B65B76B6A64E][org-jupyter-mode:1]]
 (use-package emacs
   :hook
   ((org-jupyter-mode . (lambda () (visual-line-mode -1)
@@ -22,29 +23,34 @@
     ;;             map)
     )
   )
+;; org-jupyter-mode:1 ends here
 
+;; [[file:../readme.org::#h:388AA3FF-BC18-4628-93DC-9292B568AE9F][jupyter:1]]
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
   :general
   (lc/local-leader-keys
-    :keymaps 'python-mode-map
+    :keymaps '(jupyter-org-interaction-mode-map jupyter-repl-interaction-mode-map)
+    :states 'normal
     "e" '(:ignore true :wk "eval")
     "e e" '(jupyter-eval-line-or-region :wk "line")
     "e d" '(jupyter-eval-defun :wk "defun")
     "e b" '((lambda () (interactive) (lc/jupyter-eval-buffer)) :wk "buffer")
-    "J" '(lc/jupyter-repl :wk "jupyter REPL")
-    "k" '(:ignore true :wk "kernel"))
-  ;; (lc/local-leader-keys
-  ;;   :keymaps 'python-mode-map
-  ;;   :states 'visual
-  ;;   "e" '(jupyter-eval-region :wk "eval"))
-	(lc/local-leader-keys
-    :keymaps 'jupyter-org-interaction-mode-map
-    :states 'normal
+    "e r" '(jupyter-eval-remove-overlays :wk "remove overlays")
+    "k" '(:ignore true :wk "kernel")
+    "k d" '(lc/kill-repl-kernel :wk "kill")
     "k i" '(jupyter-org-interrupt-kernel :wk "interrupt")
-    "k r" '(jupyter-repl-restart-kernel :wk "restart"))
+    "k r" '(jupyter-repl-restart-kernel :wk "restart")
+    "J" '(lc/jupyter-repl :wk "jupyter REPL")
+    )
+  (lc/local-leader-keys
+    :keymaps '(jupyter-org-interaction-mode-map jupyter-repl-interaction-mode-map)
+    :states 'visual
+    "e" '(jupyter-eval-line-or-region :wk "region")
+    )
   :init
   (setq jupyter-repl-prompt-margin-width 4)
+  (setq jupyter-eval-use-overlays t)
   (defun jupyter-command-venv (&rest args)
     "This overrides jupyter-command to use the virtualenv's jupyter"
     (let ((jupyter-executable (executable-find "jupyter")))
@@ -61,16 +67,37 @@
     (if (bound-and-true-p jupyter-current-client)
         (jupyter-repl-pop-to-buffer)
       (call-interactively 'jupyter-repl-associate-buffer)))
-  (advice-add 'jupyter-command :override #'jupyter-command-venv))
+  (defun lc/kill-repl-kernel ()
+    "Kill repl buffer associated with current jupyter kernel"
+    (interactive)
+    (if jupyter-current-client
+        (jupyter-with-repl-buffer jupyter-current-client
+          (kill-buffer (current-buffer)))
+      (error "Buffer not associated with a REPL, see `jupyter-repl-associate-buffer'"))
+    )
+  (advice-add 'jupyter-command :override #'jupyter-command-venv)
+  ;; TODO refactor to avoid duplication of dap code
+  (setq lc/jupyter-temp-dataframe-buffer  "*inspect-df*")
+  (setq lc/jupyter-temp-dataframe-path "~/tmp-inspect-df.csv")
+  (defun lc/jupyter-inspect-df (dataframe)
+    "Save the df to csv and open the file with csv-mode"
+    (interactive (list (read-from-minibuffer "DataFrame: " (evil-find-symbol nil))))
+    (jupyter-eval (format  "%s.to_csv('%s', index=False)" dataframe lc/jupyter-temp-dataframe-path))
+    (find-file-other-window lc/jupyter-temp-dataframe-path)
+    )
+  )
+;; jupyter:1 ends here
 
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
 
+;; [[file:../readme.org::#h:600809B3-9B92-43F9-9A99-3D007CEE044D][ob-jupyter:2]]
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
   :general
   (lc/local-leader-keys
     :keymaps 'org-mode-map
     "=" '((lambda () (interactive) (jupyter-org-insert-src-block t nil)) :wk "block below")
+    "," 'org-ctrl-c-ctrl-c
     "m" '(jupyter-org-merge-blocks :wk "merge")
     "+" '(jupyter-org-insert-src-block :wk "block above")
     "?" '(jupyter-inspect-at-point :wk "inspect")
@@ -125,6 +152,9 @@
   ;;   (add-to-list 'org-src-lang-modes '("jupyter-python" . python))
   ;;   (add-to-list 'org-src-lang-modes '("jupyter-R" . R)))
 	)
+;; ob-jupyter:2 ends here
 
+;; [[file:../readme.org::#h:FD3CCF1B-8F23-4863-8592-0AF46542AB21][init-prog-jupyter:1]]
 (provide 'init-prog-jupyter)
 ;;; init-prog-jupyter.el ends here
+;; init-prog-jupyter:1 ends here

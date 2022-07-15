@@ -44,6 +44,7 @@
   (require 'init-prog-jupyter)
   (require 'init-prog-elisp)
   (require 'init-prog-markdown)
+  (require 'init-prog-stan)
   ;; (require 'init-prog-r)
   ;; (require 'init-prog-clojure)
   (require 'init-prog-tree-sitter)
