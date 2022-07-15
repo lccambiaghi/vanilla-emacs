@@ -2112,9 +2112,10 @@ I use this package to export my config to HTML. I then push it to the ~gh-pages~
 
 NOTE:
 - Make sure the mode is active
-- Run ~org-export-dispatch~ and export to HTML
+- Comment out ~rainbow-delimiters~ section and restart
+- Run ~org-export-dispatch~ and export to HTML (binded to =, E=)
 - Make sure to set ~org-html-themify-themes~ to lighter variant so it is easier to read
-- The second export will not generate correct .css . Restart emacs and retry
+- The second export will not generate correct .css . Restart emacs and export as first thing
 
 #+begin_src emacs-lisp
 (use-package org-html-themify
@@ -5626,7 +5627,7 @@ Note:
 - Use ~toggle-truncate-lines~ when printing dataframes
 
 When exporting ~.org~ file to HTML, we can add this header:
-#+begin_src org
+#+begin_src org :tangle no
 ,#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
 #+end_src
 

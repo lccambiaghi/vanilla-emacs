@@ -88,8 +88,6 @@
   )
 ;; jupyter:1 ends here
 
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
-
 ;; [[file:../readme.org::#h:600809B3-9B92-43F9-9A99-3D007CEE044D][ob-jupyter:2]]
 (use-package jupyter
   :straight (:no-native-compile t :no-byte-compile t) ;; otherwise we get jupyter-channel void
