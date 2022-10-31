@@ -85,6 +85,15 @@
     (jupyter-eval (format  "%s.to_csv('%s', index=False)" dataframe lc/jupyter-temp-dataframe-path))
     (find-file-other-window lc/jupyter-temp-dataframe-path)
     )
+	
+	(add-to-list 'display-buffer-alist
+               '("\\*jupyter-output\\*\\|\\*jupyter-error\\*"
+								 (cons 'display-buffer-no-window
+                         '((allow-no-window . t)))
+                 ))
+
+
+
   )
 ;; jupyter:1 ends here
 

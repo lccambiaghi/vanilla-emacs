@@ -14,17 +14,17 @@
 
 ;; [[file:../readme.org::#h:991499E8-6FF8-41DB-B533-6D627602DFD4][winum:1]]
 (use-package winum
-:general
-(lc/leader-keys
-"1" '(winum-select-window-1 :wk "win 1")
-"2" '(winum-select-window-2 :wk "win 2")
-"3" '(winum-select-window-3 :wk "win 3")
-"4" '(winum-select-window-4 :wk "win 4")
-"5" '(winum-select-window-5 :wk "win 5")
-"6" '(winum-select-window-6 :wk "win 6")
-)
-:config
-(winum-mode))
+  :general
+  (lc/leader-keys
+    "1" '(winum-select-window-1 :wk "win 1")
+    "2" '(winum-select-window-2 :wk "win 2")
+    "3" '(winum-select-window-3 :wk "win 3")
+    "4" '(winum-select-window-4 :wk "win 4")
+    "5" '(winum-select-window-5 :wk "win 5")
+    "6" '(winum-select-window-6 :wk "win 6")
+    )
+  :config
+  (winum-mode))
 ;; winum:1 ends here
 
 ;; [[file:../readme.org::#h:9E3C0942-1D8C-403F-9D44-5BEDA2966C58][transpose frame:1]]

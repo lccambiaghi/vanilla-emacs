@@ -12,7 +12,7 @@
 ;; [[file:../readme.org::#h:C59E740E-F00B-4D2F-B5A3-36C3B99BCD5E][evil-lisp state:1]]
 (use-package evil-lisp-state
   :after evil
-  :demand
+  ;; :demand
   :init
   (setq evil-lisp-state-enter-lisp-state-on-command nil)
   (setq evil-lisp-state-global t)

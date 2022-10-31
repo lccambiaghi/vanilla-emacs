@@ -46,7 +46,7 @@
   (require 'init-prog-markdown)
   (require 'init-prog-stan)
   ;; (require 'init-prog-r)
-  ;; (require 'init-prog-clojure)
+  (require 'init-prog-clojure)
   (require 'init-prog-tree-sitter)
   (require 'init-extra-focus)
   (require 'init-extra-web)

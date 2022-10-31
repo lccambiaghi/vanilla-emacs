@@ -262,7 +262,7 @@ Taken from DOOM's init
   (require 'init-prog-markdown)
   (require 'init-prog-stan)
   ;; (require 'init-prog-r)
-  ;; (require 'init-prog-clojure)
+  (require 'init-prog-clojure)
   (require 'init-prog-tree-sitter)
   (require 'init-extra-focus)
   (require 'init-extra-web)
@@ -1116,7 +1116,7 @@ in the rest of the file
 #+BEGIN_SRC emacs-lisp
 (use-package evil-collection
   :after evil
-  :demand
+  :defer 1
 	:init
 	(setq evil-collection-magit-use-z-for-folds nil)
   :config
@@ -2174,6 +2174,9 @@ It seems that also ~jupyter-python~ should be replaced with ~ipython~ for the ex
 :PROPERTIES:
 :CUSTOM_ID: h:6181675A-C397-4449-A8D9-AFDAECD6D4EE
 :END:
+NOTE:
+- Have a look here: https://github.com/dorneanu/slides/blob/main/.dir-locals.el
+
 #+begin_src emacs-lisp
 (use-package org-re-reveal
   :after org
@@ -2973,17 +2976,17 @@ Taken from https://emacs.stackexchange.com/questions/46210/reuse-help-window
 :END:
 #+begin_src emacs-lisp
 (use-package winum
-:general
-(lc/leader-keys
-"1" '(winum-select-window-1 :wk "win 1")
-"2" '(winum-select-window-2 :wk "win 2")
-"3" '(winum-select-window-3 :wk "win 3")
-"4" '(winum-select-window-4 :wk "win 4")
-"5" '(winum-select-window-5 :wk "win 5")
-"6" '(winum-select-window-6 :wk "win 6")
-)
-:config
-(winum-mode))
+  :general
+  (lc/leader-keys
+    "1" '(winum-select-window-1 :wk "win 1")
+    "2" '(winum-select-window-2 :wk "win 2")
+    "3" '(winum-select-window-3 :wk "win 3")
+    "4" '(winum-select-window-4 :wk "win 4")
+    "5" '(winum-select-window-5 :wk "win 5")
+    "6" '(winum-select-window-6 :wk "win 6")
+    )
+  :config
+  (winum-mode))
 #+end_src
 
 ** transpose frame                                                 :ui_extra:
@@ -3829,6 +3832,34 @@ NOTE:
   )
 #+end_src
 
+** ace-window
+:PROPERTIES:
+:CUSTOM_ID: h:456CF6DE-3C7A-4269-8C91-4F92AAC515A1
+:END:
+#+begin_src emacs-lisp
+(use-package ace-window
+  :general
+  (lc/leader-keys
+    "w a" '(ace-window :wk "ace window"))
+  :init
+  (defmacro my/embark-ace-action (fn)
+    `(defun ,(intern (concat "my/embark-ace-" (symbol-name fn))) ()
+       (interactive)
+       (with-demoted-errors "%s"
+         (require 'ace-window)
+         (let ((aw-dispatch-always t))
+           (aw-switch-to-window (aw-select nil))
+           (call-interactively (symbol-function ',fn))))))
+  :config
+  ;; from https://karthinks.com/software/fifteen-ways-to-use-embark/
+  (with-eval-after-load 'embark
+    (define-key embark-file-map     (kbd "o") (my/embark-ace-action find-file))
+    (define-key embark-buffer-map   (kbd "o") (my/embark-ace-action switch-to-buffer))
+    (define-key embark-bookmark-map (kbd "o") (my/embark-ace-action bookmark-jump))
+    )
+  )
+#+end_src
+
 * Programming
 :PROPERTIES:
 :CUSTOM_ID: h:EB91F91E-8984-4806-8254-B0487044D30C
@@ -3862,7 +3893,7 @@ NOTE:
     (setq projectile-project-search-path '("~/git")))
   (setq projectile-completion-system 'default)
   (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
-  (setq projectile-switch-project-action 'projectile-commander)
+  (setq projectile-switch-project-action 'projectile-find-file)
   ;; Do not include straight repos (emacs packages) to project list
   (setq projectile-ignored-project-function
         (lambda (project-root)
@@ -4096,7 +4127,7 @@ NOTE:
                          (revert-buffer)))))
 #+END_SRC
 
-*** COMMENT dired rsync
+*** dired rsync
 :PROPERTIES:
 :CUSTOM_ID: h:629AEC4E-F112-457A-BAF9-6B5786DEC8EF
 :END:
@@ -4106,7 +4137,10 @@ NOTE:
   (lc/local-leader-keys
     :keymaps 'dired-mode-map
     :states 'normal
-    "r" 'dired-rsync))
+    "r" 'dired-rsync)
+  :init
+  (setq dired-rsync-options "-az") ;; default:  "-az --info=progress2"
+  )
 #+end_src
 
 ** persistent scratch
@@ -4799,11 +4833,14 @@ NOTE:
   )
 #+end_src
 
-** isearch-mb                                                    :prog_extra:
+** COMMENT isearch-mb                                            :prog_extra:
 :PROPERTIES:
 :CUSTOM_ID: h:58E5AE2F-4E1C-4B72-9B63-B96AEF55F4DA
 :END:
-You can use ~consult-history~ to browse past searches
+NOTE:
+- You can use ~consult-history~ to browse past searches
+- =C-s= to start searching, =RET= to complete
+- =C-s= repeats the search
 
 #+begin_src emacs-lisp
 (use-package isearch-mb
@@ -4890,7 +4927,7 @@ NOTE:
 - =devdocs-install= to install docs of e.g. ~pandas~
 #+begin_src emacs-lisp
 (use-package devdocs
-  :demand
+  ;; :demand
   :general
   (lc/leader-keys
     "hD" 'devdocs-lookup
@@ -5147,7 +5184,7 @@ NOTE:
       ;; (when-let
       ;;     (win (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
       ;;   (delete-window win))
-			)
+      )
     )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
@@ -5175,7 +5212,7 @@ NOTE:
     (save-excursion (dap-go-to-output-buffer t))
     ;; resize window
     (save-window-excursion
-			;; switch to main window
+      ;; switch to main window
       (winum-select-window-1)
       (lc/window-resize-to-percentage 0.66)
       )
@@ -5217,51 +5254,18 @@ NOTE:
                               :module "pytest"
                               :debugger 'debugpy
                               :name "dap-debug-test-at-point"))
-  (defvar flight-tower-mill (list
-                             :name "mill"
-                             :type "python"
-                             :request "launch"
-                             :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
-                             ;; :env '(("NO_JSON_LOG" . "true"))
-                             :args ["-m" "mill" "--config" "user_luca"]))
-  (defvar flight-tower-calibration (list
-                                    :name "mill"
-                                    :type "python"
-                                    :request "launch"
-                                    :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
-                                    ;; :env '(("NO_JSON_LOG" . "true"))
-                                    :args ["-m" "mill"
-                                           ;; "--config" "user_luca"
-                                           ;; "--config" "calibration_g292imp_41x185"
-                                           ;; "--config" "calibration_41x185_38x89"
-                                           "--config" "calibration_jan22"
-                                           ]
-                                    ))
-  (defvar flight-tower-e2e (list
-                            :name "mill"
-                            :type "python"
-                            :request "launch"
-                            :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
-                            ;; :env '(("NO_JSON_LOG" . "true"))
-                            :args ["-m" "wood_processing_e2e"
-                                   "--config" "user_luca"]
-                            ))
-  (defvar mill-data-factory (list
-                             :name "mill"
-                             :type "python"
-                             :request "launch"
-                             :program (expand-file-name "~/git/Sodra.Common.FlightTower.Datafactory/ft_pipelines/__main__.py")
-                             :args ["-m" "wood_processing_e2e"
-                                    "--config" "user_luca"
-                                    ]
-                             ))
+  (defvar eco-cold-start (list
+                          :name "mill"
+                          :type "python"
+                          :request "launch"
+                          :program (expand-file-name "~/git/ran_optimization/scripts_smart_sleep_orchestration/find_cold_start_smart_sleep_thresholds.py")
+                          ;; :env '(("NO_JSON_LOG" . "true"))
+                          ;; :args ["-m" "mill" "--config" "user_luca"]
+                          ))
 
   (dap-register-debug-template "dap-debug-script" dap-script-args)
   (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
-  (dap-register-debug-template "flight-tower-mill" flight-tower-mill)
-  (dap-register-debug-template "flight-tower-e2e" flight-tower-e2e)
-  (dap-register-debug-template "flight-tower-calibration" flight-tower-calibration)
-  (dap-register-debug-template "mill-data-factory" mill-data-factory)
+  (dap-register-debug-template "eco-cold-start" eco-cold-start)
   ;; bind the templates
   (lc/local-leader-keys
     :keymaps 'python-mode-map
@@ -5378,9 +5382,11 @@ Here the configuration options: https://github.com/emacs-lsp/lsp-pyright#configu
 (use-package flycheck
 	:hook ((lsp-mode . flycheck-mode)
 				 (envrc-mode . (lambda ()
-                        (setq flycheck-python-flake8-executable (executable-find "python"))
-                        (setq flycheck-checker 'python-flake8)
-                        (setq flycheck-flake8rc ".flake8")
+                        ;; (setq flycheck-python-flake8-executable (executable-find "python"))
+                        ;; (setq flycheck-checker 'python-flake8)
+                        ;; (setq flycheck-flake8rc ".flake8")
+                        (setq flycheck-python-pylint-executable (executable-find "python"))
+                        (setq flycheck-checker 'python-pylint)
 												)))
 	:init
 	(setq flycheck-indication-mode 'right-fringe)
@@ -5511,7 +5517,7 @@ Disabled ~flymake~ as I can't find a way to make it work with ~flake8~ on a pyth
   )
 #+end_src
 
-*** code-cells
+*** COMMENT code-cells
 :PROPERTIES:
 :CUSTOM_ID: h:72656E4E-C0B1-49E4-92AB-961F08655435
 :END:
@@ -5526,6 +5532,22 @@ Disabled ~flymake~ as I can't find a way to make it work with ~flake8~ on a pyth
     (define-key map [remap evil-forward-word-end] (code-cells-speed-key 'code-cells-eval)) ;; e
     (define-key map [remap evil-jump-forward] (code-cells-speed-key 'outline-cycle))) ;; TAB
 	)
+#+end_src
+
+*** numpydoc
+:PROPERTIES:
+:CUSTOM_ID: h:1AF699CF-E6D0-4AEE-9585-76064D040889
+:END:
+#+begin_src emacs-lisp
+(use-package numpydoc
+  :general
+  (lc/local-leader-keys
+    :keymaps 'python-mode-map
+    "n" '(numpydoc-generate :wk "numpydoc"))
+  :init
+  (setq numpydoc-insertion-style nil)
+	(setq numpydoc-insert-examples-block nil)
+  )
 #+end_src
 
 ** Jupyter                                                     :prog_jupyter:
@@ -5609,6 +5631,15 @@ Disabled ~flymake~ as I can't find a way to make it work with ~flake8~ on a pyth
     (jupyter-eval (format  "%s.to_csv('%s', index=False)" dataframe lc/jupyter-temp-dataframe-path))
     (find-file-other-window lc/jupyter-temp-dataframe-path)
     )
+	
+	(add-to-list 'display-buffer-alist
+               '("\\*jupyter-output\\*\\|\\*jupyter-error\\*"
+								 (cons 'display-buffer-no-window
+                         '((allow-no-window . t)))
+                 ))
+
+
+
   )
 #+end_src
 
@@ -5820,7 +5851,7 @@ NOTE:
 #+begin_src emacs-lisp
 (use-package evil-lisp-state
   :after evil
-  :demand
+  ;; :demand
   :init
   (setq evil-lisp-state-enter-lisp-state-on-command nil)
   (setq evil-lisp-state-global t)

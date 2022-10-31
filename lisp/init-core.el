@@ -490,7 +490,7 @@
 ;; [[file:../readme.org::#h:04B5B86D-5E51-41A8-ACE5-D07EBCDBA4E7][evil-collection:1]]
 (use-package evil-collection
   :after evil
-  :demand
+  :defer 1
 	:init
 	(setq evil-collection-magit-use-z-for-folds nil)
   :config
@@ -1956,6 +1956,30 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   )
 ;; bookmarks:1 ends here
 
+;; [[file:../readme.org::#h:456CF6DE-3C7A-4269-8C91-4F92AAC515A1][ace-window:1]]
+(use-package ace-window
+  :general
+  (lc/leader-keys
+    "w a" '(ace-window :wk "ace window"))
+  :init
+  (defmacro my/embark-ace-action (fn)
+    `(defun ,(intern (concat "my/embark-ace-" (symbol-name fn))) ()
+       (interactive)
+       (with-demoted-errors "%s"
+         (require 'ace-window)
+         (let ((aw-dispatch-always t))
+           (aw-switch-to-window (aw-select nil))
+           (call-interactively (symbol-function ',fn))))))
+  :config
+  ;; from https://karthinks.com/software/fifteen-ways-to-use-embark/
+  (with-eval-after-load 'embark
+    (define-key embark-file-map     (kbd "o") (my/embark-ace-action find-file))
+    (define-key embark-buffer-map   (kbd "o") (my/embark-ace-action switch-to-buffer))
+    (define-key embark-bookmark-map (kbd "o") (my/embark-ace-action bookmark-jump))
+    )
+  )
+;; ace-window:1 ends here
+
 ;; [[file:../readme.org::#h:788EC6E4-44DD-4E93-A1FC-517CA9213396][projectile:1]]
 (use-package projectile
 	:demand
@@ -1972,7 +1996,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
     (setq projectile-project-search-path '("~/git")))
   (setq projectile-completion-system 'default)
   (setq projectile-project-root-files '(".envrc" ".projectile" "project.clj" "deps.edn"))
-  (setq projectile-switch-project-action 'projectile-commander)
+  (setq projectile-switch-project-action 'projectile-find-file)
   ;; Do not include straight repos (emacs packages) to project list
   (setq projectile-ignored-project-function
         (lambda (project-root)
@@ -2157,6 +2181,18 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
                        (when all-the-icons-dired-mode
                          (revert-buffer)))))
 ;; dired subtree:1 ends here
+
+;; [[file:../readme.org::#h:629AEC4E-F112-457A-BAF9-6B5786DEC8EF][dired rsync:1]]
+(use-package dired-rsync
+  :general
+  (lc/local-leader-keys
+    :keymaps 'dired-mode-map
+    :states 'normal
+    "r" 'dired-rsync)
+  :init
+  (setq dired-rsync-options "-az") ;; default:  "-az --info=progress2"
+  )
+;; dired rsync:1 ends here
 
 ;; [[file:../readme.org::#h:FF4B176D-E133-4013-9926-87F9A20E3BBD][persistent scratch:1]]
 (use-package persistent-scratch
@@ -2665,27 +2701,6 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
   )
 ;; transient increase/decrease font size:1 ends here
 
-;; [[file:../readme.org::#h:58E5AE2F-4E1C-4B72-9B63-B96AEF55F4DA][isearch-mb:1]]
-(use-package isearch-mb
-  :straight (isearch-mb :type git :host github :repo "astoff/isearch-mb")
-  :demand
-  :init
-  (setq-default
-   ;; Match count next to minibuffer prompt
-   isearch-lazy-count t
-   ;; Don't be stingy with history; default is to keep just 16 entries
-   search-ring-max 200
-   regexp-search-ring-max 200
-   ;; fuzzy match with space
-   isearch-regexp-lax-whitespace t
-   search-whitespace-regexp ".*?"
-   )
-  :config
-  (add-to-list 'isearch-mb--with-buffer #'loccur-isearch)
-  (define-key isearch-mb-minibuffer-map (kbd "C-o") #'loccur-isearch)
-  )
-;; isearch-mb:1 ends here
-
 ;; [[file:../readme.org::#h:37FF0EE6-B8B7-4208-8F31-7361AB22DC52][avy:1]]
 (use-package avy
   :general
@@ -2710,7 +2725,7 @@ windows (unlike `doom/window-maximize-buffer'). Activate again to undo."
 
 ;; [[file:../readme.org::#h:21F53DE6-4F2C-4B38-9C72-98E303687C7D][devdocs:1]]
 (use-package devdocs
-  :demand
+  ;; :demand
   :general
   (lc/leader-keys
     "hD" 'devdocs-lookup

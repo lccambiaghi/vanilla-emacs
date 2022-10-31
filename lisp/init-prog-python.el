@@ -77,9 +77,11 @@
 (use-package flycheck
 	:hook ((lsp-mode . flycheck-mode)
 				 (envrc-mode . (lambda ()
-                        (setq flycheck-python-flake8-executable (executable-find "python"))
-                        (setq flycheck-checker 'python-flake8)
-                        (setq flycheck-flake8rc ".flake8")
+                        ;; (setq flycheck-python-flake8-executable (executable-find "python"))
+                        ;; (setq flycheck-checker 'python-flake8)
+                        ;; (setq flycheck-flake8rc ".flake8")
+                        (setq flycheck-python-pylint-executable (executable-find "python"))
+                        (setq flycheck-checker 'python-pylint)
 												)))
 	:init
 	(setq flycheck-indication-mode 'right-fringe)
@@ -153,18 +155,17 @@
   )
 ;; csv mode:1 ends here
 
-;; [[file:../readme.org::#h:72656E4E-C0B1-49E4-92AB-961F08655435][code-cells:1]]
-(use-package code-cells
-  :hook (python-mode . code-cells-mode)
-	:config
-	(let ((map code-cells-mode-map))
-    (define-key map [remap evil-search-next] (code-cells-speed-key 'code-cells-forward-cell)) ;; n
-    (define-key map [remap evil-paste-after] (code-cells-speed-key 'code-cells-backward-cell)) ;; p
-    (define-key map [remap evil-backward-word-begin] (code-cells-speed-key 'code-cells-eval-above)) ;; b
-    (define-key map [remap evil-forward-word-end] (code-cells-speed-key 'code-cells-eval)) ;; e
-    (define-key map [remap evil-jump-forward] (code-cells-speed-key 'outline-cycle))) ;; TAB
-	)
-;; code-cells:1 ends here
+;; [[file:../readme.org::#h:1AF699CF-E6D0-4AEE-9585-76064D040889][numpydoc:1]]
+(use-package numpydoc
+  :general
+  (lc/local-leader-keys
+    :keymaps 'python-mode-map
+    "n" '(numpydoc-generate :wk "numpydoc"))
+  :init
+  (setq numpydoc-insertion-style nil)
+	(setq numpydoc-insert-examples-block nil)
+  )
+;; numpydoc:1 ends here
 
 ;; [[file:../readme.org::#h:E80DEB4B-6AC9-415D-AF36-0044479D1B5A][init-prog-python:1]]
 (provide 'init-prog-python)

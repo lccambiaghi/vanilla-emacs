@@ -130,7 +130,7 @@
       ;; (when-let
       ;;     (win (get-buffer-window (get-file-buffer lc/dap-temp-dataframe-path)))
       ;;   (delete-window win))
-			)
+      )
     )
   (defun lc/dap-python--executable-find (orig-fun &rest args)
     (executable-find "python"))
@@ -158,7 +158,7 @@
     (save-excursion (dap-go-to-output-buffer t))
     ;; resize window
     (save-window-excursion
-			;; switch to main window
+      ;; switch to main window
       (winum-select-window-1)
       (lc/window-resize-to-percentage 0.66)
       )
@@ -200,51 +200,18 @@
                               :module "pytest"
                               :debugger 'debugpy
                               :name "dap-debug-test-at-point"))
-  (defvar flight-tower-mill (list
-                             :name "mill"
-                             :type "python"
-                             :request "launch"
-                             :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
-                             ;; :env '(("NO_JSON_LOG" . "true"))
-                             :args ["-m" "mill" "--config" "user_luca"]))
-  (defvar flight-tower-calibration (list
-                                    :name "mill"
-                                    :type "python"
-                                    :request "launch"
-                                    :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
-                                    ;; :env '(("NO_JSON_LOG" . "true"))
-                                    :args ["-m" "mill"
-                                           ;; "--config" "user_luca"
-                                           ;; "--config" "calibration_g292imp_41x185"
-                                           ;; "--config" "calibration_41x185_38x89"
-                                           "--config" "calibration_jan22"
-                                           ]
-                                    ))
-  (defvar flight-tower-e2e (list
-                            :name "mill"
-                            :type "python"
-                            :request "launch"
-                            :program (expand-file-name "~/git/Sodra.Common.FlightTower/flight_tower/__main__.py")
-                            ;; :env '(("NO_JSON_LOG" . "true"))
-                            :args ["-m" "wood_processing_e2e"
-                                   "--config" "user_luca"]
-                            ))
-  (defvar mill-data-factory (list
-                             :name "mill"
-                             :type "python"
-                             :request "launch"
-                             :program (expand-file-name "~/git/Sodra.Common.FlightTower.Datafactory/ft_pipelines/__main__.py")
-                             :args ["-m" "wood_processing_e2e"
-                                    "--config" "user_luca"
-                                    ]
-                             ))
+  (defvar eco-cold-start (list
+                          :name "mill"
+                          :type "python"
+                          :request "launch"
+                          :program (expand-file-name "~/git/ran_optimization/scripts_smart_sleep_orchestration/find_cold_start_smart_sleep_thresholds.py")
+                          ;; :env '(("NO_JSON_LOG" . "true"))
+                          ;; :args ["-m" "mill" "--config" "user_luca"]
+                          ))
 
   (dap-register-debug-template "dap-debug-script" dap-script-args)
   (dap-register-debug-template "dap-debug-test-at-point" dap-test-args)
-  (dap-register-debug-template "flight-tower-mill" flight-tower-mill)
-  (dap-register-debug-template "flight-tower-e2e" flight-tower-e2e)
-  (dap-register-debug-template "flight-tower-calibration" flight-tower-calibration)
-  (dap-register-debug-template "mill-data-factory" mill-data-factory)
+  (dap-register-debug-template "eco-cold-start" eco-cold-start)
   ;; bind the templates
   (lc/local-leader-keys
     :keymaps 'python-mode-map
